@@ -20,11 +20,18 @@ namespace Script.sound
         private Vector3 _estimatedSoundPosition = Vector3.zero; 
     
         public int distanceForVisit = 1;
+        public float maxSearchTime = 5.0f; // 전진 탐색 최대 시간
+        private float _searchTimer = 0f;
+        private float _originalSpeed;
+        
+        public bool showDebugGizmos = true; // 시각화 토글용 변수
+        public float nodeSpacing = 2.0f;    // 노드(점) 간의 간격
 
         public enum StateMachine
         {
             IntoTheUnknown, // 모르는 길 (더듬기)
-            WhatYouGonnaDo  // 아는 길 (빠르게 이동)
+            WhatYouGonnaDo, // 아는 길 (빠르게 이동)
+            Idle            // 배회 (느리게 탐색)
         }
 
         public StateMachine _state = StateMachine.IntoTheUnknown;
@@ -32,12 +39,13 @@ namespace Script.sound
         private void Awake()
         {
             _agent = GetComponent<NavMeshAgent>();
+            _originalSpeed = _agent.speed;
         }
 
         private void Start()
         {
-            // NavMesh의 모든 꼭짓점을 가져옴[cite: 1]
-            _constAll = NavMesh.CalculateTriangulation().vertices;
+            // NavMesh 표면에 일정한 간격으로 점들을 생성
+            _constAll = GenerateEvenlySpacedPoints(nodeSpacing);
             _unvisited = new HashSet<Vector3>(_constAll);
             _visited = new HashSet<Vector3>();
         }
@@ -88,23 +96,38 @@ namespace Script.sound
                                       new Vector3(Random.Range(-soundHeard, soundHeard), 0,
                                           Random.Range(-soundHeard, soundHeard)) / correctness;
 
-            // 내가 아는 지점(_visited) 중 추정 위치와 가장 '가까운' 점 찾기
-            var closestKnownPoint = transform.position;
-            float minDistance = float.MaxValue;
+            // 에이전트 구역, 도달 가능 목적지 구역, 일반 목적지 구역 계산
+            Vector3 agentZone = _visited.Count > 0 ? FindNearestPoint(_visited, transform.position) : transform.position;
+            Vector3 reachableDestZone = _visited.Count > 0 ? FindNearestPoint(_visited, _estimatedSoundPosition) : transform.position;
+            Vector3 generalDestZone = _constAll.Length > 0 ? FindNearestPoint(_constAll, _estimatedSoundPosition) : transform.position;
 
-            foreach (var visitedNode in _visited)
+            _agent.speed = _originalSpeed; // 소리를 들었으니 원래 속도로 복귀
+            _searchTimer = 0f; // 탐색 타이머 초기화
+
+            if (reachableDestZone == generalDestZone)
             {
-                float dist = (_estimatedSoundPosition - visitedNode).sqrMagnitude;
-                if (dist < minDistance) // 부등호 논리 수정
+                // 1. 도달 가능 목적지 구역 == 일반 목적지 구역
+                // 에이전트는 해당 구역에 방문한 적 있으므로, 목적지까지의 정확한 경로를 계산하여 이동
+                _targetPosition = _estimatedSoundPosition;
+                _state = StateMachine.WhatYouGonnaDo;
+            }
+            else
+            {
+                // 2. 도달 가능 목적지 구역 != 일반 목적지 구역
+                if (agentZone == reachableDestZone)
                 {
-                    minDistance = dist;
-                    closestKnownPoint = visitedNode;
+                    // 2-1. 에이전트 구역 == 도달 가능 목적지 구역
+                    // 에이전트는 올 수 있는 최대치까지 온 상태. 목적지 방향을 향해 조금씩 전진 탐색
+                    _state = StateMachine.IntoTheUnknown;
+                }
+                else
+                {
+                    // 2-2. 에이전트 구역 != 도달 가능 목적지 구역
+                    // 어렴풋한 길을 아는 상태. 도달 가능 목적지 구역까지 간 후, 전진 탐색
+                    _targetPosition = reachableDestZone;
+                    _state = StateMachine.WhatYouGonnaDo;
                 }
             }
-
-            // 가장 가까운 아는 곳으로 먼저 이동하도록 타겟 설정
-            _targetPosition = closestKnownPoint;
-            _state = StateMachine.WhatYouGonnaDo; 
         }
 
         private IEnumerator UpdatePathRoutine()
@@ -120,34 +143,200 @@ namespace Script.sound
                     if (target)
                         target.transform.position = _targetPosition;
 
-                    // 목적지에 얼추 도착했다면 상태 전환
+                    // 목적지/도달 가능 목적지 구역에 도착했다면 상태 전환
                     if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
                     {
-                        _state = StateMachine.IntoTheUnknown;
+                        // 실제 목표점(_estimatedSoundPosition)에 도달했는지 확인
+                        if ((transform.position - _estimatedSoundPosition).sqrMagnitude <= _agent.stoppingDistance * _agent.stoppingDistance + 0.1f)
+                        {
+                            _state = StateMachine.Idle;
+                            _agent.speed = _originalSpeed * 0.3f;
+                        }
+                        else
+                        {
+                            // 도달 가능 구역까지만 온 거라면 전진 탐색 시작
+                            _state = StateMachine.IntoTheUnknown;
+                            _searchTimer = 0f;
+                        }
                     }
                 
-                    yield return new WaitForSeconds(0.2f);
+                    yield return new WaitForSeconds(0.1f);
                 }
-                else // IntoTheUnknown 상태
+                else if (_state == StateMachine.IntoTheUnknown)
                 {
-                    // 아는 길의 끝에 왔는데 목표에 안 닿았다면, 추정 위치를 향해 조금씩 더듬으며 전진 (비어있던 로직 채움)
-                    Vector3 direction = (_estimatedSoundPosition - transform.position).normalized;
-                
-                    // 앞을 향해 2m 정도 목표를 잡고 맹목적으로 나아감
-                    _targetPosition = transform.position + direction * 2.0f; 
-                
-                    _agent.SetDestination(_targetPosition);
-                
-                    if (target)
-                        target.transform.position = _targetPosition;
+                    _searchTimer += 0.5f;
+                    
+                    // 목적지에 도달했거나 탐색 시간을 초과한 경우
+                    if (_searchTimer >= maxSearchTime || (_estimatedSoundPosition - transform.position).sqrMagnitude <= _agent.stoppingDistance * _agent.stoppingDistance)
+                    {
+                        _state = StateMachine.Idle;
+                        _agent.speed = _originalSpeed * 0.3f;
+                    }
+                    else
+                    {
+                        // 앞을 향해 2m 정도 목표를 잡고 맹목적으로 나아감
+                        Vector3 direction = (_estimatedSoundPosition - transform.position).normalized;
+                        _targetPosition = transform.position + direction * 5.0f; 
+                    
+                        _agent.SetDestination(_targetPosition);
+                    
+                        if (target)
+                            target.transform.position = _targetPosition;
+                    }
 
                     yield return new WaitForSeconds(0.5f); // 더듬는 건 0.5초마다 갱신
+                }
+                else if (_state == StateMachine.Idle)
+                {
+                    // Idle 상태: 30% 속도로 가장 가까운 _unvisited 노드 탐색
+                    if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
+                    {
+                        if (_unvisited.Count > 0)
+                        {
+                            _targetPosition = FindNearestPoint(_unvisited, transform.position);
+                            _agent.SetDestination(_targetPosition);
+                            
+                            if (target)
+                                target.transform.position = _targetPosition;
+                        }
+                    }
+                    
+                    yield return new WaitForSeconds(1.0f);
                 }
             }
         }
 
-        private Vector3 FindNearestPoint(IEnumerable<Vector3> points, Vector3 targetPosition)
+        private Vector3 FindNearestPoint(IEnumerable<Vector3> points, Vector3 targetPosition, bool checkLineOfSight = true)
         {
+            Vector3 nearest = Vector3.zero;
+            float minDistance = float.MaxValue;
+            
+            // 1. 점들을 거리와 함께 리스트에 저장
+            List<KeyValuePair<Vector3, float>> sortedPoints = new List<KeyValuePair<Vector3, float>>();
+            
+            foreach (var point in points)
+            {
+                float sqrDist = (point - targetPosition).sqrMagnitude;
+                sortedPoints.Add(new KeyValuePair<Vector3, float>(point, sqrDist));
+                
+                if (sqrDist < minDistance)
+                {
+                    minDistance = sqrDist;
+                    nearest = point;
+                }
+            }
+
+            if (!checkLineOfSight || sortedPoints.Count == 0)
+                return nearest;
+
+            // 2. 거리순으로 오름차순 정렬
+            sortedPoints.Sort((a, b) => a.Value.CompareTo(b.Value));
+
+            // 3. 가까운 점부터 차례대로 레이캐스트를 쏴서 시야(경로)가 뚫려있는지 확인
+            // 연산량 폭발을 막기 위해 최대 30개의 점까지만 검사합니다.
+            int checkCount = Mathf.Min(30, sortedPoints.Count);
+            for (int i = 0; i < checkCount; i++)
+            {
+                Vector3 point = sortedPoints[i].Key;
+                // NavMesh.Raycast는 직선 사이에 장애물(벽)이 있으면 true, 없으면 false를 반환합니다.
+                if (!NavMesh.Raycast(targetPosition, point, out NavMeshHit hit, NavMesh.AllAreas))
+                {
+                    return point; // 시야가 확보된 가장 가까운 점
+                }
+            }
+
+            // 시야가 확보된 점이 아예 없다면(모두 방 너머에 있는 등), 어쩔 수 없이 절대 거리가 가장 가까운 점을 반환
+            return nearest;
+        }
+
+        private Vector3[] GenerateEvenlySpacedPoints(float spacing)
+        {
+            NavMeshTriangulation triangulation = NavMesh.CalculateTriangulation();
+            List<Vector3> points = new List<Vector3>();
+            float sqrSpacing = spacing * spacing;
+
+            // 빠른 거리 필터링을 위한 공간 해시 (Voxel Grid)
+            HashSet<Vector3Int> voxelGrid = new HashSet<Vector3Int>();
+
+            // 삼각형마다 넓이에 비례해 랜덤 점 생성
+            for (int i = 0; i < triangulation.indices.Length; i += 3)
+            {
+                Vector3 v1 = triangulation.vertices[triangulation.indices[i]];
+                Vector3 v2 = triangulation.vertices[triangulation.indices[i + 1]];
+                Vector3 v3 = triangulation.vertices[triangulation.indices[i + 2]];
+
+                // 삼각형의 면적 계산
+                float area = Vector3.Cross(v2 - v1, v3 - v1).magnitude * 0.5f;
+                // 밀도를 보장하기 위해 넉넉히 생성 (면적이 작아도 최소 1개 보장)
+                int samples = Mathf.Max(1, Mathf.CeilToInt((area / sqrSpacing) * 3.0f));
+
+                for (int j = 0; j < samples; j++)
+                {
+                    // 삼각형 내 랜덤 좌표 생성 (Barycentric coordinates)
+                    float r1 = Random.value;
+                    float r2 = Random.value;
+                    if (r1 + r2 > 1f)
+                    {
+                        r1 = 1f - r1;
+                        r2 = 1f - r2;
+                    }
+                    Vector3 p = v1 + (v2 - v1) * r1 + (v3 - v1) * r2;
+
+                    // Voxel 좌표 계산 (격자 크기를 spacing으로 하여 너무 가까운 점들을 버림)
+                    Vector3Int voxel = new Vector3Int(
+                        Mathf.RoundToInt(p.x / spacing),
+                        Mathf.RoundToInt(p.y / spacing),
+                        Mathf.RoundToInt(p.z / spacing)
+                    );
+
+                    // 해당 복셀 공간이 비어있다면 추가
+                    if (voxelGrid.Add(voxel)) 
+                    {
+                        points.Add(p);
+                    }
+                }
+            }
+            
+            // NavMesh 원본 꼭짓점(모서리 부분 등)도 중요하므로 추가
+            foreach (var v in triangulation.vertices)
+            {
+                Vector3Int voxel = new Vector3Int(
+                    Mathf.RoundToInt(v.x / spacing),
+                    Mathf.RoundToInt(v.y / spacing),
+                    Mathf.RoundToInt(v.z / spacing)
+                );
+                if (voxelGrid.Add(voxel))
+                {
+                    points.Add(v);
+                }
+            }
+
+            return points.ToArray();
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (!showDebugGizmos || !Application.isPlaying) return;
+
+            // 학습한 지점은 초록색 구체로 표시
+            if (_visited != null)
+            {
+                Gizmos.color = Color.green;
+                foreach (var node in _visited)
+                {
+                    Gizmos.DrawSphere(node, 0.2f);
+                }
+            }
+
+            // 아직 모르는 지점은 작고 빨간 구체로 표시 (필요 없다면 주석 처리하셔도 좋습니다)
+            if (_unvisited != null)
+            {
+                Gizmos.color = Color.red;
+                foreach (var node in _unvisited)
+                {
+                    Gizmos.DrawSphere(node, 0.1f);
+                }
+            }
         }
         
     }
