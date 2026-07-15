@@ -87,7 +87,7 @@ public class PlayerMic : MonoBehaviour
         if (volume > volumeThreshold)
         {
             Debug.Log($"마이크 입력 감지! Volume: {volume}");
-            // SoundEventManager.TriggerSound(transform.position, soundRange);
+            SoundEventManager.TriggerSound(transform.position, soundRange);
         }
     }
 
