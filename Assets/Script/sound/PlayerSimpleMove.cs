@@ -2,8 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// PlayerInput 컴포넌트로부터 WASD 입력을 받아 플레이어를 움직이는 간단한 스크립트입니다.
-/// 이 스크립트가 제대로 동작하려면 GameObject에 Rigidbody와 PlayerInput 컴포넌트가 반드시 필요합니다.
+/// 테스트용 입력입니다. 사용하지 말아주세요
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerInput))]

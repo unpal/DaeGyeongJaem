@@ -3,6 +3,7 @@ using UnityEngine;
 /// <summary>
 /// 마이크 입력을 감지하여 볼륨이 일정 크기 이상일 때 사운드 이벤트를 발생시키는 스크립트입니다.
 /// AudioSource 컴포넌트가 필요합니다.
+/// 플레이어에게 붙이지 않아도 됩니다
 /// </summary>
 [RequireComponent(typeof(AudioSource))]
 public class PlayerMic : MonoBehaviour

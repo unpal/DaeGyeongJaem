@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+/*
+ * 객체지향을 무시한 추적자 코드입니다  
+ */
 namespace Script.sound
 {
     [RequireComponent(typeof(NavMeshAgent))]
