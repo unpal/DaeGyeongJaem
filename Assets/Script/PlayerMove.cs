@@ -1,15 +1,12 @@
-using System.Net.NetworkInformation;
-using Unity.VisualScripting;
-using UnityEditor.Timeline.Actions;
+using Cinemachine;
+using Fusion;
 using UnityEngine;
-using UnityEngine.AI;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
-public class PlayerMove : MonoBehaviour
+
+
+public class PlayerMove : NetworkBehaviour
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    Rigidbody Rigid;
-    Vector3 InputVec;
     public bool isJump;
     public Transform target;
     public float Speed;
@@ -19,112 +16,183 @@ public class PlayerMove : MonoBehaviour
     public InputAction attackAction;
     [SerializeField] private LayerMask WallLayer;
     public Transform WallLayCasterTrans;
-    public Transform GroundLayCasterTrans;
     public bool isWall;
-    public bool isGround;
-    //public Animator Anim;
-
-    void Start()
+    public float RunSpeed;
+    public bool isRun;
+    private InputAction SprintAction;
+    private InputAction JumpAction;
+    [SerializeField] private CinemachineVirtualCamera playerCamera;
+    private Vector2 inputVec;
+    private NetworkCharacterController controller;
+    [SerializeField]  private bool jump;
+    [SerializeField]  private bool attack;
+    [SerializeField] private bool sprint;
+    [SerializeField] private float sensitivity = 0.1f;
+    private Vector2 lookVec;
+    private float xRotation = 0f;
+    [SerializeField] private GameObject CameraObj;
+    private CharacterController cc;
+    private Vector3 wallNormal;
+    [SerializeField] private float gravity = -0.0001f;
+    [SerializeField] private float verticalVelocity;
+    [SerializeField] private float edgePushForce = 3f;
+    [SerializeField] private bool wasGrapped;
+    [SerializeField] private float edgePushTime;
+    [SerializeField] private float edgePushTimer;
+    public override void Spawned()
     {
-        Rigid = GetComponent<Rigidbody>();
+        Debug.Log($"{Runner.LocalPlayer} / {Object.InputAuthority} / {Object.HasInputAuthority}");
+        bool isMine = Object.HasInputAuthority;
+        controller = GetComponent<NetworkCharacterController>();
         isJump = true;
-        attackAction = playerInput.actions["Attack"];
-    }
+        cc = GetComponent<CharacterController>();
+        playerCamera.gameObject.SetActive(isMine); 
 
+        attackAction = playerInput.actions["Attack"];
+        SprintAction = playerInput.actions["Sprint"];
+        JumpAction = playerInput.actions["Jump"];
+
+        playerInput.enabled = isMine;
+    }
     private void OnMove(InputValue value)
     {
-        InputVec = value.Get<Vector2>();
+        inputVec = value.Get<Vector2>();
     }
-
-    void OnJump(InputValue value)
+    private void OnLook(InputValue value)
     {
-        if (value.isPressed)
-        {
-            if (isJump)
-            {
-                Rigid.AddForce(Vector3.up * 5, ForceMode.Impulse);
-                isJump = false;
-                //Anim.SetBool("Jump", true);
-            }
-        }
+        lookVec = value.Get<Vector2>();
     }
-    void FixedUpdate()
+    //private void OnJump(InputValue value)
+    //{
+    //    if (value.isPressed)
+    //    {
+    //        jump = true;
+    //    }
+    //}
+
+    //private void OnAttack(InputValue value)
+    //{
+    //    Debug.Log($"Attack : {value.isPressed}");
+    //    attack = value.isPressed;
+    //}
+
+    //private void OnSprint(InputValue value)
+    //{
+    //    sprint = value.isPressed;
+    //}
+    public NetworkInputData GetNetworkInput()
     {
-        Vector3 move;
-        if (GetComponent<Rigidbody>() != null)
+        NetworkInputData data = new();
+
+        data.Move = inputVec;
+        data.Look = lookVec;
+        data.Buttons.Set((int)PlayerButtons.Jump, jump);
+        data.Buttons.Set((int)PlayerButtons.Attack, attack);
+        data.Buttons.Set((int)PlayerButtons.Sprint, sprint);
+
+        return data;
+    }
+    public void Update()
+    {
+        attack = attackAction.IsPressed();
+        sprint = SprintAction.IsPressed();
+        jump = JumpAction.IsPressed();
+    }
+    public override void FixedUpdateNetwork()
+    {
+        if (!GetInput(out NetworkInputData data))
         {
-            isGrapple = attackAction.IsPressed();
-            if (Rigid.useGravity)
-            {
-                move =
-                    transform.forward * InputVec.y +
-                    transform.right * InputVec.x;
-
-                Vector3 velocity = Rigid.velocity;
-
-                velocity.x = move.x * Speed;
-                velocity.z = move.z * Speed;
-                float TempSpeed = velocity.magnitude;
-                //Anim.SetFloat("Speed", TempSpeed);
-                Rigid.velocity = velocity;
-            }
-            else
-            {
-                move =
-                transform.up * InputVec.y +
-                transform.right * InputVec.x;
-                //move.Normalize();
-
-                Vector3 velocity = Rigid.velocity;
-
-                velocity.x = move.x * Speed;
-                velocity.y = move.y * Speed;   // 추가
-                velocity.z = move.z * Speed;
-
-                float TempSpeed = velocity.magnitude;
-                //Anim.SetFloat("Speed", TempSpeed);
-                Rigid.velocity = velocity;
-                //Rigid.AddForce(move * Speed, ForceMode.Acceleration);
-            }
+            //Debug.Log("입력 없음");
+            return;
         }
+        bool sprintPressed = data.Buttons.IsSet((int)PlayerButtons.Sprint);
+        transform.Rotate(
+            Vector3.up * data.Look.x * sensitivity
+        );
+        if(!sprintPressed)
+        {
+            controller.maxSpeed = Speed;
+        }
+        else
+        {
+            controller.maxSpeed = RunSpeed;
+        }
+            float mouseY = data.Look.y * sensitivity;
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        Climbing();
+        CameraObj.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        if (controller.gravity < 0)
+        {
+            Vector3 move =
+                transform.forward * data.Move.y +
+                transform.right * data.Move.x;
+
+
+
+
+            controller.Move(move * Runner.DeltaTime);
+        }
+        else
+        {
+
+            Vector3 move =
+            transform.up * data.Move.y +
+            transform.right * data.Move.x;
+
+            Vector3 stick = -wallNormal * 5f;
+
+            controller.Move((move/* + stick*/)* Runner.DeltaTime);
+        }
+        if (data.Buttons.IsSet((int)PlayerButtons.Jump))
+        {
+            controller.Jump();
+            jump = false;
+        }
+      //  Debug.Log($"Move:{data.Move} Look:{data.Look}");
+        Climbing(data);
     }
 
     bool IsWall()
     {
-        isWall = Physics.Raycast(
+        RaycastHit hit;
+        if (Physics.Raycast(
             WallLayCasterTrans.position,
             WallLayCasterTrans.forward,
-            0.6f,
-            WallLayer);
+            out hit,
+            0.8f,
+            WallLayer))
+        {
+            wallNormal = hit.normal;
+            isWall = true;
+            return isWall;
+        }
+        isWall = false;
         return isWall;
     }
-    bool IsGround()
+
+    private void Climbing(NetworkInputData data)
     {
-        isGround = Physics.Raycast(
-            GroundLayCasterTrans.position,
-            GroundLayCasterTrans.forward,
-            0.6f,
-            WallLayer);
-        return isGround;
-    }
-    private void Climbing()
-    {
-        if (IsWall() && isGrapple && Rigid.useGravity)
+        bool attackPressed = data.Buttons.IsSet((int)PlayerButtons.Attack);
+        if (IsWall() && attackPressed && controller.gravity != 0 && !controller.IsDash)
         {
-            Rigid.useGravity = false;
-            Rigid.velocity = Vector3.zero;
+            controller.gravity = 0;
+            controller.Velocity = Vector3.zero;
+            wasGrapped = true;
+            controller.IsClimbing = true;
         }
-        else if (IsWall() || !isGrapple)
+        else if ((!IsWall() || !attackPressed) && controller.gravity != -20)
         {
-            Rigid.useGravity = true;
+            controller.gravity = -20;
+            controller.IsClimbing = false;
+            if(attackPressed)
+                controller.IsDash = true;
         }
     }
 
     private void OnCollisionEnter(Collision other)
     {
-        Debug.Log("콜라이더 발생");
+        //Debug.Log("콜라이더 발생");
         if (other.collider.tag == "Wall")
         {
             Uping = true;

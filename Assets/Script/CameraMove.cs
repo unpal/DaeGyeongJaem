@@ -1,7 +1,8 @@
+using Fusion;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class CameraMove : MonoBehaviour
+public class CameraMove : NetworkBehaviour
 {
     [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Transform player;
@@ -10,6 +11,7 @@ public class CameraMove : MonoBehaviour
     [SerializeField] private Transform headBone;
     private InputAction lookAction;
     private float xRotation = 0f;
+    private Vector2 lookInput;
 
     private void Awake()
     {
@@ -21,21 +23,18 @@ public class CameraMove : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
+    //private void Update()
+    //{
+    //    if (!Object.HasInputAuthority)
+    //        return;
 
-    private void Update()
-    {
-        Vector2 look = lookAction.ReadValue<Vector2>();
+    //    float mouseY = lookInput.y * sensitivity;
+    //    xRotation -= mouseY;
+    //    xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        float mouseX = look.x * sensitivity;
-        float mouseY = look.y * sensitivity;
+    //    transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
-
-        transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-
-        player.Rotate(Vector3.up * mouseX);
-    }
+    //}
     private void LateUpdate()
     {
         Vector3 tempVec = headBone.position;
