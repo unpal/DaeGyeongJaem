@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.Events;
 
 /*
  * 객체지향을 무시한 추적자 코드입니다  
@@ -30,11 +31,18 @@ namespace Script.sound
         public bool showDebugGizmos = true; // 시각화 토글용 변수
         public float nodeSpacing = 2.0f;    // 노드(점) 간의 간격
 
+        [Header("Attack Settings")]
+        public float fireRange = 5.0f; // 사격 범위 (이 거리 내에서 소리가 나면 발사)
+        public float standStillAfterFire = 3.0f; // 발사 후 대기 시간
+        public UnityEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
+
         public enum StateMachine
         {
             IntoTheUnknown, // 모르는 길 (더듬기)
             WhatYouGonnaDo, // 아는 길 (빠르게 이동)
-            Idle            // 배회 (느리게 탐색)
+            Idle,           // 배회 (느리게 탐색)
+            AttackCooldown,  // 공격 후 대기
+            IKnowWhereYouAre
         }
 
         public StateMachine _state = StateMachine.IntoTheUnknown;
@@ -88,9 +96,38 @@ namespace Script.sound
             }
         }
 
+        private void FireAndStandStill(Vector3 targetPosition)
+        {
+            // 발사 방향을 향해 회전
+            Vector3 direction = (targetPosition - transform.position).normalized;
+            direction.y = 0; // 평면 회전
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                transform.rotation = Quaternion.LookRotation(direction);
+            }
+
+                onFireEvent?.Invoke();
+            _state = StateMachine.AttackCooldown;
+            
+            if (_agent.isActiveAndEnabled)
+            {
+                _agent.ResetPath();
+                _agent.isStopped = true;
+            }
+        }
+
         private void HandleSoundTriggered(Vector3 soundPosition, float soundRange)
         {
             if (!_agent || !_agent.isActiveAndEnabled) return;
+
+            if (_state == StateMachine.AttackCooldown || _state == StateMachine.IKnowWhereYouAre) return; // 대기 중이거나 확실한 추적 중에는 추가 소리 무시
+
+            // 에이전트 주변 일정 범위(fireRange) 내에서 소리가 났다면 사격
+            if ((transform.position - soundPosition).sqrMagnitude <= fireRange * fireRange)
+            {
+                FireAndStandStill(soundPosition);
+                return;
+            }
 
             var soundHeard = (transform.position - soundPosition).magnitude / soundRange;
         
@@ -137,7 +174,21 @@ namespace Script.sound
         {
             while (true)
             {
-                if (_state == StateMachine.WhatYouGonnaDo)
+                if (_state == StateMachine.AttackCooldown)
+                {
+                    // 설정한 대기 시간만큼 가만히 있기
+                    yield return new WaitForSeconds(standStillAfterFire);
+                    
+                    if (_state == StateMachine.AttackCooldown)
+                    {
+                        if (_agent.isActiveAndEnabled)
+                            _agent.isStopped = false; // 다시 이동 가능하게 설정
+                            
+                        _state = StateMachine.Idle;
+                        _agent.speed = _originalSpeed * 0.3f;
+                    }
+                }
+                else if (_state == StateMachine.WhatYouGonnaDo)
                 {
                     // 아는 길을 따라가는 중
                     if (_targetPosition != Vector3.zero)
@@ -205,6 +256,59 @@ namespace Script.sound
                     }
                     
                     yield return new WaitForSeconds(1.0f);
+                }
+                else if (_state == StateMachine.IKnowWhereYouAre)
+                {
+                    GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+                    GameObject nearestPlayer = null;
+                    float minSqrDist = float.MaxValue;
+                    
+                    foreach (var p in players)
+                    {
+                        float sqrDist = (p.transform.position - transform.position).sqrMagnitude;
+                        if (sqrDist < minSqrDist)
+                        {
+                            minSqrDist = sqrDist;
+                            nearestPlayer = p;
+                        }
+                    }
+
+                    if (nearestPlayer != null)
+                    {
+                        _agent.speed = _originalSpeed; // 추적 시에는 원래 속도로 복귀
+                        _agent.SetDestination(nearestPlayer.transform.position);
+                        if (target)
+                            target.transform.position = nearestPlayer.transform.position;
+
+                        if (minSqrDist <= fireRange * fireRange)
+                        {
+                            // 발사 방향을 향해 회전
+                            Vector3 direction = (nearestPlayer.transform.position - transform.position).normalized;
+                            direction.y = 0; // 평면 회전
+                            if (direction.sqrMagnitude > 0.01f)
+                            {
+                                transform.rotation = Quaternion.LookRotation(direction);
+                            }
+                            
+                            onFireEvent?.Invoke();
+                            
+                            if (_agent.isActiveAndEnabled)
+                            {
+                                _agent.ResetPath();
+                                _agent.isStopped = true;
+                            }
+                            
+                            // 발사 후 대기 (상태 전환 없이)
+                            yield return new WaitForSeconds(standStillAfterFire);
+                            
+                            if (_agent.isActiveAndEnabled)
+                            {
+                                _agent.isStopped = false;
+                            }
+                        }
+                    }
+                    
+                    yield return new WaitForSeconds(0.1f);
                 }
             }
         }
