@@ -227,6 +227,10 @@ public class PlayerMove : MonoBehaviour
 
         if (canClimb)
         {
+            stamina.UseStamina(climbDrain * Time.fixedDeltaTime);
+
+            Rigid.useGravity = false;
+
             climbNoiseTimer += Time.fixedDeltaTime;
 
             if (climbNoiseTimer >= 0.5f)
@@ -237,6 +241,7 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
+            Rigid.useGravity = true;
             climbNoiseTimer = 0;
         }
     }
