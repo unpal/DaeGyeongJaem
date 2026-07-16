@@ -29,7 +29,6 @@ public class PlayerCondition : MonoBehaviour
     private float recoverTimer;
 
     [SerializeField]
-    private float baseMaxStamina = 100f;
     public float BaseMaxStamina => baseMaxStamina; //아 짜증나
 
 

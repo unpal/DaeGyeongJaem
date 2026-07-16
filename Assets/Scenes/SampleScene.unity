@@ -1837,6 +1837,8 @@ GameObject:
   - component: {fileID: 1971775213}
   - component: {fileID: 1971775214}
   - component: {fileID: 1971775215}
+  - component: {fileID: 1971775217}
+  - component: {fileID: 1971775216}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -1883,6 +1885,15 @@ MonoBehaviour:
   jumpCost: 10
   climbDrain: 20
   recoverRate: 10
+  whistleAction:
+    m_Name: Whistle
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 2288a501-d5f2-4685-94c5-9bc4df14066d
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
 --- !u!114 &1971775206
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2081,6 +2092,42 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   safeHeight: 3
   damagePerMeter: 5
+--- !u!114 &1971775216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1971775204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ab7bf48dcd46d240a88904eed297b31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  periodicInterval: 30
+  periodicRadius: 20
+  whistleRadius: 25
+  walkRadius: 2
+  runRadius: 6
+  jumpRadius: 5
+  landRadius: 8
+  climbRadius: 4
+  crouchMultiplier: 0.3
+--- !u!114 &1971775217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1971775204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72279454fd2bc5c4085dbc00d99b0aaf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  move: {fileID: 1971775205}
+  noise: {fileID: 1971775216}
+  crouchSpeedMultiplier: 0.5
 --- !u!1 &2010574396
 GameObject:
   m_ObjectHideFlags: 0

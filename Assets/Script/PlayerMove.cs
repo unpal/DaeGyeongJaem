@@ -156,7 +156,15 @@ public class PlayerMove : MonoBehaviour
         //소음
         runNoiseTimer += Time.fixedDeltaTime;
 
-        if (isSprint && isMoving)
+        bool isMoving = InputVec.sqrMagnitude > 0.01f;
+
+        bool isRunning =
+        isSprint &&
+        isMoving &&
+        stamina.HasStamina(sprintDrain * Time.fixedDeltaTime) &&
+         condition.CanSprint;
+
+        if (isRunning) // 이거 스태미나 없어도 shift 누르면 소리 나는거 방지용
         {
             if (runNoiseTimer >= 0.4f)
             {
@@ -183,8 +191,6 @@ public class PlayerMove : MonoBehaviour
 
             float currentSpeed = Speed;
 
-            bool isMoving = InputVec.sqrMagnitude > 0.01f;
-
             if (isSprint &&
                 isMoving &&
                 stamina.HasStamina(sprintDrain * Time.fixedDeltaTime) &&
@@ -195,7 +201,7 @@ public class PlayerMove : MonoBehaviour
                 stamina.UseStamina(
                     sprintDrain * Time.fixedDeltaTime);
             }
-            else if(Rigid.useGravity)
+            else
             {//이러면 벽타기 중에 회복된다는 단점이있음 나중에 Rigid.useGravity == true 일때만 회복하도록 수정하기
                 stamina.RecoverStamina( 
                     10f * Time.fixedDeltaTime);
