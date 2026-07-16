@@ -29,19 +29,49 @@ public class PlayerMove : MonoBehaviour
     //recoverStamina(float amount),
     //bool HasStamina(float amount)
 
-
+    //소음기능
+    private PlayerNoise noise;
 
     //추가한점, 
+    [Header("Sprint")]
     public float sprintMultiplier = 1.5f; //달리기속도
     public float sprintDrain = 15f; //달리는데 소모되는 스태미너량
+
+    [Header("Jump")]
+    public float jumpCost = 10f;
+
+    [Header("Climb")]
+    [SerializeField]
+    public float climbDrain = 20f;
+
+    [Header("Recover")]
+    public float recoverRate = 10f;
+
+    //나중에 밸런스 패치 편하도록 위처럼 magicnum 모아두는것도 괜찮을듯 싶지만.. 아래에 수정 안해놨음.
+
+    //소음 호출용 타이머,매 틱마다 호출x 일정 시간간격으로.
+    private float runNoiseTimer;
+    private float climbNoiseTimer;
+
     private bool isSprint; // state 체크
     private PlayerStamina stamina;
     private float timer; //디버깅용
+
+    private PlayerCondition condition; // 용암,총,낙뎀 상황들
+
+    //taunt 기능
+    public InputAction whistleAction;
 
     void Start()
     {
         //추가
         stamina = GetComponent<PlayerStamina>();
+        //추가
+        condition = GetComponent<PlayerCondition>();
+        //추가2
+        noise = GetComponent<PlayerNoise>();
+        //추가3
+        whistleAction = playerInput.actions["Whistle"];
 
         Rigid = GetComponent<Rigidbody>();
         isJump = true;
@@ -52,12 +82,18 @@ public class PlayerMove : MonoBehaviour
     void Update()
     {
         isSprint = Keyboard.current.leftShiftKey.isPressed;
+        isGrapple = attackAction.IsPressed();
+
+        if (whistleAction.WasPressedThisFrame())
+        {
+            noise.Whistle();
+        }
 
         timer += Time.deltaTime;
 
         if (timer >= 1f)
         {
-            Debug.Log($"현재 스태미나 : {stamina.currentStamina}");
+            Debug.Log($"현재 스태미나 : {stamina.CurrentStamina}");
             timer = 0f;
         }
     }
@@ -83,20 +119,131 @@ public class PlayerMove : MonoBehaviour
                     }   
              
              */
-
+           
 
             if (isJump)
             {
                 Rigid.AddForce(Vector3.up * 5, ForceMode.Impulse);
+
+                //소음추가
+                noise.MakeNoise(NoiseType.Jump);
+
                 isJump = false;
                 //Anim.SetBool("Jump", true);
             }
         }
     }
-    void FixedUpdate()
+
+
+    private void ClimbMove()
+    {
+        Vector3 move =
+            transform.up * InputVec.y +
+            transform.right * InputVec.x;
+
+        Vector3 velocity = Rigid.velocity;
+
+        velocity.x = move.x * Speed;
+        velocity.y = move.y * Speed;
+        velocity.z = move.z * Speed;
+
+        Rigid.velocity = velocity;
+    }   
+
+    private void HandleMovement()
     {
         Vector3 move;
-        if (GetComponent<Rigidbody>() != null)
+        //소음
+        runNoiseTimer += Time.fixedDeltaTime;
+
+        if (isSprint && isMoving)
+        {
+            if (runNoiseTimer >= 0.4f)
+            {
+                noise.MakeNoise(NoiseType.Run);
+                runNoiseTimer = 0;
+            }
+        }
+        else if (isMoving)
+        {
+            if (runNoiseTimer >= 0.8f)
+            {
+                noise.MakeNoise(NoiseType.Walk);
+                runNoiseTimer = 0;
+            }
+        }
+
+        if (Rigid.useGravity)
+        {
+            move =
+                transform.forward * InputVec.y +
+                transform.right * InputVec.x;
+
+            Vector3 velocity = Rigid.velocity;
+
+            float currentSpeed = Speed;
+
+            bool isMoving = InputVec.sqrMagnitude > 0.01f;
+
+            if (isSprint &&
+                isMoving &&
+                stamina.HasStamina(sprintDrain * Time.fixedDeltaTime) &&
+                condition.CanSprint)//총맞으면 멈추기
+            {
+                currentSpeed *= sprintMultiplier;
+
+                stamina.UseStamina(
+                    sprintDrain * Time.fixedDeltaTime);
+            }
+            else if(Rigid.useGravity)
+            {//이러면 벽타기 중에 회복된다는 단점이있음 나중에 Rigid.useGravity == true 일때만 회복하도록 수정하기
+                stamina.RecoverStamina( 
+                    10f * Time.fixedDeltaTime);
+            }
+
+            velocity.x = move.x * currentSpeed;
+            velocity.z = move.z * currentSpeed;
+
+            Rigid.velocity = velocity;
+        }
+        else
+        {
+            ClimbMove();
+        }
+    }
+
+    private void HandleClimbing()
+    {
+        bool canClimb =
+            IsWall() &&
+            isGrapple &&
+            stamina.HasStamina(climbDrain * Time.fixedDeltaTime);
+
+        if (canClimb)
+        {
+            climbNoiseTimer += Time.fixedDeltaTime;
+
+            if (climbNoiseTimer >= 0.5f)
+            {
+                noise.MakeNoise(NoiseType.Climb);
+                climbNoiseTimer = 0;
+            }
+        }
+        else
+        {
+            climbNoiseTimer = 0;
+        }
+    }
+
+    void FixedUpdate()
+    {
+        //코드 리팩터링 했습니다. 두줄로 정리
+
+        HandleClimbing();
+        HandleMovement();
+        /*
+        Vector3 move;
+        if ( Rigid != null) // 흠
         {
             isGrapple = attackAction.IsPressed();
             if (Rigid.useGravity)
@@ -110,22 +257,27 @@ public class PlayerMove : MonoBehaviour
 
 
 
-                /*
+                
                       
                 velocity.x = move.x * Speed;
                 velocity.z = move.z * Speed;
                                                
-                 */
+                 
                 //여기부터
                 float currentSpeed = Speed;
                 //Debug.Log(currentSpeed); 
 
-                if (isSprint && stamina.HasStamina(0.1f))
+                bool isMoving = InputVec.sqrMagnitude > 0.01f;
+
+                if (isSprint &&
+                    isMoving &&
+                    stamina.HasStamina(sprintDrain * Time.fixedDeltaTime) &&
+                    condition.CanSprint )
                 {
                     currentSpeed *= sprintMultiplier;
-                    stamina.UseStamina(sprintDrain * Time.fixedDeltaTime); //sprint 일경우, stamina 가 있으면 쓰고 없으면 꾸준히 회복.
+                    stamina.UseStamina(sprintDrain * Time.fixedDeltaTime);
                 }
-                else
+                else if (isMoving)
                 {
                     stamina.RecoverStamina(10f * Time.fixedDeltaTime);
                 }
@@ -160,6 +312,7 @@ public class PlayerMove : MonoBehaviour
         }
 
         Climbing();
+        */
     }
 
     bool IsWall()
@@ -180,20 +333,21 @@ public class PlayerMove : MonoBehaviour
             WallLayer);
         return isGround;
     }
+
     private void Climbing()
     {
         if (IsWall() &&
-    isGrapple &&
-    stamina.UseStamina(20f * Time.fixedDeltaTime) &&
-    Rigid.useGravity) //변경사항, 사용할 스태미너가 있는지 고려하기.
+            isGrapple &&
+            stamina.HasStamina(climbDrain * Time.fixedDeltaTime))
+        {
+            stamina.UseStamina(climbDrain * Time.fixedDeltaTime);
 
-        {
             Rigid.useGravity = false;
-            Rigid.velocity = Vector3.zero;
+            //여기서 Rigid.velocity = Vector3.zero; 한번 제거해봤어요.
         }
-        else if (IsWall() || !isGrapple) //흠..
+        else
         {
-            Rigid.useGravity = true; 
+            Rigid.useGravity = true;
         }
     }
 
@@ -207,6 +361,10 @@ public class PlayerMove : MonoBehaviour
         if (other.collider.tag == "Ground")
         {
             isJump = true;
+
+            //소음발생, 착지. 근데 높이별로 소음제공량이 달라야할것같습니다.
+            noise.MakeNoise(NoiseType.Land);
+
             //Anim.SetBool("Jump", false);
         }
     }

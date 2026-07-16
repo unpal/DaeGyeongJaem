@@ -5,17 +5,30 @@ using UnityEngine.UI;
 
 public class PlayerStaminaUI : MonoBehaviour
 {
-    public PlayerStamina playerStamina;
-    public Slider staminaSlider;
+    [Header("Reference")]
+    [SerializeField] private PlayerStamina stamina;
+    [SerializeField] private PlayerCondition condition;
 
-    void Start()
+    [Header("UI")]
+    [SerializeField] private Slider currentSlider;
+    [SerializeField] private Slider maxSlider;
+
+    private void Start()
     {
-        staminaSlider.maxValue = playerStamina.maxStamina;
-        staminaSlider.value = playerStamina.currentStamina;
+        float baseMax = condition.BaseMaxStamina;
+
+        currentSlider.maxValue = baseMax;
+        maxSlider.maxValue = baseMax;
     }
 
-    void Update()
+    private void Update()
     {
-        staminaSlider.value = playerStamina.currentStamina;
+        float baseMax = condition.BaseMaxStamina;
+
+        currentSlider.maxValue = baseMax;
+        maxSlider.maxValue = baseMax;
+
+        currentSlider.value = stamina.CurrentStamina;
+        maxSlider.value = condition.CurrentMaxStamina;
     }
 }
