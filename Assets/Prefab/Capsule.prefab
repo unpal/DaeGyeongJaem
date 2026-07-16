@@ -48,6 +48,9 @@ GameObject:
   - component: {fileID: 8980457805791645807}
   - component: {fileID: 1928040249987131803}
   - component: {fileID: -6885646200158004593}
+  - component: {fileID: 872836292970639320}
+  - component: {fileID: 1663332307230815107}
+  - component: {fileID: 5997651382988697563}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -231,6 +234,21 @@ MonoBehaviour:
     m_Bits: 64
   WallLayCasterTrans: {fileID: 9090896596399048440}
   isWall: 0
+  isGround: 0
+  sprintMultiplier: 1.5
+  sprintDrain: 15
+  jumpCost: 10
+  climbDrain: 20
+  recoverRate: 10
+  whistleAction:
+    m_Name: Whistle
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 11d0e3d2-7697-4f56-baa6-f5efecf9016a
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
   RunSpeed: 4
   isRun: 0
   playerCamera: {fileID: 200119594496257742}
@@ -305,6 +323,62 @@ MonoBehaviour:
   WallLayer:
     serializedVersion: 2
     m_Bits: 0
+--- !u!114 &872836292970639320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a08ca8791d2d3d438a461766a23d2d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1663332307230815107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ab7bf48dcd46d240a88904eed297b31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  periodicInterval: 30
+  periodicRadius: 20
+  whistleRadius: 25
+  walkRadius: 2
+  runRadius: 6
+  jumpRadius: 5
+  landRadius: 8
+  climbRadius: 4
+  crouchMultiplier: 0.3
+--- !u!114 &5997651382988697563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d6e95de35967c744a2e2539cb6d72f2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseMaxStamina: 100
+  permanentDamage: 0
+  temporaryDamage: 0
+  sprintLockTimer: 0
+  burnTime: 0
+  burnDuration: 3
+  burnTick: 0.5
+  burnDamage: 2
+  recoverDelay: 5
+  recoverRate: 1
+  burnRecovery: 1
 --- !u!1 &3744268813454638683
 GameObject:
   m_ObjectHideFlags: 0

@@ -79,21 +79,6 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private bool wasGrapped;
     [SerializeField] private float edgePushTime;
     [SerializeField] private float edgePushTimer;
-    void Start()
-    {
-        //추가
-        stamina = GetComponent<PlayerStamina>();
-        //추가
-        condition = GetComponent<PlayerCondition>();
-        //추가2
-        noise = GetComponent<PlayerNoise>();
-        //추가3
-        whistleAction = playerInput.actions["Whistle"];
-
-        Rigid = GetComponent<Rigidbody>();
-        isJump = true;
-        attackAction = playerInput.actions["Attack"];
-    }
 
     //추가한점,
     void Update()
@@ -126,9 +111,19 @@ public class PlayerMove : NetworkBehaviour
         controller = GetComponent<NetworkCharacterController>();
         isJump = true;
         cc = GetComponent<CharacterController>();
+        //추가
+        stamina = GetComponent<PlayerStamina>();
+        //추가
+        condition = GetComponent<PlayerCondition>();
+        //추가2
+        noise = GetComponent<PlayerNoise>();
+        //추가3
+        whistleAction = playerInput.actions["Whistle"];
+
+        isJump = true;
+        attackAction = playerInput.actions["Attack"];
         playerCamera.gameObject.SetActive(isMine);
 
-        attackAction = playerInput.actions["Attack"];
         playerInput.enabled = isMine;
     }
     private void OnMove(InputValue value)
@@ -139,24 +134,6 @@ public class PlayerMove : NetworkBehaviour
     {
         lookVec = value.Get<Vector2>();
     }
-    //private void OnJump(InputValue value)
-    //{
-    //    if (value.isPressed)
-    //    {
-    //        jump = true;
-    //    }
-    //}
-
-    //private void OnAttack(InputValue value)
-    //{
-    //    Debug.Log($"Attack : {value.isPressed}");
-    //    attack = value.isPressed;
-    //}
-
-    //private void OnSprint(InputValue value)
-    //{
-    //    sprint = value.isPressed;
-    //}
     public NetworkInputData GetNetworkInput()
     {
         NetworkInputData data = new();
@@ -199,9 +176,6 @@ public class PlayerMove : NetworkBehaviour
             Vector3 move =
                 transform.forward * data.Move.y +
                 transform.right * data.Move.x;
-
-
-
 
             controller.Move(move * Runner.DeltaTime);
         }
@@ -305,7 +279,7 @@ public class PlayerMove : NetworkBehaviour
 
             if (isJump)
             {
-                Rigid.AddForce(Vector3.up * 5, ForceMode.Impulse);
+                //Rigid.AddForce(Vector3.up * 5, ForceMode.Impulse);
 
                 //소음추가
                 noise.MakeNoise(NoiseType.Jump);
