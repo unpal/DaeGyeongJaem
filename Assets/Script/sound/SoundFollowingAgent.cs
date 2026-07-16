@@ -5,7 +5,7 @@ using UnityEngine.AI;
 using UnityEngine.Events;
 
 /*
- * 객체지향을 무시한 추적자 코드입니다  
+ * 객체지향을 무시한 추적자 코드입니다
  */
 namespace Script.sound
 {
@@ -19,33 +19,37 @@ namespace Script.sound
         private HashSet<Vector3> _unvisited;
         private Vector3[] _constAll;
         private Vector3 _targetPosition = Vector3.zero;
-    
+
         // 소리가 났다고 추정한 최종 위치를 기억해야 해
-        private Vector3 _estimatedSoundPosition = Vector3.zero; 
-    
+        private Vector3 _estimatedSoundPosition = Vector3.zero;
+
         public int distanceForVisit = 1;
         public float maxSearchTime = 5.0f; // 전진 탐색 최대 시간
         private float _searchTimer = 0f;
         private float _originalSpeed;
-        
-        public bool showDebugGizmos = true; // 시각화 토글용 변수
-        public float nodeSpacing = 2.0f;    // 노드(점) 간의 간격
 
-        [Header("Attack Settings")]
-        public float fireRange = 5.0f; // 사격 범위 (이 거리 내에서 소리가 나면 발사)
+        public bool showDebugGizmos = true; // 시각화 토글용 변수
+        public float nodeSpacing = 2.0f; // 노드(점) 간의 간격
+
+        [Header("Attack Settings")] public float fireRange = 5.0f; // 사격 범위 (이 거리 내에서 소리가 나면 발사)
         public float standStillAfterFire = 3.0f; // 발사 후 대기 시간
         public UnityEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
 
-        public enum StateMachine
+        private enum StateMachine
         {
             IntoTheUnknown, // 모르는 길 (더듬기)
             WhatYouGonnaDo, // 아는 길 (빠르게 이동)
-            Idle,           // 배회 (느리게 탐색)
-            AttackCooldown,  // 공격 후 대기
-            IKnowWhereYouAre
+            Idle, // 배회 (느리게 탐색)
+            AttackCooldown, // 공격 후 대기
+            KnowWhereYouAre
         }
 
-        public StateMachine _state = StateMachine.IntoTheUnknown;
+        private StateMachine _state = StateMachine.IntoTheUnknown;
+
+        public void SetStateToKnowWhereYouAre()
+        {
+            _state = StateMachine.KnowWhereYouAre;
+        }
 
         private void Awake()
         {
@@ -106,21 +110,21 @@ namespace Script.sound
                 transform.rotation = Quaternion.LookRotation(direction);
             }
 
-                onFireEvent?.Invoke();
+            onFireEvent?.Invoke();
             _state = StateMachine.AttackCooldown;
+
+            if (!_agent.isActiveAndEnabled) return;
             
-            if (_agent.isActiveAndEnabled)
-            {
-                _agent.ResetPath();
-                _agent.isStopped = true;
-            }
+            _agent.ResetPath();
+            _agent.isStopped = true;
         }
 
         private void HandleSoundTriggered(Vector3 soundPosition, float soundRange)
         {
             if (!_agent || !_agent.isActiveAndEnabled) return;
 
-            if (_state == StateMachine.AttackCooldown || _state == StateMachine.IKnowWhereYouAre) return; // 대기 중이거나 확실한 추적 중에는 추가 소리 무시
+            if (_state == StateMachine.AttackCooldown || _state == StateMachine.KnowWhereYouAre)
+                return; // 대기 중이거나 확실한 추적 중에는 추가 소리 무시
 
             // 에이전트 주변 일정 범위(fireRange) 내에서 소리가 났다면 사격
             if ((transform.position - soundPosition).sqrMagnitude <= fireRange * fireRange)
@@ -130,16 +134,21 @@ namespace Script.sound
             }
 
             var soundHeard = (transform.position - soundPosition).magnitude / soundRange;
-        
+
             // 추정 위치를 전역 변수에 저장해둬야 코루틴에서 써먹을 수 있음
             _estimatedSoundPosition = soundPosition +
                                       new Vector3(Random.Range(-soundHeard, soundHeard), 0,
                                           Random.Range(-soundHeard, soundHeard)) / correctness;
 
             // 에이전트 구역, 도달 가능 목적지 구역, 일반 목적지 구역 계산
-            Vector3 agentZone = _visited.Count > 0 ? FindNearestPoint(_visited, transform.position) : transform.position;
-            Vector3 reachableDestZone = _visited.Count > 0 ? FindNearestPoint(_visited, _estimatedSoundPosition) : transform.position;
-            Vector3 generalDestZone = _constAll.Length > 0 ? FindNearestPoint(_constAll, _estimatedSoundPosition) : transform.position;
+            Vector3 agentZone =
+                _visited.Count > 0 ? FindNearestPoint(_visited, transform.position) : transform.position;
+            Vector3 reachableDestZone = _visited.Count > 0
+                ? FindNearestPoint(_visited, _estimatedSoundPosition)
+                : transform.position;
+            Vector3 generalDestZone = _constAll.Length > 0
+                ? FindNearestPoint(_constAll, _estimatedSoundPosition)
+                : transform.position;
 
             _agent.speed = _originalSpeed; // 소리를 들었으니 원래 속도로 복귀
             _searchTimer = 0f; // 탐색 타이머 초기화
@@ -178,12 +187,12 @@ namespace Script.sound
                 {
                     // 설정한 대기 시간만큼 가만히 있기
                     yield return new WaitForSeconds(standStillAfterFire);
-                    
+
                     if (_state == StateMachine.AttackCooldown)
                     {
                         if (_agent.isActiveAndEnabled)
                             _agent.isStopped = false; // 다시 이동 가능하게 설정
-                            
+
                         _state = StateMachine.Idle;
                         _agent.speed = _originalSpeed * 0.3f;
                     }
@@ -193,7 +202,7 @@ namespace Script.sound
                     // 아는 길을 따라가는 중
                     if (_targetPosition != Vector3.zero)
                         _agent.SetDestination(_targetPosition);
-                
+
                     if (target)
                         target.transform.position = _targetPosition;
 
@@ -201,7 +210,8 @@ namespace Script.sound
                     if (!_agent.pathPending && _agent.remainingDistance <= _agent.stoppingDistance)
                     {
                         // 실제 목표점(_estimatedSoundPosition)에 도달했는지 확인
-                        if ((transform.position - _estimatedSoundPosition).sqrMagnitude <= _agent.stoppingDistance * _agent.stoppingDistance + 0.1f)
+                        if ((transform.position - _estimatedSoundPosition).sqrMagnitude <=
+                            _agent.stoppingDistance * _agent.stoppingDistance + 0.1f)
                         {
                             _state = StateMachine.Idle;
                             _agent.speed = _originalSpeed * 0.3f;
@@ -213,15 +223,16 @@ namespace Script.sound
                             _searchTimer = 0f;
                         }
                     }
-                
+
                     yield return new WaitForSeconds(0.1f);
                 }
                 else if (_state == StateMachine.IntoTheUnknown)
                 {
                     _searchTimer += 0.5f;
-                    
+
                     // 목적지에 도달했거나 탐색 시간을 초과한 경우
-                    if (_searchTimer >= maxSearchTime || (_estimatedSoundPosition - transform.position).sqrMagnitude <= _agent.stoppingDistance * _agent.stoppingDistance)
+                    if (_searchTimer >= maxSearchTime || (_estimatedSoundPosition - transform.position).sqrMagnitude <=
+                        _agent.stoppingDistance * _agent.stoppingDistance)
                     {
                         _state = StateMachine.Idle;
                         _agent.speed = _originalSpeed * 0.3f;
@@ -230,10 +241,10 @@ namespace Script.sound
                     {
                         // 앞을 향해 2m 정도 목표를 잡고 맹목적으로 나아감
                         Vector3 direction = (_estimatedSoundPosition - transform.position).normalized;
-                        _targetPosition = transform.position + direction * 5.0f; 
-                    
+                        _targetPosition = transform.position + direction * 5.0f;
+
                         _agent.SetDestination(_targetPosition);
-                    
+
                         if (target)
                             target.transform.position = _targetPosition;
                     }
@@ -249,20 +260,20 @@ namespace Script.sound
                         {
                             _targetPosition = FindNearestPoint(_unvisited, transform.position);
                             _agent.SetDestination(_targetPosition);
-                            
+
                             if (target)
                                 target.transform.position = _targetPosition;
                         }
                     }
-                    
+
                     yield return new WaitForSeconds(1.0f);
                 }
-                else if (_state == StateMachine.IKnowWhereYouAre)
+                else if (_state == StateMachine.KnowWhereYouAre)
                 {
                     GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
                     GameObject nearestPlayer = null;
                     float minSqrDist = float.MaxValue;
-                    
+
                     foreach (var p in players)
                     {
                         float sqrDist = (p.transform.position - transform.position).sqrMagnitude;
@@ -289,43 +300,44 @@ namespace Script.sound
                             {
                                 transform.rotation = Quaternion.LookRotation(direction);
                             }
-                            
+
                             onFireEvent?.Invoke();
-                            
+
                             if (_agent.isActiveAndEnabled)
                             {
                                 _agent.ResetPath();
                                 _agent.isStopped = true;
                             }
-                            
+
                             // 발사 후 대기 (상태 전환 없이)
                             yield return new WaitForSeconds(standStillAfterFire);
-                            
+
                             if (_agent.isActiveAndEnabled)
                             {
                                 _agent.isStopped = false;
                             }
                         }
                     }
-                    
+
                     yield return new WaitForSeconds(0.1f);
                 }
             }
         }
 
-        private Vector3 FindNearestPoint(IEnumerable<Vector3> points, Vector3 targetPosition, bool checkLineOfSight = true)
+        private Vector3 FindNearestPoint(IEnumerable<Vector3> points, Vector3 targetPosition,
+            bool checkLineOfSight = true)
         {
             Vector3 nearest = Vector3.zero;
             float minDistance = float.MaxValue;
-            
+
             // 1. 점들을 거리와 함께 리스트에 저장
             List<KeyValuePair<Vector3, float>> sortedPoints = new List<KeyValuePair<Vector3, float>>();
-            
+
             foreach (var point in points)
             {
                 float sqrDist = (point - targetPosition).sqrMagnitude;
                 sortedPoints.Add(new KeyValuePair<Vector3, float>(point, sqrDist));
-                
+
                 if (sqrDist < minDistance)
                 {
                     minDistance = sqrDist;
@@ -387,6 +399,7 @@ namespace Script.sound
                         r1 = 1f - r1;
                         r2 = 1f - r2;
                     }
+
                     Vector3 p = v1 + (v2 - v1) * r1 + (v3 - v1) * r2;
 
                     // Voxel 좌표 계산 (격자 크기를 spacing으로 하여 너무 가까운 점들을 버림)
@@ -397,13 +410,13 @@ namespace Script.sound
                     );
 
                     // 해당 복셀 공간이 비어있다면 추가
-                    if (voxelGrid.Add(voxel)) 
+                    if (voxelGrid.Add(voxel))
                     {
                         points.Add(p);
                     }
                 }
             }
-            
+
             // NavMesh 원본 꼭짓점(모서리 부분 등)도 중요하므로 추가
             foreach (var v in triangulation.vertices)
             {
@@ -445,6 +458,5 @@ namespace Script.sound
                 }
             }
         }
-        
     }
 }
