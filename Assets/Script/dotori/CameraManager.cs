@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -10,6 +11,7 @@ namespace Script.dotori
     {
         public CinemachineVirtualCamera[] cineVirtual; 
         private int _index = 0; 
+        public PlayerGameState state;
         
         private void Start()
         {
@@ -23,9 +25,20 @@ namespace Script.dotori
             UpdateCameraPriorities();
         }
 
-        public void OnActivate(InputValue value)
+        public IEnumerator StartMonitoring()
         {
+            while (state.IsInPlayground)
+                yield return new WaitForSeconds(0.5f);
             UpdateCameraPriorities();
+        }
+
+        public void Disable()
+        {
+            StopCoroutine(StartMonitoring());
+            foreach (var cineVirtualCamera in cineVirtual)
+            {
+                cineVirtualCamera.Priority = 0;
+            }
         }
 
         private void OnPrevious(InputValue value) 
@@ -46,7 +59,7 @@ namespace Script.dotori
         {
             for (var i = 0; i < cineVirtual.Length; i++)
             {
-                cineVirtual[i].Priority = (i == _index) ? 10 : 0;
+                cineVirtual[i].Priority = (i == _index) ? 15 : 0;
             }
         }
     }

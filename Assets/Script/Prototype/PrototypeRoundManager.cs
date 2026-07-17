@@ -1,4 +1,5 @@
 using Fusion;
+using Script.dotori;
 using UnityEngine;
 
 public enum PrototypeRoundPhase : byte
@@ -23,6 +24,7 @@ public class PrototypeRoundManager : NetworkBehaviour
     [Networked] public NetworkBool IsMatchEnding { get; private set; }
     [Networked] public TickTimer PhaseTimer { get; private set; }
     [Networked] public int RoundNumber { get; private set; }
+    public CameraManager cameraManager;
 
     private bool sceneTransitionRequested;
 
@@ -111,6 +113,7 @@ public class PrototypeRoundManager : NetworkBehaviour
 
     private void FinishRound()
     {
+        cameraManager.Disable();
         if (IsRoundEnding)
             return;
 
@@ -135,6 +138,7 @@ public class PrototypeRoundManager : NetworkBehaviour
 
     private void BeginNextRound()
     {
+        StartCoroutine(cameraManager.StartMonitoring());
         if (IsMatchEnding)
             return;
 
