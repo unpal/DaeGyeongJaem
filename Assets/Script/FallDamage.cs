@@ -14,8 +14,10 @@ public class FallDamage : MonoBehaviour
     public float safeHeight = 3f;      // 일단 맵 scaling 확인이 안되어서 이정도로 설정했습니다.
     public float damagePerMeter = 5f;  // 1m당 데미지
 
+    //추가, 라운드시작 > 텔레포트시 낙하피해 적용x용 변수들
     private float highestPoint;
     private bool wasGrounded = true;
+    private bool waitForInitialGrounding; // 라운드시작시 땅에 닿을때까지 기다리는 상태 추가
 
     void Start()
     {
@@ -32,6 +34,18 @@ public class FallDamage : MonoBehaviour
             return;
 
         bool grounded = IsGrounded();
+
+        //따라서 라운드 텔레포트를 높은 곳에서 떨어진것으로 착각하지 않는다!!!!!!!!!
+        if (waitForInitialGrounding)
+        {
+            highestPoint = transform.position.y;
+            wasGrounded = grounded;
+
+            if (grounded)
+                waitForInitialGrounding = false;
+
+            return;
+        }
 
         // 공중일 때 가장 높은 위치 저장
         if (!grounded)
@@ -72,9 +86,11 @@ public class FallDamage : MonoBehaviour
             1.2f);
     }
 
+    //플레이어가 처음 땅에 닿기 전까지는 현재 높이만 갱신.
     public void ResetForNextRound()
     {
         highestPoint = transform.position.y;
         wasGrounded = true;
+        waitForInitialGrounding = true;
     }
 }
