@@ -31,6 +31,7 @@ public class PlayerCondition : MonoBehaviour
     //추가,
     private PlayerGameState playerGameState; // 게임진행상태 가져오기(플레이어별)
     private GameManager gameManager; // 게임매니저
+    private PrototypeRoundManager prototypeRoundManager;
     private bool deathReported; // 사망했는지 확인하는 변수 < checkgameover 계속 실행되어도 사망보고는 한번만<중복사망방지
 
     [SerializeField]
@@ -84,6 +85,21 @@ public class PlayerCondition : MonoBehaviour
         */
     }
 
+    public void ResetForNextRound()
+    {
+        deathReported = false;
+        permanentDamage = 0f;
+        temporaryDamage = 0f;
+        sprintLockTimer = 0f;
+        burnTime = 0f;
+        burnTickTimer = 0f;
+        recoverTimer = 0f;
+
+        PlayerStamina stamina = GetComponent<PlayerStamina>();
+        if (stamina != null)
+            stamina.ResetForNextRound();
+    }
+
     //이거 추가, 게임오버조건체크 > 
     private void CheckGameOver()
     {
@@ -103,6 +119,18 @@ public class PlayerCondition : MonoBehaviour
             {
                 deathReported = true;
                 gameManager.ReportPlayerDied(playerGameState);
+            }
+            else
+            {
+                if (prototypeRoundManager == null)
+                    prototypeRoundManager = FindFirstObjectByType<PrototypeRoundManager>();
+
+                if (prototypeRoundManager != null &&
+                    prototypeRoundManager.Phase == PrototypeRoundPhase.Playing)
+                {
+                    deathReported = true;
+                    prototypeRoundManager.ReportPlayerEliminated(playerGameState);
+                }
             }
         }
     }
@@ -179,6 +207,7 @@ public class PlayerCondition : MonoBehaviour
     public void ApplyTemporaryDamage(float amount)
     {
         temporaryDamage += amount;
+        recoverTimer = recoverDelay;
     }
 
     public void RecoverTemporaryDamage(float amount)    

@@ -20,18 +20,18 @@ public class PlayerMove : NetworkBehaviour
     public bool isGround;
     //public Animator Anim;
 
-    //ÇÔ¼ö
+    //í•¨ìˆ˜
     //bool useStamina(float amount),
     //recoverStamina(float amount),
     //bool HasStamina(float amount)
 
-    //¼ÒÀ½±â´É
+    //ì†ŒìŒê¸°ëŠ¥
     private PlayerNoise noise;
 
-    //Ãß°¡ÇÑÁ¡, 
+    //ì¶”ê°€í•œì ,
     [Header("Sprint")]
-    public float sprintMultiplier = 1.5f; //´Ş¸®±â¼Óµµ
-    public float sprintDrain = 15f; //´Ş¸®´Âµ¥ ¼Ò¸ğµÇ´Â ½ºÅÂ¹Ì³Ê·®
+    public float sprintMultiplier = 1.5f; //ë‹¬ë¦¬ê¸°ì†ë„
+    public float sprintDrain = 15f; //ë‹¬ë¦¬ëŠ”ë° ì†Œëª¨ë˜ëŠ” ìŠ¤íƒœë¯¸ë„ˆëŸ‰
 
     [Header("Jump")]
     public float jumpCost = 10f;
@@ -43,19 +43,18 @@ public class PlayerMove : NetworkBehaviour
     [Header("Recover")]
     public float recoverRate = 10f;
 
-    //³ªÁß¿¡ ¹ë·±½º ÆĞÄ¡ ÆíÇÏµµ·Ï À§Ã³·³ magicnum ¸ğ¾ÆµÎ´Â°Íµµ ±¦ÂúÀ»µí ½ÍÁö¸¸.. ¾Æ·¡¿¡ ¼öÁ¤ ¾ÈÇØ³ùÀ½.
+    //ë‚˜ì¤‘ì— ë°¸ëŸ°ìŠ¤ íŒ¨ì¹˜ í¸í•˜ë„ë¡ ìœ„ì²˜ëŸ¼ magicnum ëª¨ì•„ë‘ëŠ”ê²ƒë„ ê´œì°®ì„ë“¯ ì‹¶ì§€ë§Œ.. ì•„ë˜ì— ìˆ˜ì • ì•ˆí•´ë†¨ìŒ.
 
-    //¼ÒÀ½ È£Ãâ¿ë Å¸ÀÌ¸Ó,¸Å Æ½¸¶´Ù È£Ãâx ÀÏÁ¤ ½Ã°£°£°İÀ¸·Î.
+    //ì†ŒìŒ í˜¸ì¶œìš© íƒ€ì´ë¨¸,ë§¤ í‹±ë§ˆë‹¤ í˜¸ì¶œx ì¼ì • ì‹œê°„ê°„ê²©ìœ¼ë¡œ.
     private float runNoiseTimer;
     private float climbNoiseTimer;
 
-    private bool isSprint; // state Ã¼Å©
-    private PlayerStamina stamina;
-    private float timer; //µğ¹ö±ë¿ë
+    private bool isSprint; // state ì²´í¬
+    private PlayerCondition condition; // ìš©ì•”,ì´,ë‚™ë€ ìƒí™©ë“¤
+    private PlayerGameState gameState;
+    private bool jumpWasPressed;
 
-    private PlayerCondition condition; // ¿ë¾Ï,ÃÑ,³«µ© »óÈ²µé
-
-    //taunt ±â´É
+    //taunt ê¸°ëŠ¥
     public InputAction whistleAction;
     public float RunSpeed;
     public bool isRun;
@@ -80,9 +79,12 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private float edgePushTime;
     [SerializeField] private float edgePushTimer;
 
-    //Ãß°¡ÇÑÁ¡,
+    //ì¶”ê°€í•œì ,
     void Update()
     {
+        if (Object == null || !Object.HasInputAuthority)
+            return;
+
         isSprint = Keyboard.current.leftShiftKey.isPressed;
         isGrapple = attackAction.IsPressed();
 
@@ -91,13 +93,6 @@ public class PlayerMove : NetworkBehaviour
             noise.Whistle();
         }
 
-        timer += Time.deltaTime;
-
-        if (timer >= 1f)
-        {
-            Debug.Log($"ÇöÀç ½ºÅÂ¹Ì³ª : {stamina.CurrentStamina}");
-            timer = 0f;
-        }
         attack = attackAction.IsPressed();
         sprint = SprintAction.IsPressed();
         jump = JumpAction.IsPressed();
@@ -111,13 +106,11 @@ public class PlayerMove : NetworkBehaviour
         controller = GetComponent<NetworkCharacterController>();
         isJump = true;
         cc = GetComponent<CharacterController>();
-        //Ãß°¡
-        stamina = GetComponent<PlayerStamina>();
-        //Ãß°¡
         condition = GetComponent<PlayerCondition>();
-        //Ãß°¡2
+        gameState = GetComponent<PlayerGameState>();
+        //ì¶”ê°€2
         noise = GetComponent<PlayerNoise>();
-        //Ãß°¡3
+        //ì¶”ê°€3
         whistleAction = playerInput.actions["Whistle"];
 
         isJump = true;
@@ -151,14 +144,25 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!GetInput(out NetworkInputData data))
         {
-            //Debug.Log("ÀÔ·Â ¾øÀ½");
+            //Debug.Log("ì…ë ¥ ì—†ìŒ");
             return;
         }
         bool sprintPressed = data.Buttons.IsSet((int)PlayerButtons.Sprint);
+        bool hasMovementInput = data.Move.sqrMagnitude > 0.01f;
+
+        if (gameState != null && condition != null)
+            gameState.SetMaxStamina(condition.CurrentMaxStamina);
+
+        bool canSprint = sprintPressed &&
+                         hasMovementInput &&
+                         condition != null &&
+                         condition.CanSprint &&
+                         gameState != null &&
+                         gameState.TryUseStamina(sprintDrain * Runner.DeltaTime);
         transform.Rotate(
             Vector3.up * data.Look.x * sensitivity
         );
-        if(!sprintPressed)
+        if(!canSprint)
         {
             controller.maxSpeed = Speed;
         }
@@ -190,13 +194,48 @@ public class PlayerMove : NetworkBehaviour
 
             controller.Move((move/* + stick*/)* Runner.DeltaTime);
         }
-        if (data.Buttons.IsSet((int)PlayerButtons.Jump))
+        bool jumpPressed = data.Buttons.IsSet((int)PlayerButtons.Jump);
+        if (jumpPressed && !jumpWasPressed && controller.Grounded &&
+            gameState != null && gameState.TryUseStamina(jumpCost))
         {
             controller.Jump();
             jump = false;
         }
+        jumpWasPressed = jumpPressed;
       //  Debug.Log($"Move:{data.Move} Look:{data.Look}");
-        Climbing(data);
+        bool isClimbingNow = Climbing(data);
+
+        if (!canSprint && !isClimbingNow && gameState != null)
+            gameState.RecoverStamina(recoverRate * Runner.DeltaTime);
+    }
+
+    public void ResetForNextRound()
+    {
+        inputVec = Vector2.zero;
+        lookVec = Vector2.zero;
+        jump = false;
+        attack = false;
+        sprint = false;
+        isSprint = false;
+        isGrapple = false;
+        isWall = false;
+        Uping = false;
+        wasGrapped = false;
+        edgePushTimer = 0f;
+        verticalVelocity = 0f;
+        xRotation = 0f;
+        jumpWasPressed = false;
+
+        if (controller != null)
+        {
+            controller.Velocity = Vector3.zero;
+            controller.gravity = -20f;
+            controller.IsClimbing = false;
+            controller.IsDash = false;
+        }
+
+        if (CameraObj != null)
+            CameraObj.transform.localRotation = Quaternion.identity;
     }
 
     bool IsWall()
@@ -217,28 +256,37 @@ public class PlayerMove : NetworkBehaviour
         return isWall;
     }
 
-    private void Climbing(NetworkInputData data)
+    private bool Climbing(NetworkInputData data)
     {
         bool attackPressed = data.Buttons.IsSet((int)PlayerButtons.Attack);
-        if (IsWall() && attackPressed && controller.gravity != 0 && !controller.IsDash)
+        bool canClimb = IsWall() &&
+                        attackPressed &&
+                        controller.gravity != 0 &&
+                        !controller.IsDash &&
+                        gameState != null &&
+                        gameState.TryUseStamina(climbDrain * Runner.DeltaTime);
+
+        if (canClimb)
         {
             controller.gravity = 0;
             controller.Velocity = Vector3.zero;
             wasGrapped = true;
             controller.IsClimbing = true;
         }
-        else if ((!IsWall() || !attackPressed) && controller.gravity != -20)
+        else if (controller.gravity != -20)
         {
             controller.gravity = -20;
             controller.IsClimbing = false;
-            if(attackPressed)
+            if(attackPressed && isWall)
                 controller.IsDash = true;
         }
+
+        return canClimb;
     }
 
     private void OnCollisionEnter(Collision other)
     {
-        //Debug.Log("Äİ¶óÀÌ´õ ¹ß»ı");
+        //Debug.Log("ì½œë¼ì´ë” ë°œìƒ");
         if (other.collider.tag == "Wall")
         {
             Uping = true;
@@ -247,7 +295,8 @@ public class PlayerMove : NetworkBehaviour
         {
             isJump = true;
 
-            //¼ÒÀ½¹ß»ı, ÂøÁö. ±Ùµ¥ ³ôÀÌº°·Î ¼ÒÀ½Á¦°ø·®ÀÌ ´Ş¶ó¾ßÇÒ°Í°°½À´Ï´Ù.
+            //ì†ŒìŒë°œìƒ, ì°©ì§€. ê·¼ë° ë†’ì´ë³„ë¡œ ì†ŒìŒì œê³µëŸ‰ì´ ë‹¬ë¼ì•¼í• ê²ƒê°™ìŠµë‹ˆë‹¤. << ìŒ. ë‚™í•˜ë°ë¯¸ì§€ ì½”ë“œ ì¡°ê¸ˆ ì°¸ê³ í•´ì„œ ìˆ˜ì •í•´ë³¼ê²Œìš”
+            //ì €ê±° ì½”ë“œ ì°¸ê³ í•´ì„œ ë³€ìˆ˜ ê°€ì ¸ì˜¨ë‹¤ìŒì— ê°„ë‹¨í•œ ì¡°ê±´ë¬¸ ì“°ê¸°
             noise.MakeNoise(NoiseType.Land);
 
             //Anim.SetBool("Jump", false);
@@ -265,10 +314,10 @@ public class PlayerMove : NetworkBehaviour
         if (value.isPressed)
         {
 
-            //¿©±â ÃßÈÄ¿¡ º¯°æÇÏ¸é ÁÁÀ»µíÇÑ ¹æ½Ä
+            //ì—¬ê¸° ì¶”í›„ì— ë³€ê²½í•˜ë©´ ì¢‹ì„ë“¯í•œ ë°©ì‹
             /*
              
-                if (isJump && stamina.UseStamina(10f)) <<<<<<<<<<<<<Á¶°Ç¹®¸¸ º¯°æ.
+                if (isJump && stamina.UseStamina(10f)) <<<<<<<<<<<<<ì¡°ê±´ë¬¸ë§Œ ë³€ê²½.
                     {
                         Rigid.AddForce(Vector3.up * 5, ForceMode.Impulse);
                         isJump = false;
@@ -281,7 +330,7 @@ public class PlayerMove : NetworkBehaviour
             {
                 //Rigid.AddForce(Vector3.up * 5, ForceMode.Impulse);
 
-                //¼ÒÀ½Ãß°¡
+                //ì†ŒìŒì¶”ê°€
                 noise.MakeNoise(NoiseType.Jump);
 
                 isJump = false;
