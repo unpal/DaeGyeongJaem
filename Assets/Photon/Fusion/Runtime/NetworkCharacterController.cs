@@ -34,6 +34,7 @@ namespace Fusion {
 
   [DisallowMultipleComponent]
   [RequireComponent(typeof(CharacterController))]
+  
   [NetworkBehaviourWeaved(NetworkCCData.WORDS)]
   // ReSharper disable once CheckNamespace
   public sealed unsafe class NetworkCharacterController : NetworkTRSP, INetworkTRSPTeleport, IBeforeAllTicks, IAfterAllTicks, IBeforeCopyPreviousState {
@@ -64,8 +65,7 @@ namespace Fusion {
     [SerializeField] private LayerMask WallLayer;
 
 
-
-    public Vector3 Velocity {
+        public Vector3 Velocity {
       get => Data.Velocity;
       set => Data.Velocity = value;
     }
@@ -99,13 +99,15 @@ namespace Fusion {
     }
 
 
-    public void Jump(bool ignoreGrounded = false, float? overrideImpulse = null) {
+    public bool Jump(bool ignoreGrounded = false, float? overrideImpulse = null) {
       if (Data.Grounded || ignoreGrounded) {
         var newVel = Data.Velocity;
         newVel.y      += overrideImpulse ?? jumpImpulse;
         Data.Velocity =  newVel;
+                return true;
       }
-    }
+            return false;
+        }
 
     public void Move(Vector3 direction) {
       var deltaTime    = Runner.DeltaTime;
@@ -118,10 +120,10 @@ namespace Fusion {
         moveVelocity.y = 0f;
       }
 
+      //클라이밍이나 마지막 대쉬때는 중력 계산 안되게
+     moveVelocity.y += (IsClimbing || IsDash ? 0 : gravity) * Runner.DeltaTime;
 
-     moveVelocity.y += (IsDash ? 0 : gravity) * Runner.DeltaTime;
-
-            float verticalVelocity = 0;
+      //float verticalVelocity = 0;
       //if (IsFrontGround() && IsBackGround() && verticalVelocity < 0)
       //{
       //    verticalVelocity = 0;

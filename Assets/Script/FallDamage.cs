@@ -1,11 +1,13 @@
+using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FallDamage : MonoBehaviour
+public class FallDamage : NetworkBehaviour
 {
     [Header("Reference")]
     private PlayerCondition condition;
+    private NetworkCharacterController characterController;
 
     [Header("Fall Damage")]
     public float safeHeight = 3f;      // 일단 맵 scaling 확인이 안되어서 이정도로 설정했습니다.
@@ -14,13 +16,13 @@ public class FallDamage : MonoBehaviour
     private float highestPoint;
     private bool wasGrounded = true;
 
-    void Start()
+    public override void Spawned()
     {
         condition = GetComponent<PlayerCondition>();
+        characterController = GetComponent<NetworkCharacterController>();   
         highestPoint = transform.position.y;
     }
-
-    void Update()
+    public override void FixedUpdateNetwork()
     {
         bool grounded = IsGrounded();
 
@@ -44,6 +46,7 @@ public class FallDamage : MonoBehaviour
                 Debug.Log($"낙하 데미지 : {damage:F1}");
 
                 condition.ApplyPermanentDamage(damage);
+                SoundEventManager.TriggerSound(transform.position, 10.0f);
             }
 
             highestPoint = transform.position.y;

@@ -51,6 +51,7 @@ GameObject:
   - component: {fileID: 872836292970639320}
   - component: {fileID: 1663332307230815107}
   - component: {fileID: 5997651382988697563}
+  - component: {fileID: 5765640052177332623}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -200,6 +201,10 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 8980457805791645807}
   - {fileID: -6885646200158004593}
+  - {fileID: 872836292970639320}
+  - {fileID: 1663332307230815107}
+  - {fileID: 5997651382988697563}
+  - {fileID: 5765640052177332623}
   - {fileID: 8770475609500432936}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &8980457805791645807
@@ -249,6 +254,7 @@ MonoBehaviour:
     m_Interactions: 
     m_SingletonActionBindings: []
     m_Flags: 0
+  whistle: 0
   RunSpeed: 4
   isRun: 0
   playerCamera: {fileID: 200119594496257742}
@@ -257,12 +263,7 @@ MonoBehaviour:
   sprint: 0
   sensitivity: 0.1
   CameraObj: {fileID: 3744268813454638683}
-  gravity: -20
-  verticalVelocity: 0
-  edgePushForce: 3
-  wasGrapped: 0
-  edgePushTime: 0.2
-  edgePushTimer: 0
+  playerStaminaUI: {fileID: 0}
 --- !u!143 &1928040249987131803
 CharacterController:
   m_ObjectHideFlags: 0
@@ -322,7 +323,7 @@ MonoBehaviour:
   isBackGround: 0
   WallLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
 --- !u!114 &872836292970639320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -379,6 +380,20 @@ MonoBehaviour:
   recoverDelay: 5
   recoverRate: 1
   burnRecovery: 1
+--- !u!114 &5765640052177332623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 625e0a71ea48b09449fab69fc3dc71c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  safeHeight: 3
+  damagePerMeter: 5
 --- !u!1 &3744268813454638683
 GameObject:
   m_ObjectHideFlags: 0

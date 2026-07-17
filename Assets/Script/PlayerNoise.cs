@@ -1,7 +1,8 @@
+using Fusion;
 using System.Collections;
 using UnityEngine;
 
-public class PlayerNoise : MonoBehaviour
+public class PlayerNoise : NetworkBehaviour
 {
     [Header("Periodic Noise")]
     [SerializeField] private float periodicInterval = 30f;
@@ -32,13 +33,17 @@ public class PlayerNoise : MonoBehaviour
         isCrouching = value;
     }
 
-    private void Start()
+    public override void Spawned()
     {
         StartCoroutine(PeriodicNoiseRoutine());
     }
 
+
     public void MakeNoise(NoiseType type)
     {
+        if (!Runner.IsForward)
+            return;
+
         float radius = GetNoiseRadius(type);
 
         if (isCrouching)
@@ -59,11 +64,15 @@ public class PlayerNoise : MonoBehaviour
         if (radius <= 0)
             return;
 
-        Debug.Log($"[{type}] Noise ({radius})");
+        Debug.Log($"[{type}] Noise ({radius}) 발생");
 
-        // AI 연동 예정
-        // HunterAI.Instance.HearNoise(transform.position, radius, type);
-        OnNoiseGenerated?.Invoke(transform.position, radius, type); //호출 인터페이스 ai 시험용
+        //사운드가 여러번 호출되는 문제가 있어 Host만 이벤트를 처리하도록 설정
+        if (Object.HasStateAuthority)
+        {
+            // AI 연동 예정
+            // HunterAI.Instance.HearNoise(transform.position, radius, type);
+            OnNoiseGenerated?.Invoke(transform.position, radius, type); //호출 인터페이스 ai 시험용
+        }
     }
     /*
     private void OnEnable()
@@ -117,12 +126,17 @@ private void OnDisable()
         {
             yield return new WaitForSeconds(periodicInterval);
 
+            SoundEventManager.TriggerSound(transform.position, 20.0f);
             MakeNoise(NoiseType.Periodic);
         }
     }
 
     public void Whistle()
     {
+        if (Object.HasStateAuthority)
+        {
+            SoundEventManager.TriggerSound(transform.position, 20.0f);
+        }
         MakeNoise(NoiseType.Whistle);
     }
 

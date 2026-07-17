@@ -19,29 +19,31 @@ public class LavaBurn : MonoBehaviour
             condition.RefreshBurn();
         }
     }
+    //Photon Fusion 2에서 TriggerEnter 사용할 시 TriggerEnter가 여러번 찍히는 문제가 발생해 주석처리함.
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    PlayerCondition condition =
+    //        other.GetComponent<PlayerCondition>();
+    //    if (!condition.Object.HasStateAuthority)
+    //        return;
 
-    private void OnTriggerEnter(Collider other)
-    {
-        PlayerCondition condition =
-            other.GetComponent<PlayerCondition>();
+    //    if (condition != null)
+    //    {
+    //        StartCoroutine(Burn(condition));
+    //    }
+    //}
 
-        if (condition != null)
-        {
-            StartCoroutine(Burn(condition));
-        }
-    }
+    //IEnumerator Burn(PlayerCondition condition)
+    //{
+    //    float timer = 0;
 
-    IEnumerator Burn(PlayerCondition condition)
-    {
-        float timer = 0;
+    //    while (timer < burnDuration)
+    //    {
+    //        condition.ApplyTemporaryDamage(burnDamage);
 
-        while (timer < burnDuration)
-        {
-            condition.ApplyTemporaryDamage(burnDamage);
+    //        yield return new WaitForSeconds(tickInterval);
 
-            yield return new WaitForSeconds(tickInterval);
-
-            timer += tickInterval;
-        }
-    }
+    //        timer += tickInterval;
+    //    }
+    //}
 }

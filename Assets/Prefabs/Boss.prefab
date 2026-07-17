@@ -5163,6 +5163,8 @@ GameObject:
   - component: {fileID: 2195799060893979171}
   - component: {fileID: 4024722709676501933}
   - component: {fileID: 6036201653601111293}
+  - component: {fileID: 8366356054882190008}
+  - component: {fileID: 2471139075276887276}
   m_Layer: 0
   m_Name: Boss
   m_TagString: Untagged
@@ -5331,6 +5333,42 @@ MonoBehaviour:
   onFireEvent:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &8366356054882190008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8774740471196656705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SortKey: 3281863730
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 2471139075276887276}
+  ForceRemoteRenderTimeframe: 0
+--- !u!114 &2471139075276887276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8774740471196656705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 158639473, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _stateAuthorityChangeErrorCorrectionDelta: 0
+  SyncScale: 0
+  SyncParent: 0
+  _autoAOIOverride: 1
+  DisableSharedModeInterpolation: 0
 --- !u!1 &9074805292773875413
 GameObject:
   m_ObjectHideFlags: 0

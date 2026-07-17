@@ -1,8 +1,10 @@
+using Fusion;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerCondition : MonoBehaviour
+public class PlayerCondition : NetworkBehaviour
 {
     [Header("Base")]
     [SerializeField] private float baseMaxStamina = 100f;
@@ -31,7 +33,7 @@ public class PlayerCondition : MonoBehaviour
     [SerializeField]
     public float BaseMaxStamina => baseMaxStamina; //아 짜증나
 
-
+    public static event Action<PlayerCondition> OnLocalPlayerSpawned;
     public float CurrentMaxStamina
     {
         get
@@ -49,8 +51,15 @@ public class PlayerCondition : MonoBehaviour
 
     [SerializeField]
     private float burnRecovery = 1f; //화상회복틱당몇?
+    public override void Spawned()
+    {
+        if (Object.HasInputAuthority)
+        {
+            OnLocalPlayerSpawned?.Invoke(this);
+        }
+    }
 
-    void Update()
+    public override void FixedUpdateNetwork()
     {
         //리팩토링
         HandleBurn();
@@ -60,6 +69,8 @@ public class PlayerCondition : MonoBehaviour
         HandleSprintLock();
 
         CheckGameOver();
+
+
 
         /* if (temporaryDamage > 0)
          {
@@ -71,6 +82,7 @@ public class PlayerCondition : MonoBehaviour
              sprintLockTimer -= Time.deltaTime;
         */
     }
+
 
     private void CheckGameOver()
     {
@@ -84,7 +96,7 @@ public class PlayerCondition : MonoBehaviour
             // Scene 이동
         }
     }
-
+    //화상 데미지 계산
     private void HandleBurn()
     {
         if (burnTime <= 0)

@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Script.sound;
+using Fusion;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     [Header("UI")]
     public TMP_Text centerText;
@@ -25,7 +26,7 @@ public class GameManager : MonoBehaviour
     private SoundFollowingAgent spawnedChaser;
     private Coroutine subtitleCoroutine;
 
-    void Start()
+    public override void Spawned()
     {
         // 바텀 텍스트(자막) 초기화
         if (bottomText != null)
@@ -35,8 +36,23 @@ public class GameManager : MonoBehaviour
             bottomText.color = c;
             bottomText.text = "";
         }
-
-        StartCoroutine(GameFlowRoutine());
+        if (Object.HasStateAuthority)
+        {
+            StartCoroutine(GameFlowRoutine());
+        }
+    }
+    //Host가 Client에게 텍스트 변경 요청
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcSetCenterText(string text)
+    {
+        if (centerText != null)
+            centerText.text = text;
+    }
+    //Host가 Client에게 텍스트 Fade Out 요청
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcFadeOutCenterText()
+    {
+        StartCoroutine(FadeOutText(centerText, SUBTITLE_MAINTAIN_TIME, SUBTITLE_FADE_TIME));
     }
 
     private IEnumerator GameFlowRoutine()
@@ -47,26 +63,26 @@ public class GameManager : MonoBehaviour
             timer += Time.deltaTime;
             int countDown = Mathf.CeilToInt(10f - timer);
             if (centerText != null)
-                centerText.text = countDown.ToString();
+                RpcSetCenterText(countDown.ToString());
             yield return null;
         }
 
         // 10초: 시작 및 술래 생성
         if (centerText != null)
         {
-            centerText.text = "시작";
+            RpcSetCenterText("시작");
             // '시작' 텍스트도 자막과 동일하게 유지 후 페이드아웃 되도록 추가
-            StartCoroutine(FadeOutText(centerText, SUBTITLE_MAINTAIN_TIME, SUBTITLE_FADE_TIME));
+            RpcFadeOutCenterText();
         }
 
-        ShowSubtitle("술래가 생성되었습니다.");
+        RpcShowSubtitle("술래가 생성되었습니다.");
 
         if (chaserPrefab != null)
         {
             Vector3 spawnPos = chaserSpawnPoint != null ? chaserSpawnPoint.position : Vector3.zero;
             Quaternion spawnRot = chaserSpawnPoint != null ? chaserSpawnPoint.rotation : Quaternion.identity;
-            
-            GameObject chaserObj = Instantiate(chaserPrefab, spawnPos, spawnRot);
+            //술래 생성 Instance에서 Spawn으로 변경
+            NetworkObject chaserObj = Runner.Spawn(chaserPrefab.GetComponent<NetworkObject>(),spawnPos,spawnRot );
             spawnedChaser = chaserObj.GetComponent<SoundFollowingAgent>();
         }
 
@@ -78,7 +94,7 @@ public class GameManager : MonoBehaviour
         }
 
         // 30초: 탈출 지점 활성화
-        ShowSubtitle("탈출 지점이 생겼습니다");
+        RpcShowSubtitle("탈출 지점이 생겼습니다");
         if (portalManager != null)
         {
             portalManager.ActivateRandomPortals(1);
@@ -97,8 +113,9 @@ public class GameManager : MonoBehaviour
             spawnedChaser.SetStateToKnowWhereYouAre();
         }
     }
-
-    private void ShowSubtitle(string text)
+    //Host가 Client에게 아래 텍스트 변경 요청
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcShowSubtitle(string text)
     {
         if (bottomText == null) return;
 

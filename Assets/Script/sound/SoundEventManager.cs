@@ -66,6 +66,7 @@ public class SoundEventManager : MonoBehaviour
     public static void TriggerSound(Vector3 position, float volume)
     {
         // 구독자가 있을 경우에만 이벤트를 호출합니다.
+        Debug.Log($"[{position}] 에서 ({volume})만큼의 사운드 발생");
         OnSoundTriggered?.Invoke(position, volume);
     }
 }

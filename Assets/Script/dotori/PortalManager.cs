@@ -1,3 +1,4 @@
+using Fusion;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,7 +7,7 @@ using UnityEngine;
  * 특정 개수의 오브젝트(포탈)을 활성화시키는 코드입니다
  * 게임매니저 등의 외부에서 호출해야 합니다
  */
-public class PortalManager : MonoBehaviour
+public class PortalManager : NetworkBehaviour
 {
     public List<GameObject> portals = new List<GameObject>();
 
