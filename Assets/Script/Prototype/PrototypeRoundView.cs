@@ -15,7 +15,7 @@ public class PrototypeRoundView : MonoBehaviour
     private void Awake()
     {
         manager = GetComponent<PrototypeRoundManager>();
-        BuildWorld();
+        //BuildWorld();
     }
 
     private void Update()
@@ -85,41 +85,41 @@ public class PrototypeRoundView : MonoBehaviour
         Cursor.visible = false;
     }
 
-    private void BuildWorld()
-    {
-        GameObject floor = CreateCube("Floor", new Vector3(0f, -0.5f, 0f), new Vector3(28f, 1f, 28f), new Color(0.16f, 0.2f, 0.24f));
-        floor.tag = "Ground";
+    //private void BuildWorld()
+    //{
+    //    GameObject floor = CreateCube("Floor", new Vector3(0f, -0.5f, 0f), new Vector3(28f, 1f, 28f), new Color(0.16f, 0.2f, 0.24f));
+    //    floor.tag = "Ground";
 
-        int wallLayer = LayerMask.NameToLayer("Wall");
-        CreateCube("WallNorth", new Vector3(0f, 2f, 14f), new Vector3(29f, 5f, 1f), Color.gray).layer = wallLayer;
-        CreateCube("WallSouth", new Vector3(0f, 2f, -14f), new Vector3(29f, 5f, 1f), Color.gray).layer = wallLayer;
-        CreateCube("WallEast", new Vector3(14f, 2f, 0f), new Vector3(1f, 5f, 29f), Color.gray).layer = wallLayer;
-        CreateCube("WallWest", new Vector3(-14f, 2f, 0f), new Vector3(1f, 5f, 29f), Color.gray).layer = wallLayer;
-        CreateCube("CenterObstacle", new Vector3(0f, 1f, 0f), new Vector3(5f, 2f, 5f), new Color(0.3f, 0.32f, 0.36f)).layer = wallLayer;
+    //    int wallLayer = LayerMask.NameToLayer("Wall");
+    //    CreateCube("WallNorth", new Vector3(0f, 2f, 14f), new Vector3(29f, 5f, 1f), Color.gray).layer = wallLayer;
+    //    CreateCube("WallSouth", new Vector3(0f, 2f, -14f), new Vector3(29f, 5f, 1f), Color.gray).layer = wallLayer;
+    //    CreateCube("WallEast", new Vector3(14f, 2f, 0f), new Vector3(1f, 5f, 29f), Color.gray).layer = wallLayer;
+    //    CreateCube("WallWest", new Vector3(-14f, 2f, 0f), new Vector3(1f, 5f, 29f), Color.gray).layer = wallLayer;
+    //    CreateCube("CenterObstacle", new Vector3(0f, 1f, 0f), new Vector3(5f, 2f, 5f), new Color(0.3f, 0.32f, 0.36f)).layer = wallLayer;
 
-        GameObject lava = CreateCube("LavaDamageTest", new Vector3(8f, 0.15f, 0f), new Vector3(5f, 0.3f, 5f), new Color(1f, 0.2f, 0.02f, 0.9f));
-        lava.GetComponent<Collider>().isTrigger = true;
-        LavaBurn lavaBurn = lava.AddComponent<LavaBurn>();
-        lavaBurn.tickInterval = 0.5f;
-        lavaBurn.burnDamage = 10f;
+    //    GameObject lava = CreateCube("LavaDamageTest", new Vector3(8f, 0.15f, 0f), new Vector3(5f, 0.3f, 5f), new Color(1f, 0.2f, 0.02f, 0.9f));
+    //    lava.GetComponent<Collider>().isTrigger = true;
+    //    LavaBurn lavaBurn = lava.AddComponent<LavaBurn>();
+    //    lavaBurn.tickInterval = 0.5f;
+    //    lavaBurn.burnDamage = 10f;
 
-        GameObject platform = CreateCube("FallDamagePlatform", new Vector3(-8f, 5f, 0f), new Vector3(6f, 0.5f, 6f), new Color(0.45f, 0.3f, 0.2f));
-        platform.tag = "Ground";
-        platform.layer = wallLayer;
-        for (int i = 0; i < 5; i++)
-        {
-            GameObject step = CreateCube(
-                $"FallTestStep{i + 1}",
-                new Vector3(-3.5f - i, 0.5f + i, 4.5f),
-                new Vector3(2f, 1f, 2f),
-                new Color(0.4f, 0.28f, 0.18f));
-            step.tag = "Ground";
-            step.layer = wallLayer;
-        }
+    //    GameObject platform = CreateCube("FallDamagePlatform", new Vector3(-8f, 5f, 0f), new Vector3(6f, 0.5f, 6f), new Color(0.45f, 0.3f, 0.2f));
+    //    platform.tag = "Ground";
+    //    platform.layer = wallLayer;
+    //    for (int i = 0; i < 5; i++)
+    //    {
+    //        GameObject step = CreateCube(
+    //            $"FallTestStep{i + 1}",
+    //            new Vector3(-3.5f - i, 0.5f + i, 4.5f),
+    //            new Vector3(2f, 1f, 2f),
+    //            new Color(0.4f, 0.28f, 0.18f));
+    //        step.tag = "Ground";
+    //        step.layer = wallLayer;
+    //    }
 
-        portal = CreateZone("EscapePortal", new Vector3(0f, 1.5f, 11.5f), new Vector3(4f, 3f, 1f), PrototypeZoneType.Escape, new Color(0.1f, 0.9f, 0.8f, 0.65f));
-        CreateZone("EliminationZone", new Vector3(0f, 0.05f, -11f), new Vector3(9f, 0.1f, 4f), PrototypeZoneType.Eliminate, new Color(0.9f, 0.12f, 0.08f, 0.75f));
-    }
+    //    portal = CreateZone("EscapePortal", new Vector3(0f, 1.5f, 11.5f), new Vector3(4f, 3f, 1f), PrototypeZoneType.Escape, new Color(0.1f, 0.9f, 0.8f, 0.65f));
+    //    CreateZone("EliminationZone", new Vector3(0f, 0.05f, -11f), new Vector3(9f, 0.1f, 4f), PrototypeZoneType.Eliminate, new Color(0.9f, 0.12f, 0.08f, 0.75f));
+    //}
 
     private void EnsurePlayerDamageComponents()
     {
@@ -149,14 +149,14 @@ public class PrototypeRoundView : MonoBehaviour
         return cube;
     }
 
-    private GameObject CreateZone(string name, Vector3 position, Vector3 scale, PrototypeZoneType type, Color color)
-    {
-        GameObject zone = CreateCube(name, position, scale, color);
-        zone.GetComponent<Collider>().isTrigger = true;
-        PrototypeRoundZone component = zone.AddComponent<PrototypeRoundZone>();
-        component.Initialize(manager, type);
-        return zone;
-    }
+    //private GameObject CreateZone(string name, Vector3 position, Vector3 scale, PrototypeZoneType type, Color color)
+    //{
+    //    GameObject zone = CreateCube(name, position, scale, color);
+    //    zone.GetComponent<Collider>().isTrigger = true;
+    //    PrototypeRoundZone component = zone.AddComponent<PrototypeRoundZone>();
+    //    component.Initialize(manager, type);
+    //    return zone;
+    //}
 
     private void OnGUI()
     {
@@ -269,31 +269,5 @@ public class PrototypeRoundView : MonoBehaviour
     }
 }
 
-public enum PrototypeZoneType { Escape, Eliminate }
 
-public class PrototypeRoundZone : MonoBehaviour
-{
-    private PrototypeRoundManager manager;
-    private PrototypeZoneType zoneType;
 
-    public void Initialize(PrototypeRoundManager roundManager, PrototypeZoneType type)
-    {
-        manager = roundManager;
-        zoneType = type;
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (manager == null || manager.Object == null || !manager.Object.HasStateAuthority)
-            return;
-
-        PlayerGameState player = other.GetComponentInParent<PlayerGameState>();
-        if (player == null)
-            return;
-
-        if (zoneType == PrototypeZoneType.Escape)
-            manager.ReportPlayerEscaped(player);
-        else
-            manager.ReportPlayerEliminated(player);
-    }
-}

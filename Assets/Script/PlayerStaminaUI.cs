@@ -17,8 +17,6 @@ public class PlayerStaminaUI : MonoBehaviour
     {
         //원래는 플레이어가 씬에 생성되있던 상태였지만 플레이어가 프리펩으로 스폰되기에 처음부터 플레이어 생성 이벤트를 리슨하도록 변경
         ParentsSliderGameObject.SetActive(false);
-        PlayerStamina.OnLocalPlayerSpawned += SetStamina;
-        PlayerCondition.OnLocalPlayerSpawned += SetCondition;
     }
     private void OnEnable()
     {
@@ -51,8 +49,6 @@ public class PlayerStaminaUI : MonoBehaviour
         ParentsSliderGameObject.SetActive(true);
 
         // 더 이상 이벤트가 필요 없으므로 해제
-        PlayerStamina.OnLocalPlayerSpawned -= SetStamina;
-        PlayerCondition.OnLocalPlayerSpawned -= SetCondition;
     }
     private void Update()
     {

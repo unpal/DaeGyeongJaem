@@ -37,7 +37,7 @@ public class PlayerCondition : MonoBehaviour
     [SerializeField]
     public float BaseMaxStamina => baseMaxStamina; //아 짜증나
 
-
+    public bool isShotGunHit;
     public float CurrentMaxStamina
     {
         get
@@ -73,6 +73,11 @@ public class PlayerCondition : MonoBehaviour
         HandleSprintLock();
 
         CheckGameOver();
+
+        if(isShotGunHit)
+        {
+            isShotGunHit = false;
+        }
 
         /* if (temporaryDamage > 0)
          {
@@ -214,5 +219,12 @@ public class PlayerCondition : MonoBehaviour
     {
         temporaryDamage -= amount;
         temporaryDamage = Mathf.Max(0, temporaryDamage);
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "ShotgunHit")
+        {
+            ApplyTemporaryDamage(70);
+        }
     }
 }

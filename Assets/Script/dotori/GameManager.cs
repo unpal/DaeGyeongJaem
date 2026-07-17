@@ -44,6 +44,7 @@ public class GameManager : NetworkBehaviour
     //거의 다 추가한거라..
     private PlayerGameState pendingRoundWinner; // 크라운위너 저장용도 (1등)
 
+
     [Networked] // < 네트워크. State Authority가 값을 변경하고, 다른 클라이언트에 동기화하는식.
     public RoundPhase Phase { get; private set; }
 
