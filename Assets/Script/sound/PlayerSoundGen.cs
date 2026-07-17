@@ -1,5 +1,7 @@
+using System;
 using UnityEngine;
 using Script.sound;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// 일정 시간마다 소리를 발생시키는 스크립트입니다.
@@ -8,8 +10,10 @@ using Script.sound;
 /// 플레이어에게 붙여야 합니다
 /// </summary>
 [RequireComponent(typeof(AudioSource))]
+[Obsolete("사용되지 않는 코드입니다. PlayerNoise 컴포넌트를 사용하세요")]
 public class PlayerSoundGen : MonoBehaviour
 {
+
     [Header("Sound Settings")]
     [Tooltip("발생하는 사운드의 크기")]
     public float soundVolume = 10.0f;
