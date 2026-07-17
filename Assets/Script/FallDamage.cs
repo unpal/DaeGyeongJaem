@@ -24,10 +24,6 @@ public class FallDamage : NetworkBehaviour
     }
     public override void FixedUpdateNetwork()
     {
-        if (gameState == null || gameState.Object == null ||
-            !gameState.Object.HasStateAuthority || !gameState.IsInPlayground)
-            return;
-
         bool grounded = IsGrounded();
 
         // 공중일 때 가장 높은 위치 저장
@@ -61,18 +57,9 @@ public class FallDamage : NetworkBehaviour
 
     bool IsGrounded()
     {
-        if (controller != null)
-            return controller.Grounded;
-
         return Physics.Raycast( //일단 raycast 하나 더 쓰긴했는데 playermove의 착지확인부분을 빌려서 써도 될것같습니다. 추후 수정 문의
             transform.position,
             Vector3.down,
             1.2f);
-    }
-
-    public void ResetForNextRound()
-    {
-        highestPoint = transform.position.y;
-        wasGrounded = true;
     }
 }

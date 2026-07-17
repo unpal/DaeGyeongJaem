@@ -30,12 +30,6 @@ public class PlayerCondition : NetworkBehaviour
 
     private float recoverTimer;
 
-    //추가,
-    private PlayerGameState playerGameState; // 게임진행상태 가져오기(플레이어별)
-    private GameManager gameManager; // 게임매니저
-    private PrototypeRoundManager prototypeRoundManager;
-    private bool deathReported; // 사망했는지 확인하는 변수 < checkgameover 계속 실행되어도 사망보고는 한번만<중복사망방지
-
     [SerializeField]
     public float BaseMaxStamina => baseMaxStamina; //아 짜증나
 
@@ -62,7 +56,6 @@ public class PlayerCondition : NetworkBehaviour
         if (Object.HasInputAuthority)
         {
             OnLocalPlayerSpawned?.Invoke(this);
-            playerGameState = GetComponent<PlayerGameState>();
         }
     }
 
@@ -90,53 +83,17 @@ public class PlayerCondition : NetworkBehaviour
         */
     }
 
-    public void ResetForNextRound()
-    {
-        deathReported = false;
-        permanentDamage = 0f;
-        temporaryDamage = 0f;
-        sprintLockTimer = 0f;
-        burnTime = 0f;
-        burnTickTimer = 0f;
-        recoverTimer = 0f;
 
-        PlayerStamina stamina = GetComponent<PlayerStamina>();
-        if (stamina != null)
-            stamina.ResetForNextRound();
-    }
-
-    //이거 추가, 게임오버조건체크 > 
     private void CheckGameOver()
     {
-        //사망보고 되었는지(중복사망불가), 회복가능한 최대 스태미나가 0 이하, 컴포넌트 부재시 오류 방지,
-        //fusion? networkbehavior 오브젝트 부재 오류 방지, 호스트인지 확인(fusion)
-        if (!deathReported && CurrentMaxStamina <= 0f &&
-            playerGameState != null &&
-            playerGameState.Object != null &&
-            playerGameState.Object.HasStateAuthority)
+        if (CurrentMaxStamina <= 0f)
         {
-            //gamemanager 있어야함.
-            if (gameManager == null)
-                gameManager = FindFirstObjectByType<GameManager>();
+            Debug.Log("Game Over");
 
-            //라운드 플레이중인지
-            if (gameManager != null && gameManager.Phase == RoundPhase.Playing)
-            {
-                deathReported = true;
-                gameManager.ReportPlayerDied(playerGameState);
-            }
-            else
-            {
-                if (prototypeRoundManager == null)
-                    prototypeRoundManager = FindFirstObjectByType<PrototypeRoundManager>();
-
-                if (prototypeRoundManager != null &&
-                    prototypeRoundManager.Phase == PrototypeRoundPhase.Playing)
-                {
-                    deathReported = true;
-                    prototypeRoundManager.ReportPlayerEliminated(playerGameState);
-                }
-            }
+            // TODO
+            // UI 출력
+            // 입력 비활성화
+            // Scene 이동
         }
     }
     //화상 데미지 계산
@@ -212,10 +169,9 @@ public class PlayerCondition : NetworkBehaviour
     public void ApplyTemporaryDamage(float amount)
     {
         temporaryDamage += amount;
-        recoverTimer = recoverDelay;
     }
 
-    public void RecoverTemporaryDamage(float amount)    
+    public void RecoverTemporaryDamage(float amount)
     {
         temporaryDamage -= amount;
         temporaryDamage = Mathf.Max(0, temporaryDamage);
