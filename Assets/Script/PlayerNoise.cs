@@ -24,6 +24,8 @@ public class PlayerNoise : NetworkBehaviour
     [SerializeField] private float crouchMultiplier = 0.3f;
 
     private bool isCrouching;
+    
+    private PlayerGameState _gameState;
 
     public static System.Action<Vector3, float, NoiseType> OnNoiseGenerated; //나중에 ai 테스트 하고 지우기
 
@@ -120,14 +122,19 @@ private void OnDisable()
         return 0f;
     }
 
-    IEnumerator PeriodicNoiseRoutine()
+    private IEnumerator PeriodicNoiseRoutine()
     {
         while (true)
         {
+                
+
             yield return new WaitForSeconds(periodicInterval);
 
+            if (((_gameState || !TryGetComponent(out _gameState)) && !_gameState) ||
+                !_gameState.IsInPlayground) continue;
             SoundEventManager.TriggerSound(transform.position, 20.0f);
             MakeNoise(NoiseType.Periodic);
+
         }
     }
 
