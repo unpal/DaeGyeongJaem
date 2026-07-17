@@ -28,6 +28,11 @@ public class PlayerCondition : MonoBehaviour
 
     private float recoverTimer;
 
+    //추가,
+    private PlayerGameState playerGameState; // 게임진행상태 가져오기(플레이어별)
+    private GameManager gameManager; // 게임매니저
+    private bool deathReported; // 사망했는지 확인하는 변수 < checkgameover 계속 실행되어도 사망보고는 한번만<중복사망방지
+
     [SerializeField]
     public float BaseMaxStamina => baseMaxStamina; //아 짜증나
 
@@ -49,6 +54,13 @@ public class PlayerCondition : MonoBehaviour
 
     [SerializeField]
     private float burnRecovery = 1f; //화상회복틱당몇?
+
+
+    //추가
+    private void Awake()
+    {
+        playerGameState = GetComponent<PlayerGameState>(); // 컴포넌트 가져오기
+    }
 
     void Update()
     {
@@ -72,16 +84,26 @@ public class PlayerCondition : MonoBehaviour
         */
     }
 
+    //이거 추가, 게임오버조건체크 > 
     private void CheckGameOver()
     {
-        if (CurrentMaxStamina <= 0f)
+        //사망보고 되었는지(중복사망불가), 회복가능한 최대 스태미나가 0 이하, 컴포넌트 부재시 오류 방지,
+        //fusion? networkbehavior 오브젝트 부재 오류 방지, 호스트인지 확인(fusion)
+        if (!deathReported && CurrentMaxStamina <= 0f &&
+            playerGameState != null &&
+            playerGameState.Object != null &&
+            playerGameState.Object.HasStateAuthority)
         {
-            Debug.Log("Game Over");
+            //gamemanager 있어야함.
+            if (gameManager == null)
+                gameManager = FindFirstObjectByType<GameManager>();
 
-            // TODO
-            // UI 출력
-            // 입력 비활성화
-            // Scene 이동
+            //라운드 플레이중인지
+            if (gameManager != null && gameManager.Phase == RoundPhase.Playing)
+            {
+                deathReported = true;
+                gameManager.ReportPlayerDied(playerGameState);
+            }
         }
     }
 
@@ -159,7 +181,7 @@ public class PlayerCondition : MonoBehaviour
         temporaryDamage += amount;
     }
 
-    public void RecoverTemporaryDamage(float amount)
+    public void RecoverTemporaryDamage(float amount)    
     {
         temporaryDamage -= amount;
         temporaryDamage = Mathf.Max(0, temporaryDamage);

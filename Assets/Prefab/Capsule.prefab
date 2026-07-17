@@ -51,6 +51,7 @@ GameObject:
   - component: {fileID: 872836292970639320}
   - component: {fileID: 1663332307230815107}
   - component: {fileID: 5997651382988697563}
+  - component: {fileID: -6459193691174752318}
   m_Layer: 0
   m_Name: Capsule
   m_TagString: Untagged
@@ -200,6 +201,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 8980457805791645807}
   - {fileID: -6885646200158004593}
+  - {fileID: -6459193691174752318}
   - {fileID: 8770475609500432936}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &8980457805791645807
@@ -379,6 +381,23 @@ MonoBehaviour:
   recoverDelay: 5
   recoverRate: 1
   burnRecovery: 1
+--- !u!114 &-6459193691174752318
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6cc92c39a22f504bafe9e11531f69e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _Crowns: 0
+  _IsDead:
+    _value: 0
+  _HasEscaped:
+    _value: 0
 --- !u!1 &3744268813454638683
 GameObject:
   m_ObjectHideFlags: 0

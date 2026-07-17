@@ -811,6 +811,7 @@ GameObject:
   m_Component:
   - component: {fileID: 591113505}
   - component: {fileID: 591113504}
+  - component: {fileID: 591113506}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -837,6 +838,7 @@ MonoBehaviour:
   chaserSpawnPoint: {fileID: 760057171}
   portalManager: {fileID: 1159404739}
   ENDGAME_TIMER: 60
+  _Phase: 0
 --- !u!4 &591113505
 Transform:
   m_ObjectHideFlags: 0
@@ -852,6 +854,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &591113506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 591113503}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SortKey: 1913918347
+  ObjectInterest: 1
+  Flags: 262145
+  NestedObjects: []
+  NetworkedBehaviours:
+  - {fileID: 591113504}
+  ForceRemoteRenderTimeframe: 0
 --- !u!1 &752604229
 GameObject:
   m_ObjectHideFlags: 0
@@ -1928,7 +1949,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5720315bbfe768bff9ddb3ff613359ca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  portals: []
+  portals:
+  - {fileID: 1450589745}
 --- !u!4 &1159404740
 Transform:
   m_ObjectHideFlags: 0
@@ -2560,6 +2582,7 @@ GameObject:
   - component: {fileID: 1496993868}
   - component: {fileID: 1496993867}
   - component: {fileID: 1496993866}
+  - component: {fileID: 1496993870}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Untagged
@@ -2610,7 +2633,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -2666,6 +2689,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1496993864}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1496993870
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1496993864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4f422406125bcb349ac65ff16dcb64d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameManager: {fileID: 591113504}
 --- !u!1 &1586080786
 GameObject:
   m_ObjectHideFlags: 0
