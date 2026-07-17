@@ -1,18 +1,19 @@
 using System.Collections.Generic;
-using System.Collections;
+using Fusion;
 using UnityEngine;
 
 public class LavaBurn : MonoBehaviour
 {
     //용암 오브젝트에 붙이면 됩니다 이파일.
-    public float burnDuration = 3f;
     public float tickInterval = 0.5f;
-    public float burnDamage = 2f;
+    public float burnDamage = 10f;
+
+    private readonly Dictionary<PlayerCondition, float> nextDamageTime = new();
 
     private void OnTriggerStay(Collider other) //계속 머무르면 데미지 갱신
     {
-        PlayerCondition condition =
-            other.GetComponent<PlayerCondition>();
+        PlayerCondition condition = other.GetComponentInParent<PlayerCondition>();
+        PlayerGameState state = other.GetComponentInParent<PlayerGameState>();
 
         if (condition != null)
         {

@@ -30,4 +30,16 @@ public class PortalManager : NetworkBehaviour
             availablePortals.RemoveAt(randomIndex);
         }
     }
+
+    public void DeactivateAllPortals()
+    {
+        if (portals == null)
+            return;
+
+        foreach (GameObject portal in portals)
+        {
+            if (portal != null)
+                portal.SetActive(false);
+        }
+    }
 }

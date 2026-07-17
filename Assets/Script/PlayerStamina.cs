@@ -6,6 +6,7 @@ using UnityEngine;
 
 public class PlayerStamina : NetworkBehaviour
 {
+    private PlayerCondition condition; //변경
 
     public static event Action<PlayerStamina> OnLocalPlayerSpawned;
 
@@ -22,6 +23,7 @@ public class PlayerStamina : NetworkBehaviour
     {
         //currentStamina 를 이렇게 변경.
         condition = GetComponent<PlayerCondition>();
+        gameState = GetComponent<PlayerGameState>();
 
         currentStamina = condition.CurrentMaxStamina;
 
@@ -55,12 +57,37 @@ public class PlayerStamina : NetworkBehaviour
 
     public void RecoverStamina(float amount)
     {
+        if (gameState != null)
+        {
+            gameState.RecoverStamina(amount);
+            return;
+        }
+
         currentStamina += amount;
         currentStamina = Mathf.Clamp(currentStamina, 0, condition.CurrentMaxStamina); //회복 상한선. 2번째 수정.
     }
 
     public bool HasStamina(float amount)
     {
-        return currentStamina >= amount; //bool
+        return CurrentStamina >= amount; //bool
+    }
+
+    public void ResetForNextRound()
+    {
+        if (condition == null)
+            condition = GetComponent<PlayerCondition>();
+
+        if (gameState == null)
+            gameState = GetComponent<PlayerGameState>();
+
+        if (gameState != null)
+        {
+            gameState.ResetStamina();
+            return;
+        }
+
+        currentStamina = condition != null
+            ? condition.CurrentMaxStamina
+            : 0f;
     }
 }
