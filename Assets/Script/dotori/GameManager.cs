@@ -95,8 +95,9 @@ public class GameManager : NetworkBehaviour
         {
             timer += Time.deltaTime;
             int countdown = Mathf.CeilToInt(countdownTime - timer);
+
             if (centerText != null)
-                RpcSetCenterText(countdown.ToString());
+                RpcSetCenterText(countDown.ToString());
             yield return null;
         }
 
@@ -321,27 +322,26 @@ public class GameManager : NetworkBehaviour
     private void RpcShowSubtitle(string text)
     {
         {
-            //nullreference 방지
-            if (bottomText == null)
-                return;
-            //기존 코루틴이 실행중이면, 자막 겹치면 안되니 취소시키기?
-            if (subtitleCoroutine != null)
-            {
-                StopCoroutine(subtitleCoroutine);
-            }
-
-            //새 내용
-            bottomText.text = text;
-
-            Color color = bottomText.color;
-            color.a = 1f;
-            bottomText.color = color;
-            //유지 > 페이드 아웃 코루틴
-            subtitleCoroutine = StartCoroutine(FadeOutText(
-                bottomText,
-                SUBTITLE_MAINTAIN_TIME,
-                SUBTITLE_FADE_TIME));
+        //nullreference 방지
+        if (bottomText == null)
+            return;
+        //기존 코루틴이 실행중이면, 자막 겹치면 안되니 취소시키기?
+        if (subtitleCoroutine != null)
+        {
+            StopCoroutine(subtitleCoroutine);
         }
+
+        //새 내용
+        bottomText.text = text;
+
+        Color color = bottomText.color;
+        color.a = 1f;
+        bottomText.color = color;
+        //유지 > 페이드 아웃 코루틴
+        subtitleCoroutine = StartCoroutine(FadeOutText(
+            bottomText,
+            SUBTITLE_MAINTAIN_TIME,
+            SUBTITLE_FADE_TIME));
     }
 
 

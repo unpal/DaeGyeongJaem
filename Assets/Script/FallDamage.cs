@@ -8,7 +8,7 @@ public class FallDamage : NetworkBehaviour
     [Header("Reference")]
     private PlayerCondition condition;
     private NetworkCharacterController characterController;
-    private PlayerGameState gameState;
+
     [Header("Fall Damage")]
     public float safeHeight = 3f;      // 일단 맵 scaling 확인이 안되어서 이정도로 설정했습니다.
     public float damagePerMeter = 5f;  // 1m당 데미지
@@ -19,8 +19,7 @@ public class FallDamage : NetworkBehaviour
     public override void Spawned()
     {
         condition = GetComponent<PlayerCondition>();
-        characterController = GetComponent<NetworkCharacterController>();
-        gameState= GetComponent<PlayerGameState>();
+        characterController = GetComponent<NetworkCharacterController>();   
         highestPoint = transform.position.y;
     }
     public override void FixedUpdateNetwork()
@@ -62,8 +61,8 @@ public class FallDamage : NetworkBehaviour
 
     bool IsGrounded()
     {
-        if (characterController != null)
-            return characterController.Grounded;
+        if (controller != null)
+            return controller.Grounded;
 
         return Physics.Raycast( //일단 raycast 하나 더 쓰긴했는데 playermove의 착지확인부분을 빌려서 써도 될것같습니다. 추후 수정 문의
             transform.position,
