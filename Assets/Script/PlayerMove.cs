@@ -262,13 +262,8 @@ public class PlayerMove : NetworkBehaviour
         jump = false;
         attack = false;
         sprint = false;
-        isSprint = false;
         isGrapple = false;
         isWall = false;
-        Uping = false;
-        wasGrapped = false;
-        edgePushTimer = 0f;
-        verticalVelocity = 0f;
         xRotation = 0f;
         jumpWasPressed = false;
 
@@ -317,8 +312,6 @@ public class PlayerMove : NetworkBehaviour
             if(attackPressed && isWall)
                 controller.IsDash = true;
         }
-
-        return canClimb;
     }
 
     private void OnCollisionEnter(Collision other)

@@ -10,7 +10,8 @@ public class PlayerStamina : NetworkBehaviour
 
     public static event Action<PlayerStamina> OnLocalPlayerSpawned;
 
-    private PlayerCondition condition; //변경
+    PlayerGameState gameState;
+
     [Networked]
     private float currentStamina { get; set; }
 
