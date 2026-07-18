@@ -45,6 +45,38 @@ public class PlayerGameState : NetworkBehaviour
         }
     }
 
+    private bool _wasVisible = true;
+
+    public override void Render()
+    {
+        bool shouldBeVisible = IsInPlayground;
+        
+        if (shouldBeVisible != _wasVisible)
+        {
+            SetVisibility(shouldBeVisible);
+            _wasVisible = shouldBeVisible;
+        }
+    }
+
+    private void SetVisibility(bool isVisible)
+    {
+        // 모델 등 모든 렌더러 활성/비활성화
+        foreach (var renderer in GetComponentsInChildren<Renderer>(true))
+        {
+            renderer.enabled = isVisible;
+        }
+        
+        // 닉네임 태그 등 UI 활성/비활성화
+        foreach (var canvas in GetComponentsInChildren<Canvas>(true))
+        {
+            canvas.enabled = isVisible;
+        }
+        
+        // 투명 상태일 때 충돌 방지를 위해 CharacterController도 비활성화
+        var cc = GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = isVisible;
+    }
+
     public void MarkDead() //죽은거 마킹
     {
         if (!Object.HasStateAuthority || HasEscaped)

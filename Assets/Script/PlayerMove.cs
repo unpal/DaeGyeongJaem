@@ -146,6 +146,11 @@ public class PlayerMove : NetworkBehaviour
 
     public override void FixedUpdateNetwork()
     {
+        if (gameState != null && !gameState.IsInPlayground)
+        {
+            return;
+        }
+
         if (!GetInput(out NetworkInputData data))
         {
             //Debug.Log("입력 없음");
