@@ -16,8 +16,6 @@ public class PlayerMove : NetworkBehaviour
     public PlayerInput playerInput;
     public InputAction attackAction;
     [SerializeField] private LayerMask WallLayer;
-    public Transform WallLayCasterTrans;
-    public Transform HeadLayCasterTrans;
     public bool isWall;
     public bool isGround;
     //public Animator Anim;
@@ -73,8 +71,6 @@ public class PlayerMove : NetworkBehaviour
     private float xRotation = 0f;
     [SerializeField] private GameObject CameraObj;
     private CharacterController cc;
-    [SerializeField]  private Vector3 wallNormal;
-    [SerializeField]  private float wallDistance;
     [SerializeField] private float gravity = -0.0001f;
     [SerializeField] private float verticalVelocity;
     [SerializeField] private float edgePushForce = 3f;
@@ -100,7 +96,16 @@ public class PlayerMove : NetworkBehaviour
         attack = attackAction.IsPressed();
         sprint = SprintAction.IsPressed();
         jump = JumpAction.IsPressed();
+
+        float mouseY = lookVec.y * sensitivity;
+
+        xRotation -= mouseY;
+        xRotation = Mathf.Clamp(xRotation, -90, 90);
+
+        CameraObj.transform.localRotation =
+            Quaternion.Euler(xRotation, 0, 0);
     }
+
     public override void Spawned()
     {
         SprintAction = playerInput.actions["Sprint"];
@@ -174,11 +179,8 @@ public class PlayerMove : NetworkBehaviour
         {
             controller.maxSpeed = RunSpeed;
         }
-            float mouseY = data.Look.y * sensitivity;
-        xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
-        CameraObj.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
         if (!controller.IsClimbing)
         {
             Vector3 move =
@@ -191,30 +193,29 @@ public class PlayerMove : NetworkBehaviour
         else
         {
             Vector3 wallUp = Vector3.up;
-            Vector3 wallRight = Vector3.Cross(wallUp, wallNormal).normalized;
+            Vector3 wallRight = Vector3.Cross(wallUp, controller.wallNormal).normalized;
 
             Vector3 move =
                 wallUp * data.Move.y +
-                wallRight * data.Move.x;
+                wallRight * -data.Move.x;
 
-            Vector3 stick = -wallNormal * /*stickForce*/5;
 
             if (gameState.TryUseStamina(climbDrain * Runner.DeltaTime))
             {
                 //Debug.Log(move);
-                if(wallDistance > 0.15f)
-                {
-                    controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
-                }
+                //if(wallDistance > 0.15f)
+                //{
+                //    controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
+                //}
                 controller.Move(move * Runner.DeltaTime);
             }
             else
             {
                 move.y -= 2;
-                if (wallDistance > 0.15f)
-                {
-                    controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
-                }
+                //if (wallDistance > 0.15f)
+                //{
+                //    controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
+                //}
                 controller.Move(move * Runner.DeltaTime);
             }
             
@@ -235,7 +236,6 @@ public class PlayerMove : NetworkBehaviour
 
 
     }
-
     public void ResetForNextRound()
     {
         inputVec = Vector2.zero;
@@ -266,59 +266,11 @@ public class PlayerMove : NetworkBehaviour
     }
 
 
-    bool IsWall()
-    {
-        RaycastHit hit;
-
-        Vector3 origin = WallLayCasterTrans.position;
-        Vector3 forward = WallLayCasterTrans.forward;
-        Vector3 right = WallLayCasterTrans.right;
-        Vector3 up = WallLayCasterTrans.up;
-
-        float horizontalOffset = 0.45f;
-        float verticalOffset = 1.2f;
-
-        bool found = false;
-        wallDistance = float.MaxValue;
-
-        for (int y = 1; y >= -1; y--)
-        {
-            for (int x = -1; x <= 1; x++)
-            {
-                Vector3 start =
-                    origin +
-                    right * (x * horizontalOffset) +
-                    up * (y * verticalOffset);
-
-                if (Physics.Raycast(start, forward, out hit, 0.8f, WallLayer))
-                {
-                    if (hit.distance < wallDistance)
-                    {
-                        wallDistance = hit.distance;
-                        wallNormal = hit.normal;
-                    }
-
-                    found = true;
-                }
-            }
-        }
-        if (Physics.Raycast(
-        HeadLayCasterTrans.position, transform.up, out hit, 0.5f, WallLayer))
-        {
-            if (controller.IsClimbing)
-            {
-                Vector3 dir =
-                (hit.transform.position - transform.position).normalized;
-
-                controller.Move(dir * /*climbSpeed*/2 * Runner.DeltaTime);
-            }
-        }
-        return found;
-    }
+ 
     private bool Climbing(NetworkInputData data)
     {
         bool attackPressed = data.Buttons.IsSet((int)PlayerButtons.Attack);
-        bool canClimb = IsWall() &&
+        bool canClimb = controller.IsWall() &&
                         attackPressed &&
                         !controller.IsDash &&
                         gameState != null;

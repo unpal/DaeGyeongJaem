@@ -63,7 +63,13 @@ namespace Fusion {
     public bool isFrontGround;
     public bool isBackGround;
     [SerializeField] private LayerMask WallLayer;
-
+    [SerializeField] private LayerMask HeadRayLayer;
+    [SerializeField] private float mantleUpWeight = 0.7f;
+    [SerializeField] private float mantleBackWeight = 0.3f;
+    public Vector3 wallNormal;
+    [SerializeField] private float wallDistance;
+        public Transform HeadLayCasterTrans;
+        public Transform WallLayCasterTrans;
 
         public Vector3 Velocity {
       get => Data.Velocity;
@@ -109,7 +115,47 @@ namespace Fusion {
             return false;
         }
 
-    public void Move(Vector3 direction) {
+   public bool IsWall()
+   {
+       RaycastHit hit;
+
+       Vector3 origin = WallLayCasterTrans.position;
+       Vector3 forward = WallLayCasterTrans.forward;
+       Vector3 right = WallLayCasterTrans.right;
+       Vector3 up = WallLayCasterTrans.up;
+
+       float horizontalOffset = 0.45f;
+       float verticalOffset = 1.2f;
+
+       bool found = false;
+       wallDistance = float.MaxValue;
+
+       for (int y = 1; y >= -1; y--)
+       {
+           for (int x = -1; x <= 1; x++)
+           {
+               Vector3 start =
+                   origin +
+                   right * (x * horizontalOffset) +
+                   up * (y * verticalOffset);
+
+               if (Physics.Raycast(start, forward, out hit, 0.8f, HeadRayLayer))
+               {
+                   if (hit.distance < wallDistance)
+                   {
+                       wallDistance = hit.distance;
+                       wallNormal = hit.normal;
+                   }
+
+                   found = true;
+               }
+           }
+       }
+
+       return found;
+   }
+
+      public void Move(Vector3 direction) {
       var deltaTime    = Runner.DeltaTime;
       var previousPos  = transform.position;
       var moveVelocity = Data.Velocity;
@@ -152,8 +198,12 @@ namespace Fusion {
            horizontalVel.y = moveVelocity.y;
       }
 
-            horizontalVel.z = moveVelocity.z;
-      if (direction == default) {
+      horizontalVel.z = moveVelocity.z;
+      RaycastHit hit;
+
+
+
+            if (direction == default) {
         horizontalVel = Vector3.Lerp(horizontalVel, default, braking * deltaTime);
       } else {
         horizontalVel      = Vector3.ClampMagnitude(horizontalVel + direction * acceleration * deltaTime, (IsClimbing ? ClimbingSpeed : maxSpeed));
@@ -167,7 +217,32 @@ namespace Fusion {
       }
 
       moveVelocity.z = horizontalVel.z;
-      _controller.Move(moveVelocity * deltaTime);
+            bool isMove = false;
+            bool isRaycast = false;
+        Vector3 tempVec = transform.up * mantleUpWeight + transform.forward * mantleBackWeight;
+            isRaycast = Physics.Raycast(HeadLayCasterTrans.position, tempVec, out hit, 0.5f, HeadRayLayer);
+                
+      if (Physics.Raycast(HeadLayCasterTrans.position, transform.up, out hit, 0.5f, HeadRayLayer))
+      {
+                
+          if (IsClimbing && horizontalVel.y > 0)
+          {
+            Vector3 move = hit.transform.up * mantleUpWeight - hit.transform.forward * mantleBackWeight;
+            horizontalVel = Vector3.ClampMagnitude(move * acceleration * deltaTime, (IsClimbing ? ClimbingSpeed : maxSpeed));
+            move.Normalize();
+            _controller.Move(move * deltaTime);
+            isMove = true;
+          }
+      }
+      if(!isMove)
+      {
+          if (wallDistance > 0.15f && !isRaycast)
+          {
+              _controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
+          }
+          _controller.Move(moveVelocity * deltaTime);
+      }
+
 
       Data.Velocity = (transform.position - previousPos) * Runner.TickRate;
       if (IsDash)

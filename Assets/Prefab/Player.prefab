@@ -162,8 +162,6 @@ MonoBehaviour:
   WallLayer:
     serializedVersion: 2
     m_Bits: 64
-  WallLayCasterTrans: {fileID: 9090896596399048440}
-  HeadLayCasterTrans: {fileID: 6175063435306810339}
   isWall: 0
   isGround: 0
   sprintMultiplier: 1.5
@@ -188,8 +186,6 @@ MonoBehaviour:
   sprint: 0
   sensitivity: 0.1
   CameraObj: {fileID: 3744268813454638683}
-  wallNormal: {x: 0, y: 0, z: 0}
-  wallDistance: 0
   gravity: -20
   verticalVelocity: 0
   edgePushForce: 3
@@ -244,7 +240,7 @@ MonoBehaviour:
   rotationSpeed: 0
   IsClimbing: 0
   IsDash: 0
-  ClimbingSpeed: 2
+  ClimbingSpeed: 1
   edgePushTime: 0.2
   edgePushTimer: 0
   edgePushForce: 5
@@ -257,6 +253,15 @@ MonoBehaviour:
   WallLayer:
     serializedVersion: 2
     m_Bits: 0
+  HeadRayLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  mantleUpWeight: 0.7
+  mantleBackWeight: 0.3
+  wallNormal: {x: 0, y: 0, z: 0}
+  wallDistance: 0
+  HeadLayCasterTrans: {fileID: 6175063435306810339}
+  WallLayCasterTrans: {fileID: 9090896596399048440}
 --- !u!114 &872836292970639320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -327,10 +332,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _Crowns: 0
-  _DisplayName:
-    _length: 0
-    _data:
-      Data: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+  SortNum: 0
   _CurrentStamina: 0
   _MaxStamina: 0
   _IsDead:
@@ -458,7 +460,7 @@ Transform:
   m_GameObject: {fileID: 1930486371197672602}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3.92, z: 0.651}
+  m_LocalPosition: {x: 0, y: 3.3, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
