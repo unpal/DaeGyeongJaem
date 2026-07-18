@@ -20,7 +20,7 @@ public class PlayerMove : NetworkBehaviour
     public Transform HeadLayCasterTrans;
     public bool isWall;
     public bool isGround;
-    //public Animator Anim;
+    public Animator Anim;
 
     //함수
     //bool useStamina(float amount),
@@ -234,6 +234,12 @@ public class PlayerMove : NetworkBehaviour
         jumpWasPressed = jumpPressed;
       //  Debug.Log($"Move:{data.Move} Look:{data.Look}");
         bool isClimbingNow = Climbing(data);
+
+        if (Anim != null)
+        {
+            Anim.SetBool("Climbing", isClimbingNow);
+            Anim.SetBool("Runing", canSprint);
+        }
 
         if (!canSprint && !isClimbingNow && gameState != null)
             gameState.RecoverStamina(recoverRate * Runner.DeltaTime);
