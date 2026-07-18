@@ -70,7 +70,16 @@ public class GameManager : NetworkBehaviour
             bottomText.text = "";
         }
     }
-
+    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
+    private void RpcSetCenterText(string text)
+    {
+        centerText.text = text;
+    }
+    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
+    private void RpcCenterFadeOut()
+    {
+        StartCoroutine(FadeOutText( centerText, SUBTITLE_MAINTAIN_TIME,SUBTITLE_FADE_TIME));
+    }
 
     //게임 흐름 처리 카운트다운 > 추격자 생성 > 포탈생성 > endgame(위치노출) 까지
     private IEnumerator GameFlowRoutine()
@@ -87,7 +96,7 @@ public class GameManager : NetworkBehaviour
 
             if (centerText != null)
             {
-                centerText.text = countdown.ToString();
+                RpcSetCenterText(countdown.ToString());
             }
 
             yield return null;
@@ -95,16 +104,13 @@ public class GameManager : NetworkBehaviour
 
         if (centerText != null)
         {
-            centerText.text = "시작";
-            StartCoroutine(FadeOutText(
-                centerText,
-                SUBTITLE_MAINTAIN_TIME,
-                SUBTITLE_FADE_TIME));
+            RpcSetCenterText("시작");
+            RpcCenterFadeOut();
         }
 
         Phase = RoundPhase.Playing;
 
-        ShowSubtitle("추격자 스폰됨");
+        RpcShowSubtitle("추격자 스폰됨");
 
         if (chaserPrefab != null)
         {
@@ -115,8 +121,8 @@ public class GameManager : NetworkBehaviour
                 ? chaserSpawnPoint.rotation
                 : Quaternion.identity;
 
-            GameObject chaserObject = Instantiate(
-                chaserPrefab,
+            NetworkObject chaserObject = Runner.Spawn(
+                chaserPrefab.GetComponent<NetworkObject>(),
                 spawnPosition,
                 spawnRotation);
             spawnedChaser = chaserObject.GetComponent<SoundFollowingAgent>();
@@ -134,7 +140,7 @@ public class GameManager : NetworkBehaviour
             yield return null;
         }
 
-        ShowSubtitle("탈출 포탈 생성됨");
+        RpcShowSubtitle("탈출 포탈 생성됨");
 
         if (portalManager != null)
         {
@@ -235,7 +241,6 @@ public class GameManager : NetworkBehaviour
             Runner.LoadScene( //씬 불러오기
                 SceneRef.FromIndex(matchingSceneBuildIndex));
         }
-
     }
 
     //추가. 라운드 종료 루틴 다 탈출했는가? > 크라운 2개 있는사람 있는가 > 라운드 다시 진행 OR 게임 승리판정
@@ -323,8 +328,9 @@ public class GameManager : NetworkBehaviour
     }
 
 
+    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
     //하단에 안내문구 보이게하고 사라지게하는 함수.
-    private void ShowSubtitle(string text)
+    private void RpcShowSubtitle(string text)
     {
         //nullreference 방지
         if (bottomText == null)

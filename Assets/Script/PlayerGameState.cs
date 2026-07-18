@@ -75,10 +75,13 @@ public class PlayerGameState : NetworkBehaviour
 
     public bool TryUseStamina(float amount)
     {
-        if (!Object.HasStateAuthority || amount <= 0f || CurrentStamina < amount)
+        if (!Object.HasStateAuthority || amount <= 0f /*|| CurrentStamina < amount*/|| CurrentStamina <= 0)
             return false;
 
         CurrentStamina -= amount;
+
+        if (CurrentStamina < 0)
+            CurrentStamina = 0;
         return true;
     }
 

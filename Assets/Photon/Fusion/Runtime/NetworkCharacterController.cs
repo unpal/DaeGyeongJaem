@@ -115,7 +115,10 @@ namespace Fusion {
       var moveVelocity = Data.Velocity;
 
       direction = direction.normalized;
-
+      if (edgePushTimer < 0)
+      {
+          edgePushTimer = Runner.DeltaTime;
+      }
       if (/*Data.Grounded*/IsFrontGround() && IsBackGround() && moveVelocity.y < 0) {
         moveVelocity.y = 0f;
       }
@@ -162,16 +165,19 @@ namespace Fusion {
       {
         moveVelocity.y = horizontalVel.y;
       }
-      if (IsDash)
-      {
-          moveVelocity.y += edgePushForce;
-          IsDash = false;
-      }
-      moveVelocity.z = horizontalVel.z;
 
+      moveVelocity.z = horizontalVel.z;
       _controller.Move(moveVelocity * deltaTime);
 
       Data.Velocity = (transform.position - previousPos) * Runner.TickRate;
+      if (IsDash)
+      {
+          Vector3 newvel = Data.Velocity;
+          newvel.y += edgePushForce;
+          Data.Velocity += newvel;
+          IsDash = false;
+          edgePushTimer = edgePushTime;
+      }
       Data.Grounded = _controller.isGrounded;
     }
     

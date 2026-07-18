@@ -1,5 +1,6 @@
 using Cinemachine;
 using Fusion;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -16,6 +17,7 @@ public class PlayerMove : NetworkBehaviour
     public InputAction attackAction;
     [SerializeField] private LayerMask WallLayer;
     public Transform WallLayCasterTrans;
+    public Transform HeadLayCasterTrans;
     public bool isWall;
     public bool isGround;
     //public Animator Anim;
@@ -71,7 +73,8 @@ public class PlayerMove : NetworkBehaviour
     private float xRotation = 0f;
     [SerializeField] private GameObject CameraObj;
     private CharacterController cc;
-    private Vector3 wallNormal;
+    [SerializeField]  private Vector3 wallNormal;
+    [SerializeField]  private float wallDistance;
     [SerializeField] private float gravity = -0.0001f;
     [SerializeField] private float verticalVelocity;
     [SerializeField] private float edgePushForce = 3f;
@@ -175,24 +178,45 @@ public class PlayerMove : NetworkBehaviour
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);
 
         CameraObj.transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-        if (controller.gravity < 0)
+        if (!controller.IsClimbing)
         {
             Vector3 move =
                 transform.forward * data.Move.y +
                 transform.right * data.Move.x;
 
             controller.Move(move * Runner.DeltaTime);
+
         }
         else
         {
+            Vector3 wallUp = Vector3.up;
+            Vector3 wallRight = Vector3.Cross(wallUp, wallNormal).normalized;
 
             Vector3 move =
-            transform.up * data.Move.y +
-            transform.right * data.Move.x;
+                wallUp * data.Move.y +
+                wallRight * data.Move.x;
 
-            Vector3 stick = -wallNormal * 5f;
+            Vector3 stick = -wallNormal * /*stickForce*/5;
 
-            controller.Move((move/* + stick*/)* Runner.DeltaTime);
+            if (gameState.TryUseStamina(climbDrain * Runner.DeltaTime))
+            {
+                //Debug.Log(move);
+                if(wallDistance > 0.15f)
+                {
+                    controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
+                }
+                controller.Move(move * Runner.DeltaTime);
+            }
+            else
+            {
+                move.y -= 2;
+                if (wallDistance > 0.15f)
+                {
+                    controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
+                }
+                controller.Move(move * Runner.DeltaTime);
+            }
+            
         }
         bool jumpPressed = data.Buttons.IsSet((int)PlayerButtons.Jump);
         if (jumpPressed && !jumpWasPressed && controller.Grounded &&
@@ -207,6 +231,8 @@ public class PlayerMove : NetworkBehaviour
 
         if (!canSprint && !isClimbingNow && gameState != null)
             gameState.RecoverStamina(recoverRate * Runner.DeltaTime);
+
+
     }
 
     public void ResetForNextRound()
@@ -238,46 +264,68 @@ public class PlayerMove : NetworkBehaviour
             CameraObj.transform.localRotation = Quaternion.identity;
     }
 
+
     bool IsWall()
     {
         RaycastHit hit;
-        if (Physics.Raycast(
-            WallLayCasterTrans.position,
-            WallLayCasterTrans.forward,
-            out hit,
-            0.8f,
-            WallLayer))
-        {
-            wallNormal = hit.normal;
-            isWall = true;
-            return isWall;
-        }
-        isWall = false;
-        return isWall;
-    }
 
+        Vector3 origin = WallLayCasterTrans.position;
+        Vector3 forward = WallLayCasterTrans.forward;
+        Vector3 right = WallLayCasterTrans.right;
+        Vector3 up = WallLayCasterTrans.up;
+
+        float horizontalOffset = 0.45f;
+        float verticalOffset = 1.2f;
+
+        bool found = false;
+        wallDistance = float.MaxValue;
+
+        for (int y = 1; y >= -1; y--)
+        {
+            for (int x = -1; x <= 1; x++)
+            {
+                Vector3 start =
+                    origin +
+                    right * (x * horizontalOffset) +
+                    up * (y * verticalOffset);
+
+                if (Physics.Raycast(start, forward, out hit, 0.8f, WallLayer))
+                {
+                    if (hit.distance < wallDistance)
+                    {
+                        wallDistance = hit.distance;
+                        wallNormal = hit.normal;
+                    }
+
+                    found = true;
+                }
+            }
+        }
+        if (Physics.Raycast(
+    HeadLayCasterTrans.position, transform.up, out hit, 0.5f, WallLayer))
+        {
+            Debug.Log("머리 위에 돌출부");
+        }
+        return found;
+    }
     private bool Climbing(NetworkInputData data)
     {
         bool attackPressed = data.Buttons.IsSet((int)PlayerButtons.Attack);
         bool canClimb = IsWall() &&
                         attackPressed &&
-                        controller.gravity != 0 &&
                         !controller.IsDash &&
-                        gameState != null &&
-                        gameState.TryUseStamina(climbDrain * Runner.DeltaTime);
+                        gameState != null;
 
-        if (canClimb)
+        if (canClimb && !controller.IsClimbing)
         {
-            controller.gravity = 0;
             controller.Velocity = Vector3.zero;
             wasGrapped = true;
             controller.IsClimbing = true;
         }
-        else if (controller.gravity != -20)
+        else if (!canClimb && controller.IsClimbing)
         {
-            controller.gravity = -20;
             controller.IsClimbing = false;
-            if(attackPressed && isWall)
+            if(attackPressed && !isWall)
                 controller.IsDash = true;
         }
 
