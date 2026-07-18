@@ -14,9 +14,8 @@ public class PlayerGameState : NetworkBehaviour
     [Networked]
     public int Crowns { get; private set; } 
 
-    [Networked]
     public NetworkString<_32> DisplayName { get; private set; }
-
+    public int SortNum;
     [Networked] public float CurrentStamina { get; private set; }
     [Networked] public float MaxStamina { get; private set; }
 
@@ -30,15 +29,15 @@ public class PlayerGameState : NetworkBehaviour
 
     public override void Spawned()
     {
-        if (!Object.HasStateAuthority)
-            return;
+        //if (!Object.HasStateAuthority)
+        //    return;
 
         roundSpawnPosition = transform.position;
         roundSpawnRotation = transform.rotation;
         DisplayName = $"Player {Object.InputAuthority.PlayerId}";
         MaxStamina = 100f;
         CurrentStamina = MaxStamina;
-        
+        SortNum = Object.InputAuthority.PlayerId - 1;
         if (Object.HasInputAuthority && CameraManager.Instance)
         {
             CameraManager.Instance.state = this;
