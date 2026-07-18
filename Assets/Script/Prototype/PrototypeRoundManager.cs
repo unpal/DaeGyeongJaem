@@ -113,7 +113,6 @@ public class PrototypeRoundManager : NetworkBehaviour
 
     private void FinishRound()
     {
-        cameraManager.Disable();
         if (IsRoundEnding)
             return;
 
@@ -138,7 +137,6 @@ public class PrototypeRoundManager : NetworkBehaviour
 
     private void BeginNextRound()
     {
-        StartCoroutine(cameraManager.StartMonitoring());
         if (IsMatchEnding)
             return;
 
@@ -163,6 +161,7 @@ public class PrototypeRoundManager : NetworkBehaviour
         RoundNumber++;
         Phase = PrototypeRoundPhase.Starting;
         PhaseTimer = TickTimer.CreateFromSeconds(Runner, countdownSeconds);
+        
     }
 
     public PlayerGameState GetPlayerState(PlayerRef playerRef)
