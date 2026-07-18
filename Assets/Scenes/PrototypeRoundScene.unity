@@ -800,7 +800,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Lorem Ipsum
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a78e31e876585dc42a81a973119619f6, type: 2}
   m_sharedMaterial: {fileID: 9008798980423684398, guid: a78e31e876585dc42a81a973119619f6,
@@ -6932,6 +6932,7 @@ MonoBehaviour:
     type: 3}
   chaserSpawnPoint: {fileID: 983249316}
   portalManager: {fileID: 479535480}
+  protoRoundManager: {fileID: 0}
   ENDGAME_TIMER: 60
   matchingSceneBuildIndex: 0
   _Phase: 0
@@ -10202,7 +10203,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Lorem Ipsum
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a78e31e876585dc42a81a973119619f6, type: 2}
   m_sharedMaterial: {fileID: 9008798980423684398, guid: a78e31e876585dc42a81a973119619f6,

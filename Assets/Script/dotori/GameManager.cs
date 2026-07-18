@@ -23,6 +23,7 @@ public class GameManager : NetworkBehaviour
     public GameObject chaserPrefab; // 추격자 프리팹
     public Transform chaserSpawnPoint; // 추격자 생성 위치,방향
     public PortalManager portalManager; // 포탈관리자(활성화)
+    public PrototypeRoundManager protoRoundManager; //게임 라운드 매니저
 
     [Header("Settings")]
     public float ENDGAME_TIMER = 60f; // 게임시작후 추격자가 플레이어 위치를 알게되는 시간?
@@ -54,8 +55,14 @@ public class GameManager : NetworkBehaviour
         if (Object.HasStateAuthority)
         {
             Phase = RoundPhase.Starting;
-            gameFlowCoroutine = StartCoroutine(GameFlowRoutine());
+            //gameFlowCoroutine = StartCoroutine(GameFlowRoutine());
+            PrototypeRoundManager.OnRoundStart += GameFlowStart;
         }
+    }
+    private void GameFlowStart(PrototypeRoundManager manager)
+    {
+        gameFlowCoroutine = StartCoroutine(GameFlowRoutine());
+        PrototypeRoundManager.OnRoundStart -= GameFlowStart;
     }
 
     // Unity 오브젝트가 활성화될 때 한 번 호출,

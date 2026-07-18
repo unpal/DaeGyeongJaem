@@ -1,5 +1,7 @@
 using Fusion;
+using System;
 using UnityEngine;
+using static SoundEventManager;
 
 public enum PrototypeRoundPhase : byte
 {
@@ -26,6 +28,8 @@ public class PrototypeRoundManager : NetworkBehaviour
 
     private bool sceneTransitionRequested;
 
+    public static event Action<PrototypeRoundManager> OnRoundStart;
+
     public override void Spawned()
     {
         if (!Object.HasStateAuthority)
@@ -46,6 +50,7 @@ public class PrototypeRoundManager : NetworkBehaviour
             case PrototypeRoundPhase.Starting:
                 Phase = PrototypeRoundPhase.Playing;
                 PhaseTimer = TickTimer.None;
+                OnRoundStart?.Invoke(this);
                 break;
             case PrototypeRoundPhase.RoundEnding:
                 BeginNextRound();
