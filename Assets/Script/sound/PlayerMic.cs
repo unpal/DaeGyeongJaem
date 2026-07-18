@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 /// <summary>
@@ -6,6 +7,7 @@ using UnityEngine;
 /// 플레이어에게 붙이지 않아도 됩니다
 /// </summary>
 [RequireComponent(typeof(AudioSource))]
+[Obsolete("사용되지 않는 코드입니다. PlayerNoise 컴포넌트를 사용하세요")]
 public class PlayerMic : MonoBehaviour
 {
     [Tooltip("사운드 이벤트를 발생시킬 볼륨 임계점 (0.0 ~ 1.0)")]
@@ -72,8 +74,6 @@ public class PlayerMic : MonoBehaviour
         // 스피커로 내 목소리가 흘러나오는 에코 현상을 막기 위해 AudioSource를 음소거 처리
         _audioSource.mute = true;
         _audioSource.Play(); 
-        
-        Debug.Log("마이크 녹음을 시작했습니다.");
     }
 
     void Update()
@@ -87,7 +87,6 @@ public class PlayerMic : MonoBehaviour
         
         if (volume > volumeThreshold)
         {
-            Debug.Log($"마이크 입력 감지! Volume: {volume}");
             SoundEventManager.TriggerSound(transform.position, soundRange);
         }
     }

@@ -23,15 +23,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-                },
-                {
-                    "name": "Activate",
-                    "type": "Button",
-                    "id": "e1e7058b-c1f0-403e-86c6-c051b544cca2",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -54,17 +45,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Next",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "746d0e11-d3fd-4a50-ad8b-8e384e99daab",
-                    "path": "<Keyboard>/t",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Activate",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

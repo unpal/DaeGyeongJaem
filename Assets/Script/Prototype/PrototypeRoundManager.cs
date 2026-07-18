@@ -1,5 +1,6 @@
 using Fusion;
 using System;
+using Script.dotori;
 using UnityEngine;
 using static SoundEventManager;
 
@@ -25,6 +26,7 @@ public class PrototypeRoundManager : NetworkBehaviour
     [Networked] public NetworkBool IsMatchEnding { get; private set; }
     [Networked] public TickTimer PhaseTimer { get; private set; }
     [Networked] public int RoundNumber { get; private set; }
+    public CameraManager cameraManager;
 
     private bool sceneTransitionRequested;
 
@@ -164,6 +166,7 @@ public class PrototypeRoundManager : NetworkBehaviour
         RoundNumber++;
         Phase = PrototypeRoundPhase.Starting;
         PhaseTimer = TickTimer.CreateFromSeconds(Runner, countdownSeconds);
+        
     }
 
     public PlayerGameState GetPlayerState(PlayerRef playerRef)

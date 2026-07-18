@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,6 +7,7 @@ using UnityEngine.InputSystem;
 /// </summary>
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerInput))]
+[Obsolete("사용되지 않는 코드입니다. PlayerNoise 컴포넌트를 사용하세요")]
 public class PlayerSimpleMove : MonoBehaviour
 {
     [Header("Movement Settings")]
