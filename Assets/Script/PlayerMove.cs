@@ -81,8 +81,9 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private bool wasGrapped;
     [SerializeField] private float edgePushTime;
     [SerializeField] private float edgePushTimer;
-
+    [SerializeField] private float HeadUpMove;
     //추가한점,
+
     void Update()
     {
         if (Object == null || !Object.HasInputAuthority)
@@ -302,9 +303,15 @@ public class PlayerMove : NetworkBehaviour
             }
         }
         if (Physics.Raycast(
-    HeadLayCasterTrans.position, transform.up, out hit, 0.5f, WallLayer))
+        HeadLayCasterTrans.position, transform.up, out hit, 0.5f, WallLayer))
         {
-            Debug.Log("머리 위에 돌출부");
+            if (controller.IsClimbing)
+            {
+                Vector3 dir =
+                (hit.transform.position - transform.position).normalized;
+
+                controller.Move(dir * /*climbSpeed*/2 * Runner.DeltaTime);
+            }
         }
         return found;
     }
