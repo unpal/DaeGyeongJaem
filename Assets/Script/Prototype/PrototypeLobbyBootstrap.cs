@@ -8,8 +8,8 @@ using UnityEngine.SceneManagement;
 public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] private NetworkObject playerPrefab;
-    [SerializeField] private int gameplaySceneBuildIndex = 3;
-    [SerializeField] private string sessionName = "123TestRoundPrototype4P";
+    [SerializeField] private int gameplaySceneBuildIndex = 1;
+    [SerializeField] private string sessionName = "RoundPrototype4P";
 
     private NetworkRunner runner;
     private string status = "H: Host / C: Client";

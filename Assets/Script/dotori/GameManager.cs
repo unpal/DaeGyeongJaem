@@ -127,6 +127,25 @@ public class GameManager : NetworkBehaviour
             Quaternion spawnRotation = chaserSpawnPoint != null
                 ? chaserSpawnPoint.rotation
                 : Quaternion.identity;
+            /*기존코드 ;
+             * 
+             *  gameObject chaserObject = Instantiate(
+             *                                  chaserPrefab,
+             *                                  spawnPosition,
+             *                                  spawnRotation);
+             * 이건데 
+             * 
+             * spawn(), despanw 이었나 그걸로 바꿨었던거같음
+             * 
+             */
+            NetworkObject chaserNetworkPrefab =
+                chaserPrefab.GetComponent<NetworkObject>();
+
+            if (chaserNetworkPrefab == null)
+            {
+                Debug.LogError("[Flow Test] Chaser Prefab에 NetworkObject가 없습니다.");
+                yield break;
+            }
 
             NetworkObject chaserObject = Runner.Spawn(
                 chaserPrefab.GetComponent<NetworkObject>(),
@@ -260,7 +279,12 @@ public class GameManager : NetworkBehaviour
 
         if (spawnedChaser != null)
         {
-            Destroy(spawnedChaser.gameObject);
+            NetworkObject chaserObject =
+                spawnedChaser.GetComponent<NetworkObject>();
+
+            if (chaserObject != null && chaserObject.IsValid)
+                Runner.Despawn(chaserObject);
+
             spawnedChaser = null;
         }
 

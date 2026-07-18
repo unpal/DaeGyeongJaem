@@ -16,7 +16,7 @@ public class PrototypeRoundManager : NetworkBehaviour
     [SerializeField] private float countdownSeconds = 3f;
     [SerializeField] private float roundTransitionSeconds = 3f;
     [SerializeField] private float winnerMessageSeconds = 5f;
-    [SerializeField] private int matchingSceneBuildIndex = 2;
+    [SerializeField] private int matchingSceneBuildIndex = 0;
 
     [Networked] public PrototypeRoundPhase Phase { get; private set; }
     [Networked] public PlayerRef PendingRoundWinner { get; private set; }
