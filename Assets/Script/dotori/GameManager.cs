@@ -199,6 +199,8 @@ public class GameManager : NetworkBehaviour
         {
             portalManager.ActivateRandomPortals(1);
         }
+        
+        
 
         while (timer < ENDGAME_TIMER)
         {
@@ -208,6 +210,7 @@ public class GameManager : NetworkBehaviour
 
         if (spawnedChaser != null)
         {
+            RpcShowSubtitle("술래가 눈치챘다");
             spawnedChaser.SetStateToKnowWhereYouAre();
         }
     }
