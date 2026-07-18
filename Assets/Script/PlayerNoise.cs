@@ -30,6 +30,16 @@ public class PlayerNoise : NetworkBehaviour
 
     public static System.Action<Vector3, float, NoiseType> OnNoiseGenerated; //나중에 ai 테스트 하고 지우기
 
+    private void Awake()
+    {
+        if (TryGetComponent(out _audioSource))
+        {
+            //로비에 입장하자마자 휘파람 소리 들리는거 false
+            _audioSource.playOnAwake = false;
+            _audioSource.Stop();
+        }
+    }
+
 
     public void SetCrouching(bool value)
     {
@@ -38,8 +48,13 @@ public class PlayerNoise : NetworkBehaviour
 
     public override void Spawned()
     {
-        StartCoroutine(PeriodicNoiseRoutine());
         TryGetComponent(out _audioSource);
+        //죽었을때 들리면 안되니까? << 이거 다른코드에 붙어있어서 중복되는지 확인하고 지울게요
+        TryGetComponent(out _gameState);
+
+        //이거 조건문 붙히고 내렸어용, 본인소리는 (periodic whistle은) 본인만 들리구로
+        if (Object.HasStateAuthority)
+            StartCoroutine(PeriodicNoiseRoutine());
     }
 
 
@@ -127,6 +142,7 @@ private void OnDisable()
         return 0f;
     }
 
+    //추가
     private IEnumerator PeriodicNoiseRoutine()
     {
         while (true)
@@ -134,9 +150,14 @@ private void OnDisable()
                 
 
             yield return new WaitForSeconds(periodicInterval);
+            //아래에 있던거 양식 살짝 빌려와서 작성. 수정, 추가.
+            if (_gameState == null && !TryGetComponent(out _gameState))
+                continue;
+            //조건문 복잡하길래 분리해서 가시적으로.
+            if (!_gameState.IsInPlayground)
+                continue;
 
-            if (((_gameState || !TryGetComponent(out _gameState)) && !_gameState) ||
-                !_gameState.IsInPlayground) continue;
+            Rpc_PlayPeriodicWhistle();
             SoundEventManager.TriggerSound(transform.position, 20.0f);
             MakeNoise(NoiseType.Periodic);
 
@@ -155,12 +176,26 @@ private void OnDisable()
     public void Rpc_Whistle()
     {
         if (_gameState == null) TryGetComponent(out _gameState);
-        // 2. 플레이어가 죽었거나 탈출했다면 소리를 내지 않고 무시합니다.
+        // 2. 플레이어가 죽었거나 탈출했다면 소리를 내지 않고 무시합니다. << 오호
         if (_gameState != null && !_gameState.IsInPlayground)
         {
             return;
         }
         
+        PlayWhistleAudio();
+        SoundEventManager.TriggerSound(transform.position, 20.0f);
+        MakeNoise(NoiseType.Whistle);
+    }
+
+    //교체,추가 RpcSources << 원격 함수 실행
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)] //호스트만 사용가능, 모든 플레이어를 대상으로,
+    private void Rpc_PlayPeriodicWhistle()
+    {
+        PlayWhistleAudio();
+    }
+    //교체,추가, 위에서 씀.
+    private void PlayWhistleAudio()
+    {
         if (_audioSource != null)
         {
             _audioSource.Play();
@@ -169,8 +204,6 @@ private void OnDisable()
         {
             Debug.LogWarning("_audioSource 컴포넌트가 없음");
         }
-        SoundEventManager.TriggerSound(transform.position, 20.0f);
-        MakeNoise(NoiseType.Whistle);
     }
 
 }

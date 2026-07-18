@@ -31,11 +31,11 @@ public class PlayerStaminaUI : MonoBehaviour
     private IEnumerator Start()
     {
         NetworkRunner runner = null;
-        NetworkObject localPlayer = null;
+        NetworkObject localPlayer = null;   
 
         while (localPlayer == null)
         {
-            if (runner = null)
+            if (runner == null)
                 runner = FindFirstObjectByType<NetworkRunner>();
 
             if (runner != null && runner.IsRunning)

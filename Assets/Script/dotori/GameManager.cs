@@ -40,6 +40,7 @@ public class GameManager : NetworkBehaviour
     private SoundFollowingAgent spawnedChaser; // 추격자 ai 컴포넌트래요
     //추가
     private Coroutine subtitleCoroutine; // 자막 페이드 코루틴?
+    private Coroutine centerFadeCoroutine;
     private Coroutine gameFlowCoroutine; // 게임 진행 코루틴
     private Coroutine roundFinishCoroutine; // 엔딩화면 코루틴
     //거의 다 추가한거라..
@@ -77,15 +78,44 @@ public class GameManager : NetworkBehaviour
             bottomText.text = "";
         }
     }
+
+    //추가
     [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
     private void RpcSetCenterText(string text)
     {
         centerText.text = text;
     }
+
+    //훔
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPrepareCenterText()
+    {
+        if (centerText == null)
+            return;
+
+        if (centerFadeCoroutine != null)
+        {
+            StopCoroutine(centerFadeCoroutine);
+            centerFadeCoroutine = null;
+        }
+
+        Color color = centerText.color;
+        color.a = 1f;
+        centerText.color = color;
+    }
     [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
     private void RpcCenterFadeOut()
     {
-        StartCoroutine(FadeOutText( centerText, SUBTITLE_MAINTAIN_TIME,SUBTITLE_FADE_TIME));
+        if (centerText == null)
+            return;
+
+        if (centerFadeCoroutine != null)
+            StopCoroutine(centerFadeCoroutine);
+
+        centerFadeCoroutine = StartCoroutine(FadeOutText(
+            centerText,
+            SUBTITLE_MAINTAIN_TIME,
+            SUBTITLE_FADE_TIME));
     }
 
     //게임 흐름 처리 카운트다운 > 추격자 생성 > 포탈생성 > endgame(위치노출) 까지
@@ -95,6 +125,7 @@ public class GameManager : NetworkBehaviour
             yield break;
 
         float countdownTime = 10f;
+        RpcPrepareCenterText();
 
         while (timer < countdownTime)
         {
@@ -109,15 +140,7 @@ public class GameManager : NetworkBehaviour
             yield return null;
         }
 
-        if (centerText != null)
-        {
-            RpcSetCenterText("시작");
-            RpcCenterFadeOut();
-        }
-
         Phase = RoundPhase.Playing;
-
-        RpcShowSubtitle("추격자 스폰됨");
 
         if (chaserPrefab != null)
         {
@@ -152,6 +175,10 @@ public class GameManager : NetworkBehaviour
                 spawnPosition,
                 spawnRotation);
             spawnedChaser = chaserObject.GetComponent<SoundFollowingAgent>();
+
+            RpcSetCenterText("술래 등장!");
+            RpcCenterFadeOut();
+            RpcShowSubtitle("추격자 스폰됨");
 
             Debug.Log($"[Flow Test] 추격자 생성 완료: {spawnPosition}");
         }

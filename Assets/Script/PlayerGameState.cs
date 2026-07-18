@@ -17,8 +17,12 @@ public class PlayerGameState : NetworkBehaviour
     [Networked]
     public NetworkString<_32> DisplayName { get; private set; }
 
+    
     [Networked] public float CurrentStamina { get; private set; }
     [Networked] public float MaxStamina { get; private set; }
+    //추가
+    [Networked] public float TemporaryDamage { get; private set; }
+    [Networked] public float PermanentDamage { get; private set; }
 
     [Networked]
     public NetworkBool IsDead { get; private set; }
@@ -38,6 +42,9 @@ public class PlayerGameState : NetworkBehaviour
         DisplayName = $"Player {Object.InputAuthority.PlayerId}";
         MaxStamina = 100f;
         CurrentStamina = MaxStamina;
+        //초기화
+        TemporaryDamage = 0f;
+        PermanentDamage = 0f;
         
         if (Object.HasInputAuthority && CameraManager.Instance)
         {
@@ -106,6 +113,15 @@ public class PlayerGameState : NetworkBehaviour
 
         MaxStamina = Mathf.Max(0f, amount);
         CurrentStamina = Mathf.Min(CurrentStamina, MaxStamina);
+    }
+    //추가
+    public void SetDamageBreakdown(float temporaryDamage, float permanentDamage)
+    {
+        if (!Object.HasStateAuthority)
+            return;
+
+        TemporaryDamage = Mathf.Max(0f, temporaryDamage);
+        PermanentDamage = Mathf.Max(0f, permanentDamage);
     }
 
     public void ResetStamina()

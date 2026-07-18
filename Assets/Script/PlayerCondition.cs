@@ -36,6 +36,8 @@ public class PlayerCondition : MonoBehaviour
 
     [SerializeField]
     public float BaseMaxStamina => baseMaxStamina; //아 짜증나
+    public float TemporaryDamage => temporaryDamage;//추가 ui용으로 값 가져오기용
+    public float PermanentDamage => permanentDamage;
 
     public bool isShotGunHit;
     public float CurrentMaxStamina
@@ -99,6 +101,7 @@ public class PlayerCondition : MonoBehaviour
         burnTime = 0f;
         burnTickTimer = 0f;
         recoverTimer = 0f;
+        SyncDamageBreakdown();//추가
 
         PlayerStamina stamina = GetComponent<PlayerStamina>();
         if (stamina != null)
@@ -204,6 +207,7 @@ public class PlayerCondition : MonoBehaviour
     public void ApplyPermanentDamage(float amount)
     {
         permanentDamage += amount;
+        SyncDamageBreakdown();//+
 
         Debug.Log($"영구 손상 +{amount}"); //디버깅용 나중에 지우기
         Debug.Log($"현재 최대 스태미나 : {CurrentMaxStamina}");
@@ -213,13 +217,22 @@ public class PlayerCondition : MonoBehaviour
     {
         temporaryDamage += amount;
         recoverTimer = recoverDelay;
+        SyncDamageBreakdown();//+
     }
 
     public void RecoverTemporaryDamage(float amount)    
     {
         temporaryDamage -= amount;
         temporaryDamage = Mathf.Max(0, temporaryDamage);
+        SyncDamageBreakdown();
     }
+    //hmm
+    private void SyncDamageBreakdown()
+    {
+        if (playerGameState != null)
+            playerGameState.SetDamageBreakdown(temporaryDamage, permanentDamage);
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if(other.tag == "ShotgunHit")

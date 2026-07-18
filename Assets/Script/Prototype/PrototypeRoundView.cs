@@ -200,8 +200,14 @@ public class PrototypeRoundView : MonoBehaviour
 
         float width = 320f;
         float baseMaximum = condition.BaseMaxStamina;
-        float currentRatio = Mathf.Clamp01(state.CurrentStamina / baseMaximum);
-        float maximumRatio = Mathf.Clamp01(state.MaxStamina / baseMaximum);
+        //수정
+        float available = Mathf.Clamp(state.CurrentStamina, 0f, baseMaximum);
+        float lavaDamage = Mathf.Clamp(state.TemporaryDamage, 0f, baseMaximum);
+        float fallDamage = Mathf.Clamp(state.PermanentDamage, 0f, baseMaximum - lavaDamage);
+        //수정
+        float usableMaximum = Mathf.Max(0f, baseMaximum - lavaDamage - fallDamage);
+        //이것도 ui에 쓸거.
+        float spent = Mathf.Max(0f, usableMaximum - available);
         Rect background = new Rect(
             Screen.width / 2f - width / 2f,
             Screen.height - 55f,
@@ -217,27 +223,46 @@ public class PrototypeRoundView : MonoBehaviour
             background.width - 6f,
             background.height - 6f);
 
-        GUI.color = new Color(0.25f, 0.27f, 0.3f, 1f);
-        GUI.Box(new Rect(inner.x, inner.y,
-            inner.width * maximumRatio, inner.height), GUIContent.none);
-
-        GUI.color = currentRatio > 0.25f
-            ? new Color(0.2f, 0.85f, 0.35f, 1f)
-            : new Color(0.95f, 0.2f, 0.15f, 1f);
-        GUI.Box(new Rect(inner.x, inner.y,
-            inner.width * currentRatio, inner.height), GUIContent.none);
-
-        GUI.color = new Color(0.55f, 0.08f, 0.06f, 1f);
-        GUI.Box(new Rect(
-            inner.x + inner.width * maximumRatio,
-            inner.y,
-            inner.width * (1f - maximumRatio),
-            inner.height), GUIContent.none);
+        //추가추가추가
+        float cursor = inner.x;
+        DrawStaminaSegment(inner, ref cursor, available / baseMaximum,
+            new Color(0.2f, 0.85f, 0.35f, 1f));
+        DrawStaminaSegment(inner, ref cursor, spent / baseMaximum,
+            new Color(0.22f, 0.24f, 0.28f, 1f));
+        DrawStaminaSegment(inner, ref cursor, lavaDamage / baseMaximum,
+            new Color(1f, 0.38f, 0.04f, 1f));
+        DrawStaminaSegment(inner, ref cursor, fallDamage / baseMaximum,
+            new Color(0.55f, 0.03f, 0.04f, 1f));
+        //여기까지.. 프로토타입용 stacked bar
 
         GUI.color = Color.white;
         GUI.Label(new Rect(background.x, background.y - 25f, width, 24f),
             $"STAMINA {Mathf.CeilToInt(state.CurrentStamina)} / " +
-            $"{Mathf.CeilToInt(state.MaxStamina)}  (BASE {Mathf.CeilToInt(baseMaximum)})");
+            $"{Mathf.CeilToInt(state.MaxStamina)}  " +
+            $"LAVA {Mathf.CeilToInt(lavaDamage)}  FALL {Mathf.CeilToInt(fallDamage)}");
+    }
+
+    //stacked bar로 분할해서 보여주기 기능
+    private static void DrawStaminaSegment(
+        Rect bar,
+        ref float cursor,
+        float ratio,
+        Color color)
+    {
+        float segmentWidth = bar.width * Mathf.Clamp01(ratio); // 각각이 어느정도 비율로 보여질지.
+        if (segmentWidth <= 0f)
+            return;
+
+        const float separatorWidth = 1f;
+        float visibleWidth = Mathf.Max(0f, segmentWidth - separatorWidth);
+
+        GUI.color = color;
+        GUI.DrawTexture(
+            new Rect(cursor, bar.y, visibleWidth, bar.height),
+            Texture2D.whiteTexture,
+            ScaleMode.StretchToFill);
+        GUI.color = Color.white;
+        cursor += segmentWidth;
     }
 
     private int CountPlayers()
