@@ -273,14 +273,36 @@ namespace Script.sound
                     GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
                     GameObject nearestPlayer = null;
                     float minSqrDist = float.MaxValue;
+                    bool bestIsReachable = false;
+
+                    NavMeshPath path = new NavMeshPath();
 
                     foreach (var p in players)
                     {
                         float sqrDist = (p.transform.position - transform.position).sqrMagnitude;
-                        if (sqrDist < minSqrDist)
+                        bool hasPath = _agent.CalculatePath(p.transform.position, path);
+                        bool isReachable = hasPath && path.status == NavMeshPathStatus.PathComplete;
+
+                        if (nearestPlayer == null)
                         {
-                            minSqrDist = sqrDist;
                             nearestPlayer = p;
+                            minSqrDist = sqrDist;
+                            bestIsReachable = isReachable;
+                        }
+                        else
+                        {
+                            if (isReachable && !bestIsReachable)
+                            {
+                                nearestPlayer = p;
+                                minSqrDist = sqrDist;
+                                bestIsReachable = isReachable;
+                            }
+                            else if (isReachable == bestIsReachable && sqrDist < minSqrDist)
+                            {
+                                nearestPlayer = p;
+                                minSqrDist = sqrDist;
+                                bestIsReachable = isReachable;
+                            }
                         }
                     }
 
