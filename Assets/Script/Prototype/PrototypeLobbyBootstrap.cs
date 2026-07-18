@@ -60,7 +60,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         {
             GameMode = mode,
             SessionName = sessionName,
-            PlayerCount = 4,
+            PlayerCount = 5,
             Scene = SceneRef.FromIndex(gameObject.scene.buildIndex)
         });
 
@@ -78,7 +78,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         GUI.Label(new Rect(40, 55, 390, 25), status);
         GUI.Label(new Rect(40, 82, 390, 25), "H: Host   C: Client   Enter: 게임 시작(Host)");
         int count = runner != null && runner.IsRunning ? CountPlayers(runner) : 0;
-        GUI.Label(new Rect(40, 109, 390, 25), $"접속 인원: {count}/4");
+        GUI.Label(new Rect(40, 109, 390, 25), $"접속 인원: {count}/5");
     }
 
     private bool IsLobbySceneActive()
