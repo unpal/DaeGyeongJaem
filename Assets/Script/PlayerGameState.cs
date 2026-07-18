@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
+using Script.dotori;
 
 public class PlayerGameState : NetworkBehaviour
 {
@@ -37,6 +38,11 @@ public class PlayerGameState : NetworkBehaviour
         DisplayName = $"Player {Object.InputAuthority.PlayerId}";
         MaxStamina = 100f;
         CurrentStamina = MaxStamina;
+        
+        if (Object.HasInputAuthority && CameraManager.Instance)
+        {
+            CameraManager.Instance.state = this;
+        }
     }
 
     public void MarkDead() //죽은거 마킹
