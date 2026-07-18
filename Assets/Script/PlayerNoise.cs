@@ -24,6 +24,7 @@ public class PlayerNoise : NetworkBehaviour
     [SerializeField] private float crouchMultiplier = 0.3f;
 
     private bool isCrouching;
+    private AudioSource _audioSource;
     
     private PlayerGameState _gameState;
 
@@ -38,13 +39,17 @@ public class PlayerNoise : NetworkBehaviour
     public override void Spawned()
     {
         StartCoroutine(PeriodicNoiseRoutine());
+        TryGetComponent(out _audioSource);
     }
 
 
     public void MakeNoise(NoiseType type)
     {
-        if (!Runner.IsForward)
-            return;
+        // Update, Coroutine, RPC 등 FixedUpdateNetwork 외부에서 호출될 경우 
+        // Runner.IsForward가 false이기 때문에 여기서 막히게 됩니다. 
+        // 따라서 IsForward 체크를 제거합니다.
+        // if (!Runner.IsForward)
+        //     return;
 
         float radius = GetNoiseRadius(type);
 
@@ -140,10 +145,31 @@ private void OnDisable()
 
     public void Whistle()
     {
-        if (Object.HasStateAuthority)
+        if (Object.HasInputAuthority)
         {
-            SoundEventManager.TriggerSound(transform.position, 20.0f);
+            Rpc_Whistle();
         }
+    }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+    public void Rpc_Whistle()
+    {
+        if (_gameState == null) TryGetComponent(out _gameState);
+        // 2. 플레이어가 죽었거나 탈출했다면 소리를 내지 않고 무시합니다.
+        if (_gameState != null && !_gameState.IsInPlayground)
+        {
+            return;
+        }
+        
+        if (_audioSource != null)
+        {
+            _audioSource.Play();
+        }
+        else
+        {
+            Debug.LogWarning("_audioSource 컴포넌트가 없음");
+        }
+        SoundEventManager.TriggerSound(transform.position, 20.0f);
         MakeNoise(NoiseType.Whistle);
     }
 
