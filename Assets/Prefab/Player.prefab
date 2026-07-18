@@ -241,7 +241,7 @@ MonoBehaviour:
   rotationSpeed: 0
   IsClimbing: 0
   IsDash: 0
-  ClimbingSpeed: 1
+  ClimbingSpeed: 1.5
   edgePushTime: 0.2
   edgePushTimer: 0
   edgePushForce: 5
@@ -336,6 +336,8 @@ MonoBehaviour:
   SortNum: 0
   _CurrentStamina: 0
   _MaxStamina: 0
+  _TemporaryDamage: 0
+  _PermanentDamage: 0
   _IsDead:
     _value: 0
   _HasEscaped:

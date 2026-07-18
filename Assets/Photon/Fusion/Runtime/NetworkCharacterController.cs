@@ -236,7 +236,7 @@ namespace Fusion {
       }
       if(!isMove)
       {
-          if (wallDistance > 0.15f && !isRaycast)
+          if (IsClimbing && wallDistance > 0.15f && !isRaycast)
           {
               _controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
           }
