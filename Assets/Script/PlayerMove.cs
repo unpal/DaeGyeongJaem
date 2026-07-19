@@ -278,11 +278,11 @@ public class PlayerMove : NetworkBehaviour
             Anim.SetBool("Running", isRunning);
             if(isRunning && canSprint)
             {
-                animator.speed = 1.5f;
+                Anim.speed = 1.5f;
             }
             else
             {
-                animator.speed = 1.0f;
+                Anim.speed = 1.0f;
             }
         }
 
