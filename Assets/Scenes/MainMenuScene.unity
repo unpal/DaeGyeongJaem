@@ -140,7 +140,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &126935446
 RectTransform:
   m_ObjectHideFlags: 0
@@ -224,6 +224,7 @@ GameObject:
   - component: {fileID: 176960561}
   - component: {fileID: 176960560}
   - component: {fileID: 176960563}
+  - component: {fileID: 176960564}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -349,6 +350,23 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &176960564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176960559}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46aa89f3501c4bd1911ba78e87f8245d, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  roundSceneName: PrototypeRoundScene
+  orbitSpeed: 3
+  elevationAngle: 48
+  distanceMultiplier: 0.8
+  targetHeightOffset: 1.5
 --- !u!1 &193134193
 GameObject:
   m_ObjectHideFlags: 0
