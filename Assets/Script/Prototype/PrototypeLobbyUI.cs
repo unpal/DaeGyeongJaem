@@ -122,27 +122,4 @@ public class PrototypeLobbyUI : MonoBehaviour
         Cursor.visible = unlock;
     }
 
-#if UNITY_EDITOR
-    public void Configure(
-        PrototypeLobbyBootstrap bootstrap,
-        GameObject role,
-        GameObject join,
-        GameObject room,
-        TMP_InputField playerName,
-        TMP_InputField roomCode,
-        TMP_Text status,
-        TMP_Text roomLabel,
-        TMP_Text playerCount)
-    {
-        lobby = bootstrap;
-        rolePanel = role;
-        joinPanel = join;
-        roomPanel = room;
-        nameInput = playerName;
-        roomCodeInput = roomCode;
-        statusText = status;
-        roomText = roomLabel;
-        playerCountText = playerCount;
-    }
-#endif
 }
