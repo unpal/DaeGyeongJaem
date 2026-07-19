@@ -291,6 +291,11 @@ public class PlayerMove : NetworkBehaviour
             controller.Velocity = Vector3.zero;
             wasGrapped = true;
             controller.IsClimbing = true;
+
+            //추가했어요 > 매달리면 낙뎀계산하는 높이 초기화
+            FallDamage fallDamage = GetComponent<FallDamage>();
+            if (fallDamage != null)
+                fallDamage.ResetFallTrackingFromCurrentHeight();
         }
         else if (!canClimb && controller.IsClimbing)
         {

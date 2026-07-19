@@ -87,6 +87,14 @@ public class FallDamage : MonoBehaviour
     }
 
     //플레이어가 처음 땅에 닿기 전까지는 현재 높이만 갱신.
+    //분명추가했는디 
+    public void ResetFallTrackingFromCurrentHeight()
+    {
+        highestPoint = transform.position.y;
+        wasGrounded = false;
+        waitForInitialGrounding = false;
+    }
+
     public void ResetForNextRound()
     {
         highestPoint = transform.position.y;

@@ -195,7 +195,16 @@ public class PrototypeRoundView : MonoBehaviour
 
         PlayerGameState state = localObject.GetComponent<PlayerGameState>();
         PlayerCondition condition = localObject.GetComponent<PlayerCondition>();
+
+        //여기 수정했어요. 죽으면 스테미나 ui 안보이게 바꿈
+        /*
         if (state == null || condition == null || condition.BaseMaxStamina <= 0f)
+            return;
+        */
+        if (state == null ||
+            state.IsDead ||
+            condition == null ||
+            condition.BaseMaxStamina <= 0f) // Nullref 방지용 2개 검사랑 isdead 검사. + 아래코드에서 basemaxstamina 를 나누기때문이 0나누기 제외용
             return;
 
         float width = 320f;
