@@ -195,7 +195,6 @@ MonoBehaviour:
   edgePushTime: 0.2
   edgePushTimer: 0
   HeadUpMove: 0
-  animator: {fileID: 0}
   isRunSound: 0
 --- !u!143 &1928040249987131803
 CharacterController:
@@ -567,9 +566,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3913893799221358603}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.099516116, y: -0.0031262967, z: -0.031445462, w: 0.9945341}
+  m_LocalPosition: {x: 0.0007799504, y: -0.7493, z: -0.018215982}
+  m_LocalScale: {x: 0.99848926, y: 1.0044347, z: 0.99766505}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4115710911468344759}
@@ -594,7 +593,7 @@ MonoBehaviour:
   m_Priority: 10
   m_StandbyUpdate: 2
   m_LookAt: {fileID: 0}
-  m_Follow: {fileID: 0}
+  m_Follow: {fileID: 4612602861263721740}
   m_Lens:
     FieldOfView: 60.000004
     OrthographicSize: 5
@@ -636,7 +635,7 @@ MonoBehaviour:
   playerInput: {fileID: 3574161853260155291}
   player: {fileID: 2805763549879704674}
   sensitivity: 0.1
-  headBone: {fileID: 4130418661098533799}
+  headBone: {fileID: 4612602861263721740}
 --- !u!114 &6460669365672728466
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -778,9 +777,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_BindingMode: 1
   m_FollowOffset: {x: 0, y: 0, z: 0}
-  m_XDamping: 1
-  m_YDamping: 1
-  m_ZDamping: 1
+  m_XDamping: 0
+  m_YDamping: 0
+  m_ZDamping: 0
   m_AngularDampingMode: 0
   m_PitchDamping: 0
   m_YawDamping: 0
@@ -932,9 +931,9 @@ Animator:
     type: 3}
   m_PrefabInstance: {fileID: 7506814085017870143}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &4130418661098533799 stripped
+--- !u!4 &4612602861263721740 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: 5872621622679022744, guid: 196e6da9b2552915fbc5a5a1f4244a36,
+  m_CorrespondingSourceObject: {fileID: 2895478651811301939, guid: 196e6da9b2552915fbc5a5a1f4244a36,
     type: 3}
   m_PrefabInstance: {fileID: 7506814085017870143}
   m_PrefabAsset: {fileID: 0}
