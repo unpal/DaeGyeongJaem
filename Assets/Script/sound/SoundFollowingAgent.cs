@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.Events;
 using Cinemachine;
 
 /*
@@ -53,8 +52,6 @@ namespace Script.sound
             }
         }
         public Stack<SoundstackStr> Soundstack = new Stack<SoundstackStr>();
-        public UnityEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
-
         [Header("Gun Feedback Settings")]
         public AudioClip gunSoundClip; // 총소리 오디오 클립
         public float gunSoundVolume = 1.0f; // 총소리 볼륨
