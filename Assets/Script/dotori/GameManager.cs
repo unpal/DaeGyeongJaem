@@ -176,7 +176,7 @@ public class GameManager : NetworkBehaviour
                 spawnRotation);
             spawnedChaser = chaserObject.GetComponent<SoundFollowingAgent>();
 
-            RpcSetCenterText("술래 등장!");
+            RpcSetCenterText("도망쳐!");
             RpcCenterFadeOut();
             RpcShowSubtitle("추격자 스폰됨");
 
@@ -193,7 +193,7 @@ public class GameManager : NetworkBehaviour
             yield return null;
         }
 
-        RpcShowSubtitle("탈출 포탈 생성됨");
+        RpcSetCenterText("탈출구를 찾으세요");
 
         if (portalManager != null)
         {
@@ -210,7 +210,7 @@ public class GameManager : NetworkBehaviour
 
         if (spawnedChaser != null)
         {
-            RpcShowSubtitle("술래가 눈치챘다");
+            RpcSetCenterText("술래가 당신을 볼 수 있습니다.");
             spawnedChaser.SetStateToKnowWhereYouAre();
         }
     }
