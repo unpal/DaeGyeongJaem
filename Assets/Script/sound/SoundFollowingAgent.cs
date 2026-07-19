@@ -120,6 +120,41 @@ namespace Script.sound
             }
         }
 
+        private void PlayFireFeedback()
+        {
+            // 1. 총을 쏜 자리에서 총소리 재생 (위치 기반 3D 오디오)
+            if (gunSoundClip != null)
+            {
+                AudioSource.PlayClipAtPoint(gunSoundClip, transform.position, gunSoundVolume);
+            }
+
+            // 2. 거리에 비례하여 카메라 흔들기 (Cinemachine Impulse)
+            if (_impulseSource == null) 
+            {
+                Debug.LogWarning("[Camera Shake Debug] CinemachineImpulseSource가 없습니다!");
+                return;
+            }
+            if (Camera.main == null)
+            {
+                Debug.LogWarning("[Camera Shake Debug] Camera.main을 찾을 수 없습니다! MainCamera 태그가 설정되어 있는지 확인하세요.");
+                return;
+            }
+            
+            float distance = Vector3.Distance(transform.position, Camera.main.transform.position);
+            
+            // 거리가 가까울수록 1, 멀어질수록 0에 가깝게 감쇠
+            float distanceFactor = Mathf.Clamp01(1f - (distance / cameraShakeMaxDistance));
+            
+            Debug.Log($"[Camera Shake Debug] 카메라와의 거리: {distance}, 감쇠율: {distanceFactor}, 최종 흔들림 강도: {cameraShakeForce * distanceFactor}");
+            
+            if (distanceFactor > 0)
+            {
+                // 거리에 따른 감쇠를 직접 적용하여 흔들림 발생
+                _impulseSource.GenerateImpulse(Vector3.down * (cameraShakeForce * distanceFactor));
+                Debug.Log("[Camera Shake Debug] 흔들림 발생(GenerateImpulse) 호출 완료!");
+            }
+        }
+
         private void FireAndStandStill(Vector3 targetPosition)
         {
             // 발사 방향을 향해 회전
