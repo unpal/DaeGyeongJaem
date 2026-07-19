@@ -267,7 +267,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &40320904
 Transform:
   m_ObjectHideFlags: 0
@@ -277,7 +277,7 @@ Transform:
   m_GameObject: {fileID: 40320903}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.71, y: 1.9427052, z: -1.55}
+  m_LocalPosition: {x: 4.13, y: 1.9427052, z: -1.71}
   m_LocalScale: {x: 4, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -316,7 +316,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a26f47b230fd70540b2f2c51dbb94c37, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1150,99 +1150,30 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -9088098535514553540, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -9027541691329224988, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -9027541691329224988, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -9021543288773831665, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 738492613c7444c4581f2dee05abeb1b, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -8963028463633872426, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8963028463633872426, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8959369983539876447, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -8959369983539876447, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -8901502075356183365, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -8884096025423909818, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -8832420122449076567, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -8819986826784506335, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -8819986826784506335, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -8734478045231559670, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -8683020806875228480, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -8682318699606332071, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8682318699606332071, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
@@ -1267,7 +1198,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.15
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
@@ -1309,1891 +1240,585 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8608319803950933448, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
     - target: {fileID: -8596738641644179068, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -8596738641644179068, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -8590575332207232679, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -8548918784383070329, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8548918784383070329, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8477462735857928430, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -8477462735857928430, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -8472311772003228741, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -8462709953001013040, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -8462709953001013040, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8322820625571190907, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -8322820625571190907, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -8255027434334399163, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -8255027434334399163, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -8249360568288335681, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -8245283200991348830, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -8164012429964699577, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -8159324929480026008, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -8141763029872071858, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -8141763029872071858, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -8103710078261491340, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -8103438085194670393, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8103438085194670393, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8077428297966851160, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -8077428297966851160, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -7991491886820607463, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -7991491886820607463, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -7874902483704121455, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -7838452833699522367, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -7780066210683076552, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -7780066210683076552, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -7774272362253455176, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -7743024157594126857, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -7556275672212240162, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -7556275672212240162, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -7549679740628259158, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -7549679740628259158, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -7547988612322845313, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -7547988612322845313, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -7529752752959994609, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -7493483729511010753, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -7493483729511010753, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -7343725355923909547, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -7335104863091679624, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -7335104863091679624, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -7333857897362952056, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -7287100808202745476, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -7287100808202745476, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -7270265845973714284, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -7067343630907241678, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -7067343630907241678, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -7035433947783984860, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -7035433947783984860, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -6987130191799535140, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -6976589716577778687, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -6735108950601076481, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -6735108950601076481, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -6731383365197384848, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -6567864205427795205, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
-    - target: {fileID: -6558736068893171325, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -6522529466097177084, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -6522529466097177084, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -6460001506146681066, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -6460001506146681066, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -6412367235689744127, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -6412367235689744127, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -6354611819656977054, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -6354611819656977054, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -6334522115669559555, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -6334522115669559555, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -6325694467927830221, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -6319091506081472516, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -6319091506081472516, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -6296400185730249367, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -6261381875783617955, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: -6179723907977633239, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -6160847147834973864, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -6108000765761270229, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -6068810026148894403, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -6068810026148894403, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -6059692914498765566, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -6017024882570064705, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -5892459500266070158, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -5892459500266070158, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -5844633342301797093, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: -5787678151549536985, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -5759001246025770748, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -5759001246025770748, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -5731168789890924462, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -5718716754174639179, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -5718716754174639179, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -5664365601282321550, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -5609754216833004818, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -5609754216833004818, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -5589033580785701705, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -5565097586735609514, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -5541365252367526203, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -5512074251998364725, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -5512074251998364725, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -5463968148957094429, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -5413650559059023151, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -5413650559059023151, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -5276652532185718440, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -5265558064501858721, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -5175868278492942109, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: -5160064816798389806, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -5133876083392534165, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -4993453500596814432, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4993453500596814432, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4986825857526250987, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -4943922653892781442, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 41b3532264d8f224b92efb7ed3022914, type: 2}
-    - target: {fileID: -4925933484952400396, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -4869306143899440449, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4869306143899440449, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4750865817012312115, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -4684473915534146267, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -4672207071430425908, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -4660350273367319191, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -4660350273367319191, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -4652724345188999818, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -4652724345188999818, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -4648024913741226743, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -4648024913741226743, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -4635267157547906652, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4635267157547906652, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4634567946063708770, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -4593130486874181694, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -4593130486874181694, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -4583926671794953243, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4583926671794953243, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4544098163558367270, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -4512210967669637986, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -4483269629733123466, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -4467801810950318659, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -4467801810950318659, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4465135987919890124, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4465135987919890124, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4415577026000255016, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -4346179655013922835, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -4338054463396491089, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -4251248831263030948, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -4251248831263030948, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4193107085244171611, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4193107085244171611, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4167299245187953800, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -4158928582613560445, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4158928582613560445, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4106233415077653615, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -4065851371838199454, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -4065851371838199454, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -4040254339876430179, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -4040254339876430179, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -4031744791947840169, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -3956478731509583421, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: -3869931733151860375, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -3832751957706949365, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -3792488714388951870, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -3767515258376865184, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -3767515258376865184, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -3722056106804970549, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -3691894455571285649, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -3691894455571285649, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -3671494190283791818, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -3671494190283791818, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -3627092324025946839, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -3557344198883155101, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -3557344198883155101, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -3542699341077842107, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -3542699341077842107, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -3487197492895174699, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -3487197492895174699, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -3422289127456556132, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -3422289127456556132, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -3421634812589404722, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -3421634812589404722, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -3417089034001877227, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -3392046291809144660, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -3341030171606309072, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -3293559717715802909, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -3293559717715802909, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -3261433277880547006, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -3231960341675770458, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -3216363137630671168, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -3193776848438719224, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -3193776848438719224, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -3192233158560272180, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -3192233158560272180, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -3163537078322320511, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -3163537078322320511, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -3098668340888827952, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -3098668340888827952, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -3090298666685410495, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -3090298666685410495, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -3032574213459087864, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -3016284354717589077, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -3016284354717589077, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -2965475624145166871, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -2965475624145166871, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -2953834322658951765, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -2917118976797415121, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -2917118976797415121, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -2792884929436167856, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: -2766584933171208203, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -2766578342902334617, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -2766578342902334617, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -2712628997893105804, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -2712628997893105804, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -2679766712895694909, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -2653783226887934684, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
-    - target: {fileID: -2583267636571193545, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -2482953983888033907, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -2482953983888033907, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -2433939120476646914, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -2433939120476646914, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -2380294043183597254, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -2314245011921094447, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -2314245011921094447, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -2277309834036754802, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -2247082330740794488, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -2247082330740794488, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -2242306446959224699, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -2195553186561471559, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -2170320752266633531, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -2170320752266633531, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -2111871587766635966, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -2111871587766635966, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -2097218277451053535, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -2097218277451053535, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -2068619699389419239, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -2068619699389419239, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -2064261887937525879, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -2042854224571632227, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -2036736175112529040, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -1916899210259106318, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1916899210259106318, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1872832634699468418, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -1868100200432738731, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1868100200432738731, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1858272643609398463, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -1839677714832976793, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -1826051297082898250, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -1802394490935253860, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1802394490935253860, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1714763290140710005, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -1665181790468395764, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -1665181790468395764, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -1651774252640891677, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -1651774252640891677, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -1614557948542263642, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1614557948542263642, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1592289475483123607, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 738492613c7444c4581f2dee05abeb1b, type: 2}
-    - target: {fileID: -1531577112282754120, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -1468329064037503717, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -1468329064037503717, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -1446667077486644532, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1446667077486644532, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1433172865322710078, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: -1401816362684967722, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -1399985071919745245, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -1395171347467590775, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1395171347467590775, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1362484183715282670, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: -1340404474936722609, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 41b3532264d8f224b92efb7ed3022914, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -1310477999547000653, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1310477999547000653, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1277429189174386965, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -1247190254899968872, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -1247190254899968872, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -1200418516726234344, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -1179090709524179569, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -1134340807764161935, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: -1033417842042086840, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: -1014268425052216762, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -1014268425052216762, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -945980245302903731, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -945980245302903731, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: -944202821772004887, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -944202821772004887, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -829978743123463325, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -829978743123463325, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -562429956926660260, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -562429956926660260, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -471429385356259311, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -471429385356259311, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -445369854190344026, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -445369854190344026, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -445137649591765684, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -445137649591765684, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -442138728889465123, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -442138728889465123, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -389866118642622912, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -389866118642622912, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -351900946144508108, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: -351900946144508108, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: -350351349522454021, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: -328539204156079738, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -328539204156079738, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -211818929165925425, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -211818929165925425, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -174950429164932893, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -174950429164932893, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -86507713681861924, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -86507713681861924, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: -20851212346621345, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: -20851212346621345, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -13499760163063176, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: -13499760163063176, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 52361805505633545, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 52361805505633545, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 67746802983758421, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 75241364967847454, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 115701197612292991, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 115701197612292991, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 196359800604315094, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 196359800604315094, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 294656769781513784, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 294656769781513784, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 422116960274121845, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 556653639686422033, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 556653639686422033, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 637356599425421236, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 659206725636022248, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 666602370706033372, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 666602370706033372, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 695324582903331963, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 711162514402920061, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 711162514402920061, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 728757385788822653, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 728757385788822653, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 745933208555042323, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 764787003410845121, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 764787003410845121, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 794535015940297157, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 806157765955456140, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 806157765955456140, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 815122810508181336, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 815122810508181336, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 852766767133861170, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 852766767133861170, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 857396679117318465, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 915340111231616975, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 915340111231616975, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
@@ -3205,1506 +1830,451 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 944026018050051053, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 944026018050051053, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 1001142229561824511, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 1045188931724309215, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1045188931724309215, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1046520915298849045, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1046520915298849045, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1093385229906173007, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 1093385229906173007, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 1139035366257496093, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 1153002869730038282, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1153002869730038282, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1165120735633635226, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 1165120735633635226, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1191497820408321646, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 1191497820408321646, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 1264591948698280254, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 1275014001552727077, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 1275014001552727077, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 1423087989614583190, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 1480631128982663329, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 1480631128982663329, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 1603246306389932429, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 1605215986289949796, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1605215986289949796, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 1704951822169289084, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 1704951822169289084, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 1832516447601587717, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 1846490201761061896, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 1919036201622534626, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1919036201622534626, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1923817199830141088, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 1923817199830141088, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2038998929130152504, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 2038998929130152504, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2177847559159310237, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 2177847559159310237, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 2249601072385645600, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 2249601072385645600, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 2360329732907533215, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 2418805383508221814, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 2463706537061040287, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 2463706537061040287, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 2484815331323439791, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 2484815331323439791, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 2502432061147645856, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 2538057606817204104, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 2552646504696553089, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 2595453624201635790, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 2633417372592993068, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 2709540127037014440, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 2709540127037014440, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 2775226157375236886, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 2800083824455301452, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 2822603323217974970, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 2822603323217974970, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 2838230245806460556, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 3058790584785910011, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3058790584785910011, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3082387124479617782, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3082387124479617782, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3158385706622995022, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 3158385706622995022, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3183403134933584476, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 3183403134933584476, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 3333402436487822826, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 3355055319591371017, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 3386772016031541912, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3386772016031541912, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3427051867773246620, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 3427051867773246620, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 3477121624315835160, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 3499961015708926321, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3499961015708926321, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3545728956024351961, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 3545728956024351961, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3566401902184127935, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3566401902184127935, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3572869998496739356, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 3572869998496739356, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3586752414141099380, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 3586752414141099380, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 3666043245503229278, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 3763334397093642550, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 3765108852280629433, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 3767989639752432785, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 3838563206524354608, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3838563206524354608, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3843964997429379003, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 3843964997429379003, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 3880741409817808998, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 3942861425398645255, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 3958651832330077742, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3958651832330077742, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3959101598371193582, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 3959101598371193582, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3970760350201775854, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 3970760350201775854, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3977846888695458102, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 3977846888695458102, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4014066054486412427, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 4014066054486412427, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 4035859259603958288, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 4103124080676475333, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 4213852362423303188, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 4278200481962586376, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 4291148836776786981, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 4291148836776786981, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 4395292734224863766, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 4437906056120645601, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 4437906056120645601, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 4544465443794297850, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 4545978340888071827, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4545978340888071827, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 4609190261242277994, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 4609190261242277994, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 4620139526671291635, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 4780373084836178237, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 4842034304032773444, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 4860693344394430171, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 4860693344394430171, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4893887815874013019, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 4893887815874013019, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 4956049405653504104, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 4956049405653504104, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5033923823725321942, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 5079880681887999507, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 5127745049183071307, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 5176563468156297601, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5176563468156297601, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5179372400545492598, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 5248214253963695614, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5248214253963695614, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5282074459031073837, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 5284520608584631186, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5284520608584631186, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5354701432307833369, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 5373076744888787351, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5373076744888787351, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5409941592690506366, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 5444500236571394586, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5444500236571394586, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5485713580672014777, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 5495933810217780819, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5495933810217780819, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5506100933107585014, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 5513386478252090863, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
-    - target: {fileID: 5524287080236942410, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 5530977372477153103, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 5547403349807877874, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5547403349807877874, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5549447077221524386, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5549447077221524386, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5588666296455164223, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 5588666296455164223, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 5690651934545734572, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5690651934545734572, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5694059874591286030, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 5706263594933505890, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 5839185225461544918, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 5899902320121039873, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5899902320121039873, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 5924692791343279225, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 5924692791343279225, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 5937348357452437236, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 6054033443837778016, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 6055812903881472343, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 6062245404913647224, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 6062245404913647224, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6074638179332245823, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 6074638179332245823, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 6175938930180383729, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 6177655569117526910, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 6206941250969502114, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 6288485330069441321, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 6316538944783047984, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 6337035995827572323, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 6395118388739320811, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 738492613c7444c4581f2dee05abeb1b, type: 2}
-    - target: {fileID: 6413746652832612111, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 6448557661622854899, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 6448557661622854899, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 6531116173407507449, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 6566273048484985374, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6566273048484985374, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6576496927987889051, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6576496927987889051, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6588434171230858588, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 6588434171230858588, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 6670394390930771853, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 6677458282552227419, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 6698890871181858397, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 6698890871181858397, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6708527316479202405, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 6708527316479202405, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 6721866351388479127, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 6789869194981471024, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 6789869194981471024, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 6841003676236821729, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 6877476350376008592, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 6879064619852846975, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 6887652677217967773, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 7008276217133670136, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 7277885429824127917, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 7300854266863693309, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 7300854266863693309, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 7329214614432938744, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 7349023922482951827, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 7375209042704925964, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
-    - target: {fileID: 7405119970038362971, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 7427926091413637985, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 7427926091413637985, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 7460173648926317428, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 7552859630220120756, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7552859630220120756, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7562749430558828296, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7562749430558828296, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7611576459847947526, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 7611576459847947526, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 7655399245451061770, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
-    - target: {fileID: 7759282554377375139, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 7914977391443630751, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 7914977391443630751, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7963189301177548054, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 7963189301177548054, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 7993754044430479988, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 7993754044430479988, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 8042945548056573905, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: b5d873b825fc4614ebebd8bd5cc1ca88, type: 2}
-    - target: {fileID: 8084564163059207636, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 8091771157074728395, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8091771157074728395, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8153636686374230145, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8153636686374230145, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8203087461653065895, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-    - target: {fileID: 8203087461653065895, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 8267885997956261659, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 8267885997956261659, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 8326213040529562346, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 8382769772749705447, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8382769772749705447, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8409879660560474145, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 8409879660560474145, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 8435404656038923070, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 8492242637003531346, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 8492242637003531346, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 8563229988257885105, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
-    - target: {fileID: 8581279271516298641, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 8657211362945150207, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Layer
-      value: 6
-      objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 8657211362945150207, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 8736054615233459941, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 738492613c7444c4581f2dee05abeb1b, type: 2}
-    - target: {fileID: 8779825108579071878, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: e37eca8c1ec6d0f469cb72a52102b926, type: 2}
->>>>>>> Stashed changes
-    - target: {fileID: 8878080906986915538, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8878080906986915538, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8881633113050779823, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8881633113050779823, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 8881853725276997775, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 8881853725276997775, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 8917723683180687816, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 8937787802928322672, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 8965447893731722929, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 8965447893731722929, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 8983485508497283094, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
-    - target: {fileID: 8992797290524839866, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 09928bc010c08a6438721ce04d9c828c, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 8999661357496830568, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 8999661357496830568, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 9000782506969897648, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 9029610947546936374, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 9029610947546936374, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 9079533251069443603, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 738492613c7444c4581f2dee05abeb1b, type: 2}
-    - target: {fileID: 9087741156589555696, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     - target: {fileID: 9191604254164783804, guid: 6571ea58fa230a745b94a8ee908f110b,
         type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
-<<<<<<< Updated upstream
-    - target: {fileID: 9191604254164783804, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_StaticEditorFlags
-      value: 0
-      objectReference: {fileID: 0}
-=======
-    - target: {fileID: 9200222584930038352, guid: 6571ea58fa230a745b94a8ee908f110b,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: cbe6b26c8877f8e46906b7f9f9d5fd14, type: 2}
->>>>>>> Stashed changes
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7211,7 +4781,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a34860943d963d54b94690e848ad6761, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7692,7 +5262,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 3.443788, y: -1.8, z: -7.024929}
-  m_LocalScale: {x: 41, y: 1, z: 41}
+  m_LocalScale: {x: 40, y: 1, z: 40}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2037674040}
@@ -8704,7 +6274,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &861000686
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8751,7 +6321,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a26f47b230fd70540b2f2c51dbb94c37, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -8810,13 +6380,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 861000685}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.6819899, z: -0, w: 0.7313616}
-  m_LocalPosition: {x: -5.22, y: 2.07, z: -19.36}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -4.17, y: 2.07, z: -19.43}
   m_LocalScale: {x: 4, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2037674040}
-  m_LocalEulerAnglesHint: {x: 0, y: -85.999, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &862162130 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -8682318699606332071, guid: 6571ea58fa230a745b94a8ee908f110b,
@@ -9196,7 +6766,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &953500606
 Transform:
   m_ObjectHideFlags: 0
@@ -9205,13 +6775,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 953500605}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.32504442, z: -0, w: 0.94569874}
-  m_LocalPosition: {x: -5.4000006, y: 0.29, z: -3.26}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 8.74, y: 13.97, z: -0.54}
   m_LocalScale: {x: 4, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2037674040}
-  m_LocalEulerAnglesHint: {x: 0, y: 37.937, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &953500607
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9245,7 +6815,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a26f47b230fd70540b2f2c51dbb94c37, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -10138,7 +7708,7 @@ MonoBehaviour:
   portalManager: {fileID: 479535480}
   protoRoundManager: {fileID: 0}
   ENDGAME_TIMER: 60
-  matchingSceneBuildIndex: 1
+  matchingSceneBuildIndex: 0
   _Phase: 0
 --- !u!4 &1184377254
 Transform:
@@ -11151,7 +8721,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1420345165
 Transform:
   m_ObjectHideFlags: 0
@@ -11160,13 +8730,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1420345164}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.47843045, z: -0, w: 0.8781254}
-  m_LocalPosition: {x: 16.35, y: 11.38, z: -1.31}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 3.4437878, y: 10.07, z: -8.83}
   m_LocalScale: {x: 4, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2037674040}
-  m_LocalEulerAnglesHint: {x: 0, y: 57.166, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &1420345167
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -11187,7 +8757,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a26f47b230fd70540b2f2c51dbb94c37, type: 2}
+  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -14212,15 +11782,15 @@ MonoBehaviour:
   m_LayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_UseGeometry: 1
+  m_UseGeometry: 0
   m_DefaultArea: 0
-  m_GenerateLinks: 1
+  m_GenerateLinks: 0
   m_IgnoreNavMeshAgent: 1
   m_IgnoreNavMeshObstacle: 1
   m_OverrideTileSize: 0
   m_TileSize: 256
-  m_OverrideVoxelSize: 1
-  m_VoxelSize: 0.05
+  m_OverrideVoxelSize: 0
+  m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: e1f7b091a594578418d3537924f14f96, type: 2}
   m_BuildHeightMesh: 0
@@ -14576,7 +12146,7 @@ MonoBehaviour:
   countdownSeconds: 3
   roundTransitionSeconds: 3
   winnerMessageSeconds: 5
-  matchingSceneBuildIndex: 1
+  matchingSceneBuildIndex: 0
   _Phase: 0
   _IsRoundEnding:
     _value: 0
