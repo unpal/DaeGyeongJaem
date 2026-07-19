@@ -23,6 +23,9 @@ public class PlayerNoise : NetworkBehaviour
     [Header("Stealth")]
     [SerializeField] private float crouchMultiplier = 0.3f;
 
+    [Header("Footstep Audio")]
+    [SerializeField] private AudioClip[] footstepClips;
+
     private bool isCrouching;
     private AudioSource _audioSource;
     
@@ -209,6 +212,18 @@ private void OnDisable()
         else
         {
             Debug.LogWarning("_audioSource 컴포넌트가 없음");
+        }
+    }
+
+    public void PlayFootstepSound()
+    {
+        if (!Runner.IsForward) return; // 롤백 시 중복 재생 방지
+
+        if (footstepClips != null && footstepClips.Length > 0 && _audioSource != null)
+        {
+            AudioClip clip = footstepClips[Random.Range(0, footstepClips.Length)];
+            // 발소리가 너무 크면 volume을 조절할 수 있습니다.
+            _audioSource.PlayOneShot(clip, 0.6f); 
         }
     }
 
