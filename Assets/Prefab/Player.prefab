@@ -76,7 +76,6 @@ Transform:
   - {fileID: 6135567398758371061}
   - {fileID: 8180671826783562522}
   - {fileID: 7871711493636714027}
-  - {fileID: 6989935124070040773}
   - {fileID: 8851511694691749576}
   - {fileID: 8045459587687446740}
   m_Father: {fileID: 0}
@@ -197,11 +196,10 @@ MonoBehaviour:
   edgePushTime: 0.2
   edgePushTimer: 0
   HeadUpMove: 0
-  animator: {fileID: 4026517282414223039}
+  animator: {fileID: 4127296217243919022}
   isRunSound: 0000
   audioSource: {fileID: 8904305096072874574}
   FootSound: {fileID: 8300000, guid: 67c180cea029b1a0f823e5c8eec0f18f, type: 3}
-  isRunSound: 0
 --- !u!143 &1928040249987131803
 CharacterController:
   m_ObjectHideFlags: 0
