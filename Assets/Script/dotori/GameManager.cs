@@ -1,6 +1,7 @@
 using System.Collections;
 using Fusion;
 using Script.sound;
+using Script.UI;
 using TMPro;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ public class GameManager : NetworkBehaviour
     public Transform chaserSpawnPoint; // 추격자 생성 위치,방향
     public PortalManager portalManager; // 포탈관리자(활성화)
     public PrototypeRoundManager protoRoundManager; //게임 라운드 매니저
+    public DialogueController introDialogue; // 시작 다이얼로그
 
     [Header("Settings")] public float ENDGAME_TIMER = 60f; // 게임시작후 추격자가 플레이어 위치를 알게되는 시간?
 
@@ -63,8 +65,31 @@ public class GameManager : NetworkBehaviour
 
     private void GameFlowStart(PrototypeRoundManager manager)
     {
-        gameFlowCoroutine = StartCoroutine(GameFlowRoutine());
+        gameFlowCoroutine = StartCoroutine(IntroAndGameFlowRoutine());
         PrototypeRoundManager.OnRoundStart -= GameFlowStart;
+    }
+
+    // 다이얼로그를 먼저 재생하고, 완료되면 게임 흐름을 시작하는 코루틴
+    private IEnumerator IntroAndGameFlowRoutine()
+    {
+        if (introDialogue != null)
+        {
+            RpcPlayIntroDialogue();
+            // 호스트는 다이얼로그 전체 길이만큼 대기
+            yield return new WaitForSeconds(introDialogue.GetTotalDuration());
+        }
+        
+        // 다이얼로그가 끝나면 기존 카운트다운(GameFlowRoutine) 시작
+        yield return StartCoroutine(GameFlowRoutine());
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPlayIntroDialogue()
+    {
+        if (introDialogue != null)
+        {
+            StartCoroutine(introDialogue.PlayDialogue());
+        }
     }
 
     // Unity 오브젝트가 활성화될 때 한 번 호출,

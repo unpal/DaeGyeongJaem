@@ -84,6 +84,7 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private bool[] isRunSound;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip FootSound;
+    [SerializeField] private bool isRunSound;
     //추가한점,
 
     void Update()
@@ -167,7 +168,7 @@ public class PlayerMove : NetworkBehaviour
             //Debug.Log("입력 없음");
             return;
         }
-        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+        AnimatorStateInfo state = Anim.GetCurrentAnimatorStateInfo(0);
 
 
         if(state.IsName("Climb"))

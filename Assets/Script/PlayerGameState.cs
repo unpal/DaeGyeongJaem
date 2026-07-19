@@ -95,16 +95,22 @@ public class PlayerGameState : NetworkBehaviour
 
     private void SetVisibility(bool isVisible)
     {
+        bool isLocal = Object.HasInputAuthority;
+
         // 모델 등 모든 렌더러 활성/비활성화
         foreach (var renderer in GetComponentsInChildren<Renderer>(true))
         {
-            renderer.enabled = isVisible;
+            // 로컬 플레이어(자신)는 1인칭이므로 모델을 켜지 않음
+            if (isLocal) renderer.enabled = false;
+            else renderer.enabled = isVisible;
         }
         
         // 닉네임 태그 등 UI 활성/비활성화
         foreach (var canvas in GetComponentsInChildren<Canvas>(true))
         {
-            canvas.enabled = isVisible;
+            // 자신의 닉네임 태그도 1인칭 화면에서는 보이지 않도록 함
+            if (isLocal) canvas.enabled = false;
+            else canvas.enabled = isVisible;
         }
         
         // 투명 상태일 때 충돌 방지를 위해 CharacterController도 비활성화
