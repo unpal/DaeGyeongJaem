@@ -61,6 +61,8 @@ namespace Script.sound
         
         private CinemachineImpulseSource _impulseSource;
 
+        private Vector3 LastPlayerPosition;
+
         private enum StateMachine
         {
             IntoTheUnknown, // 모르는 길 (더듬기)
@@ -213,6 +215,13 @@ namespace Script.sound
 
             var soundHeard = (transform.position - soundPosition).magnitude / soundRange;
 
+            //if (NavMesh.SamplePosition(_estimatedSoundPosition,
+            //           out NavMeshHit hit,
+            //           5f,
+            //           NavMesh.AllAreas))
+            //    _estimatedSoundPosition = hit.position;
+
+
             // 추정 위치를 전역 변수에 저장해둬야 코루틴에서 써먹을 수 있음
             _estimatedSoundPosition = soundPosition +
                                       new Vector3(Random.Range(-soundHeard, soundHeard), 0,
@@ -245,7 +254,9 @@ namespace Script.sound
                 {
                     // 2-1. 에이전트 구역 == 도달 가능 목적지 구역
                     // 에이전트는 올 수 있는 최대치까지 온 상태. 목적지 방향을 향해 조금씩 전진 탐색
-                    _state = StateMachine.IntoTheUnknown;
+                    _targetPosition = _estimatedSoundPosition;
+                    _state = StateMachine.WhatYouGonnaDo;
+                    //_state = StateMachine.IntoTheUnknown;
                 }
                 else
                 {
@@ -279,7 +290,15 @@ namespace Script.sound
                 {
                     // 아는 길을 따라가는 중
                     if (_targetPosition != Vector3.zero)
-                        _agent.SetDestination(_targetPosition);
+                    {
+                        if (NavMesh.SamplePosition(_targetPosition,
+                                   out NavMeshHit hit,
+                                   5f,
+                                   NavMesh.AllAreas))
+                            _agent.SetDestination(hit.position);
+                        else
+                            _agent.SetDestination(_targetPosition);
+                    }
 
                     if (target)
                         target.transform.position = _targetPosition;
@@ -402,7 +421,55 @@ namespace Script.sound
                     if (nearestPlayer != null)
                     {
                         _agent.speed = _originalSpeed; // 추적 시에는 원래 속도로 복귀
-                        _agent.SetDestination(nearestPlayer.transform.position);
+                        NavMeshHit hit;
+
+                        float radius = 8f;
+
+                        bool isSampleing = false;
+                        for (int i = 0; i < 72; i++)
+                        {
+                            float angle = i * 360f / 72;
+
+                            Vector3 dir = new Vector3(
+                                Mathf.Cos(angle * Mathf.Deg2Rad),
+                                0,
+                                Mathf.Sin(angle * Mathf.Deg2Rad));
+
+                            Vector3 point = nearestPlayer.transform.position + dir * radius;
+
+                            if (NavMesh.SamplePosition(point, out hit, 8f, NavMesh.AllAreas))
+                            {
+                                Vector3 eye = hit.position + Vector3.up * 1.5f;
+                                Vector3 target = nearestPlayer.transform.position + Vector3.up * 1.2f;
+
+                                if (!Physics.Linecast(eye, target, LayerMask.GetMask("Wall")))
+                                {
+                                    NavMeshPath temppath = new NavMeshPath();
+                                    if (_agent.CalculatePath(hit.position, path))
+                                    {
+                                        if (path.status == NavMeshPathStatus.PathComplete)
+                                        {
+                                            Debug.Log("도달 가능");
+                                            _agent.SetDestination(hit.position);
+                                            isSampleing = true;
+                                        }
+                                        else
+                                        {
+                                            Debug.Log("경로가 끊겨 있음");
+                                        }
+                                    }
+
+                                }
+                            }
+                        }
+                        if(!isSampleing)
+                        {
+                            _agent.SetDestination(nearestPlayer.transform.position);
+                        }
+
+
+
+
                         if (target)
                             target.transform.position = nearestPlayer.transform.position;
 

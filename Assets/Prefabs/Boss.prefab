@@ -5258,13 +5258,10 @@ MonoBehaviour:
   maxSearchTime: 5
   showDebugGizmos: 1
   nodeSpacing: 2
-  fireRange: 5
+  fireRange: 8
   standStillAfterFire: 3
   GunObj: {fileID: 0}
   Players: []
-  onFireEvent:
-    m_PersistentCalls:
-      m_Calls: []
   gunSoundClip: {fileID: 8300000, guid: ed43fe82f4543d001ad1866b9173c1b5, type: 3}
   gunSoundVolume: 1
   cameraShakeForce: 1

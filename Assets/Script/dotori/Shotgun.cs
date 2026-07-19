@@ -40,7 +40,7 @@ public class Shotgun : MonoBehaviour
         RaycastHit hit;
         LastRotate = Rotate;
         yield return new WaitForSeconds(0.1f);
-        if (Physics.Raycast(ParentObj.transform.position, Rotate,out hit, 5f, shootMask))
+        if (Physics.Raycast(ParentObj.transform.position, Rotate,out hit, 10f, shootMask))
         {
             PlayerCondition condition = hit.transform.GetComponent<PlayerCondition>();
             if(condition != null)
