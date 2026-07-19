@@ -29,12 +29,29 @@ namespace Script.sound
         private float _originalSpeed;
 
         public bool showDebugGizmos = true; // 시각화 토글용 변수
-        public float nodeSpacing = 2.0f; // 노드(점) 간의 간격
+        public float nodeSpacing = 2f; // 노드(점) 간의 간격
 
         [Header("Attack Settings")] public float fireRange = 5.0f; // 사격 범위 (이 거리 내에서 소리가 나면 발사)
         public float standStillAfterFire = 3.0f; // 발사 후 대기 시간
-        public UnityEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
-
+        /// <summary>
+        /// 총 발사 시스템이 히트박스에서 레이캐스팅으로 변경되서 생긴 델리게이트 입니다.
+        /// </summary>
+        /// <param name="position">사운드가 발생한 위치와 나 간의 각도</param>
+        public delegate void ShotEvent(Vector3 position);
+        public event ShotEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
+        public GameObject GunObj; //총 오브젝트(회전용)
+        [SerializeField] GameObject[] Players;
+        public struct SoundstackStr
+        {
+            public Vector3 SoundPosition;
+            public float SoundRange;
+            public SoundstackStr(Vector3 position, float range)
+            {
+                SoundPosition = position;
+                SoundRange = range;
+            }
+        }
+        public Stack<SoundstackStr> Soundstack = new Stack<SoundstackStr>();
         private enum StateMachine
         {
             IntoTheUnknown, // 모르는 길 (더듬기)
@@ -104,13 +121,14 @@ namespace Script.sound
         {
             // 발사 방향을 향해 회전
             Vector3 direction = (targetPosition - transform.position).normalized;
+            Vector3 FireDirection = direction;
             direction.y = 0; // 평면 회전
             if (direction.sqrMagnitude > 0.01f)
             {
                 transform.rotation = Quaternion.LookRotation(direction);
             }
+            onFireEvent?.Invoke(FireDirection);
 
-            onFireEvent?.Invoke();
             _state = StateMachine.AttackCooldown;
 
             if (!_agent.isActiveAndEnabled) return;
@@ -131,6 +149,11 @@ namespace Script.sound
             {
                 FireAndStandStill(soundPosition);
                 return;
+            }
+            
+            if((transform.position - soundPosition).sqrMagnitude > (transform.position - _estimatedSoundPosition).sqrMagnitude)
+            {
+                Soundstack.Push(new SoundstackStr(soundPosition, soundRange));
             }
 
             var soundHeard = (transform.position - soundPosition).magnitude / soundRange;
@@ -219,8 +242,16 @@ namespace Script.sound
                         else
                         {
                             // 도달 가능 구역까지만 온 거라면 전진 탐색 시작
-                            _state = StateMachine.IntoTheUnknown;
-                            _searchTimer = 0f;
+                            if(Soundstack.Count > 0)
+                            {
+                                SoundstackStr tempstr = Soundstack.Pop();
+                                HandleSoundTriggered(tempstr.SoundPosition, tempstr.SoundRange);
+                            }
+                            else
+                            {
+                                _state = StateMachine.IntoTheUnknown;
+                                _searchTimer = 0f;
+                            }
                         }
                     }
 
@@ -270,15 +301,18 @@ namespace Script.sound
                 }
                 else if (_state == StateMachine.KnowWhereYouAre)
                 {
-                    GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+                    Players = GameObject.FindGameObjectsWithTag("Player");
                     GameObject nearestPlayer = null;
                     float minSqrDist = float.MaxValue;
                     bool bestIsReachable = false;
 
                     NavMeshPath path = new NavMeshPath();
 
-                    foreach (var p in players)
+                    foreach (var p in Players)
                     {
+                        PlayerGameState state = p.GetComponent<PlayerGameState>();
+                        if (!state.IsInPlayground)
+                            continue;
                         float sqrDist = (p.transform.position - transform.position).sqrMagnitude;
                         bool hasPath = _agent.CalculatePath(p.transform.position, path);
                         bool isReachable = hasPath && path.status == NavMeshPathStatus.PathComplete;
@@ -317,13 +351,14 @@ namespace Script.sound
                         {
                             // 발사 방향을 향해 회전
                             Vector3 direction = (nearestPlayer.transform.position - transform.position).normalized;
+                            Vector3 FireDirection = direction;
                             direction.y = 0; // 평면 회전
                             if (direction.sqrMagnitude > 0.01f)
                             {
                                 transform.rotation = Quaternion.LookRotation(direction);
                             }
 
-                            onFireEvent?.Invoke();
+                            onFireEvent?.Invoke(FireDirection);
 
                             if (_agent.isActiveAndEnabled)
                             {
@@ -409,7 +444,7 @@ namespace Script.sound
                 // 삼각형의 면적 계산
                 float area = Vector3.Cross(v2 - v1, v3 - v1).magnitude * 0.5f;
                 // 밀도를 보장하기 위해 넉넉히 생성 (면적이 작아도 최소 1개 보장)
-                int samples = Mathf.Max(1, Mathf.CeilToInt((area / sqrSpacing) * 3.0f));
+                int samples = Mathf.Max(2, Mathf.CeilToInt((area / sqrSpacing) * 3.0f));
 
                 for (int j = 0; j < samples; j++)
                 {

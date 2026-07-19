@@ -109,7 +109,7 @@ Transform:
   m_GameObject: {fileID: 6431941820000009159}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.6, y: 0, z: 0}
+  m_LocalPosition: {x: 0.6, y: 0, z: -0.639}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -133,6 +133,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hitbox: {fileID: 9074805292773875413}
   particles: {fileID: 7799426424517246427}
+  LastRotate: {x: 0, y: 0, z: 0}
+  ParentObj: {fileID: 8774740471196656705}
 --- !u!1 &7078917058343000917
 GameObject:
   m_ObjectHideFlags: 0
@@ -5116,7 +5118,6 @@ GameObject:
   - component: {fileID: 8512762975679546363}
   - component: {fileID: 4908166362845373259}
   - component: {fileID: 496507686342381024}
-  - component: {fileID: 2195799060893979171}
   - component: {fileID: 4024722709676501933}
   - component: {fileID: 6036201653601111293}
   - component: {fileID: 8366356054882190008}
@@ -5213,37 +5214,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.5
-  m_Height: 2
+  m_Radius: 0.4
+  m_Height: 1.9
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &2195799060893979171
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8774740471196656705}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 80
-  m_CollisionDetection: 2
 --- !u!195 &4024722709676501933
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5253,16 +5227,16 @@ NavMeshAgent:
   m_GameObject: {fileID: 8774740471196656705}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 5
-  m_Acceleration: 8
+  m_Radius: 0.4
+  m_Speed: 8
+  m_Acceleration: 15
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
+  m_AutoBraking: 0
   m_AutoRepath: 1
-  m_Height: 2
+  m_Height: 1.9
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
@@ -5283,12 +5257,11 @@ MonoBehaviour:
   distanceForVisit: 2
   maxSearchTime: 5
   showDebugGizmos: 1
-  nodeSpacing: 5
+  nodeSpacing: 2
   fireRange: 5
   standStillAfterFire: 3
-  onFireEvent:
-    m_PersistentCalls:
-      m_Calls: []
+  GunObj: {fileID: 0}
+  Players: []
 --- !u!114 &8366356054882190008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5374,7 +5347,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
