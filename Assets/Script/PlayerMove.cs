@@ -238,7 +238,6 @@ public class PlayerMove : NetworkBehaviour
         bool isClimbingNow = Climbing(data);
 
         
-        Debug.Log($"이ㅏ게아ㅓㄴ오니당ㄴ된느거양ㅇ {Anim} {isClimbingNow} {canSprint}");
         if (Anim != null)
         {
             Anim.SetBool("Climbing", isClimbingNow);

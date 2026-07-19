@@ -145,13 +145,11 @@ namespace Script.sound
             // 거리가 가까울수록 1, 멀어질수록 0에 가깝게 감쇠
             float distanceFactor = Mathf.Clamp01(1f - (distance / cameraShakeMaxDistance));
             
-            Debug.Log($"[Camera Shake Debug] 카메라와의 거리: {distance}, 감쇠율: {distanceFactor}, 최종 흔들림 강도: {cameraShakeForce * distanceFactor}");
             
             if (distanceFactor > 0)
             {
                 // 거리에 따른 감쇠를 직접 적용하여 흔들림 발생
                 _impulseSource.GenerateImpulse(Vector3.down * (cameraShakeForce * distanceFactor));
-                Debug.Log("[Camera Shake Debug] 흔들림 발생(GenerateImpulse) 호출 완료!");
             }
         }
 

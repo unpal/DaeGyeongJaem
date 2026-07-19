@@ -78,7 +78,6 @@ namespace Script.dotori
 
         private void SetZero()
         {
-            Debug.Log("SetZero");
             foreach (var cineVirtualCamera in cineVirtual)
             {
                 cineVirtualCamera.Priority = 0;
@@ -86,7 +85,6 @@ namespace Script.dotori
         }
         private void UpdateCameraPriorities()
         {
-            Debug.Log("UpdateCameraPriorities");
             if (!_enabled) return;
             for (var i = 0; i < cineVirtual.Length; i++)
             {
