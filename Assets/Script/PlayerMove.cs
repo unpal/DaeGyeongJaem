@@ -78,9 +78,12 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private float edgePushTime;
     [SerializeField] private float edgePushTimer;
     [SerializeField] private float HeadUpMove;
+    //애니메이션 체크용
+    [SerializeField] private Animator animator;
+    [SerializeField] private bool isRunSound;
     //추가한점,
 
-    void Update()
+void Update()
     {
         if (Object == null || !Object.HasInputAuthority)
             return;
@@ -161,6 +164,31 @@ public class PlayerMove : NetworkBehaviour
             //Debug.Log("입력 없음");
             return;
         }
+        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (state.IsName("Run"))
+        {
+            float time = state.normalizedTime;
+
+            if (time >= 0.1f && !isRunSound)
+            {
+                isRunSound = true;
+                SoundEventManager.TriggerSound(transform.position, 5.0f);
+                Debug.Log("소음 발생");
+            }
+            else if (time < 0.1f)
+            {
+                isRunSound = false;
+            }
+        }
+        else
+        {
+            isRunSound = false;
+        }
+        if(state.IsName("Climb"))
+        {
+
+        }
         bool sprintPressed = data.Buttons.IsSet((int)PlayerButtons.Sprint);
         bool hasMovementInput = data.Move.sqrMagnitude > 0.01f;
 
@@ -173,9 +201,7 @@ public class PlayerMove : NetworkBehaviour
                          condition.CanSprint &&
                          gameState != null &&
                          gameState.TryUseStamina(sprintDrain * Runner.DeltaTime);
-        transform.Rotate(
-            Vector3.up * data.Look.x * sensitivity
-        );
+        transform.Rotate(Vector3.up * data.Look.x * sensitivity);
         if(!canSprint)
         {
             controller.maxSpeed = Speed;
@@ -193,7 +219,6 @@ public class PlayerMove : NetworkBehaviour
                 transform.right * data.Move.x;
 
             controller.Move(move * Runner.DeltaTime);
-
         }
         else
         {

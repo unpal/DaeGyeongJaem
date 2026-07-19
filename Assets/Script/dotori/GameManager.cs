@@ -26,7 +26,7 @@ public class GameManager : NetworkBehaviour
     public PrototypeRoundManager protoRoundManager; //게임 라운드 매니저
 
     [Header("Settings")]
-    public float ENDGAME_TIMER = 60f; // 게임시작후 추격자가 플레이어 위치를 알게되는 시간?
+    public float ENDGAME_TIMER = 10f; // 게임시작후 추격자가 플레이어 위치를 알게되는 시간?
 
     [SerializeField]
     private int matchingSceneBuildIndex = 0; // 추가, scene에 index 붙여서 종료화면, 게임화면, 로비화면 가리키도록 하는거.
@@ -319,7 +319,7 @@ public class GameManager : NetworkBehaviour
         }
 
         if (portalManager != null)
-            portalManager.DeactivateAllPortals();
+            portalManager.RpcDeactivateAllPortals();
 
         //이전에 게임을 한 상태가 아니면,
         if (gameFlowCoroutine != null)

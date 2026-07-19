@@ -70,7 +70,7 @@ namespace Fusion {
     [SerializeField] private float wallDistance;
         public Transform HeadLayCasterTrans;
         public Transform WallLayCasterTrans;
-
+    [SerializeField] private Animator animator;
         public Vector3 Velocity {
       get => Data.Velocity;
       set => Data.Velocity = value;

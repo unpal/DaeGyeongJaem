@@ -30,8 +30,8 @@ public class PortalManager : NetworkBehaviour
             availablePortals.RemoveAt(randomIndex);
         }
     }
-
-    public void DeactivateAllPortals()
+    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
+    public void RpcDeactivateAllPortals()
     {
         if (portals == null)
             return;
