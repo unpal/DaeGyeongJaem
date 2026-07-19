@@ -5,6 +5,11 @@ using Fusion;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+/*
+관전 카메라들을 관리하는 시스템입니다
+메인 카메라의 Priority는 100입니다.
+관전 시, 선택된 카메라의 Priority를 150으로 설정합니다
+*/
 namespace Script.dotori
 {
     [RequireComponent(typeof(PlayerInput))]
