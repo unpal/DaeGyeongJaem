@@ -4,6 +4,10 @@ using UnityEngine;
 using Fusion;
 using Script.dotori;
 
+
+//이번 빌드 변경점 > 메인씬, 로비 씬, 게임 결과 화면 추가,
+// 그리고 플레이어 개인별로 이름 설정 가능해짐 > 바꿔야 하는것들 > 그냥 state나 네트워크 관련 변수들 뒤져서 정보 담고있는 변수 끌어와서 덧대기.
+
 public class PlayerGameState : NetworkBehaviour
 {
     private Vector3 roundSpawnPosition;
@@ -14,8 +18,11 @@ public class PlayerGameState : NetworkBehaviour
     [Networked]
     public int Crowns { get; private set; } 
 
+    //추가, 이름 저장용도
+    [Networked]
     public NetworkString<_32> DisplayName { get; private set; }
     public int SortNum;
+
     [Networked] public float CurrentStamina { get; private set; }
     [Networked] public float MaxStamina { get; private set; }
     //추가
@@ -37,18 +44,40 @@ public class PlayerGameState : NetworkBehaviour
 
         roundSpawnPosition = transform.position;
         roundSpawnRotation = transform.rotation;
-        DisplayName = $"Player {Object.InputAuthority.PlayerId}";
-        MaxStamina = 100f;
-        CurrentStamina = MaxStamina;
+        
+        //헷갈려
+        if (Object.HasStateAuthority)
+        {
+            DisplayName = $"Player {Object.InputAuthority.PlayerId}";
+            MaxStamina = 100f;
+            CurrentStamina = MaxStamina;
         //초기화
-        TemporaryDamage = 0f;
-        PermanentDamage = 0f;
+            TemporaryDamage = 0f;
+            PermanentDamage = 0f;
+        }
+        
         
         SortNum = Object.InputAuthority.PlayerId - 1;
         if (Object.HasInputAuthority && CameraManager.Instance)
         {
             CameraManager.Instance.state = this;
         }
+        //추가했습니다 rpc < chatgpt..
+        if (Object.HasInputAuthority && !string.IsNullOrWhiteSpace(PrototypeLobbyBootstrap.LocalPlayerName))
+            RpcSetDisplayName(PrototypeLobbyBootstrap.LocalPlayerName);
+    }
+
+    //추가 
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RpcSetDisplayName(string playerName)
+    {
+        //playerName 참고.
+        string trimmedName = string.IsNullOrWhiteSpace(playerName)
+            ? $"Player {Object.InputAuthority.PlayerId}"
+            : playerName.Trim();
+
+        //이름 길이가 16이하이도록 함.
+        DisplayName = trimmedName.Length <= 16 ? trimmedName : trimmedName.Substring(0, 16);
     }
 
     private bool _wasVisible = true;

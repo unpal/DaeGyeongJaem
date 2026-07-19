@@ -40,7 +40,9 @@ public class LavaBurn : MonoBehaviour
         if (gameManager == null && prototypeRoundManager == null)
             FindRoundManager();
 
-        if (gameManager != null)
+        if (gameManager != null &&
+            gameManager.Object != null &&
+            gameManager.Id.IsValid)
         {
             RoundPhase phase = gameManager.Phase;
             if (!phaseInitialized ||
@@ -50,7 +52,9 @@ public class LavaBurn : MonoBehaviour
             lastGamePhase = phase;
             phaseInitialized = true;
         }
-        else if (prototypeRoundManager != null)
+        else if (prototypeRoundManager != null &&
+                 prototypeRoundManager.Object != null &&
+                 prototypeRoundManager.Id.IsValid)
         {
             PrototypeRoundPhase phase = prototypeRoundManager.Phase;
             if (!phaseInitialized ||
