@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
+using Cinemachine;
 
 /*
  * 객체지향을 무시한 추적자 코드입니다
@@ -35,6 +36,14 @@ namespace Script.sound
         public float standStillAfterFire = 3.0f; // 발사 후 대기 시간
         public UnityEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
 
+        [Header("Gun Feedback Settings")]
+        public AudioClip gunSoundClip; // 총소리 오디오 클립
+        public float gunSoundVolume = 1.0f; // 총소리 볼륨
+        public float cameraShakeForce = 1.0f; // 카메라 흔들림 강도
+        public float cameraShakeMaxDistance = 30.0f; // 카메라 흔들림이 전달되는 최대 거리
+        
+        private CinemachineImpulseSource _impulseSource;
+
         private enum StateMachine
         {
             IntoTheUnknown, // 모르는 길 (더듬기)
@@ -55,6 +64,17 @@ namespace Script.sound
         {
             _agent = GetComponent<NavMeshAgent>();
             _originalSpeed = _agent.speed;
+            
+            // 임펄스 소스 추가 (카메라 흔들림용)
+            _impulseSource = GetComponent<CinemachineImpulseSource>();
+            if (_impulseSource == null)
+            {
+                _impulseSource = gameObject.AddComponent<CinemachineImpulseSource>();
+                _impulseSource.m_ImpulseDefinition.m_ImpulseChannel = 1;
+                _impulseSource.m_ImpulseDefinition.m_ImpulseType = CinemachineImpulseDefinition.ImpulseTypes.Legacy;
+                _impulseSource.m_ImpulseDefinition.m_ImpulseShape = CinemachineImpulseDefinition.ImpulseShapes.Bump;
+                _impulseSource.m_DefaultVelocity = Vector3.down; // 흔들림 기본 방향
+            }
         }
 
         private void Start()
@@ -109,6 +129,8 @@ namespace Script.sound
             {
                 transform.rotation = Quaternion.LookRotation(direction);
             }
+
+            PlayFireFeedback();
 
             onFireEvent?.Invoke();
             _state = StateMachine.AttackCooldown;
@@ -329,6 +351,8 @@ namespace Script.sound
                             {
                                 transform.rotation = Quaternion.LookRotation(direction);
                             }
+
+                            PlayFireFeedback();
 
                             onFireEvent?.Invoke();
 
