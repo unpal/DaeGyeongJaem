@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Events;
+using Cinemachine;
 
 /*
  * 객체지향을 무시한 추적자 코드입니다
@@ -52,6 +53,16 @@ namespace Script.sound
             }
         }
         public Stack<SoundstackStr> Soundstack = new Stack<SoundstackStr>();
+        public UnityEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
+
+        [Header("Gun Feedback Settings")]
+        public AudioClip gunSoundClip; // 총소리 오디오 클립
+        public float gunSoundVolume = 1.0f; // 총소리 볼륨
+        public float cameraShakeForce = 1.0f; // 카메라 흔들림 강도
+        public float cameraShakeMaxDistance = 30.0f; // 카메라 흔들림이 전달되는 최대 거리
+        
+        private CinemachineImpulseSource _impulseSource;
+
         private enum StateMachine
         {
             IntoTheUnknown, // 모르는 길 (더듬기)
@@ -72,6 +83,17 @@ namespace Script.sound
         {
             _agent = GetComponent<NavMeshAgent>();
             _originalSpeed = _agent.speed;
+            
+            // 임펄스 소스 추가 (카메라 흔들림용)
+            _impulseSource = GetComponent<CinemachineImpulseSource>();
+            if (_impulseSource == null)
+            {
+                _impulseSource = gameObject.AddComponent<CinemachineImpulseSource>();
+                _impulseSource.m_ImpulseDefinition.m_ImpulseChannel = 1;
+                _impulseSource.m_ImpulseDefinition.m_ImpulseType = CinemachineImpulseDefinition.ImpulseTypes.Legacy;
+                _impulseSource.m_ImpulseDefinition.m_ImpulseShape = CinemachineImpulseDefinition.ImpulseShapes.Bump;
+                _impulseSource.m_DefaultVelocity = Vector3.down; // 흔들림 기본 방향
+            }
         }
 
         private void Start()
@@ -117,6 +139,39 @@ namespace Script.sound
             }
         }
 
+        private void PlayFireFeedback()
+        {
+            // 1. 총을 쏜 자리에서 총소리 재생 (위치 기반 3D 오디오)
+            if (gunSoundClip != null)
+            {
+                AudioSource.PlayClipAtPoint(gunSoundClip, transform.position, gunSoundVolume);
+            }
+
+            // 2. 거리에 비례하여 카메라 흔들기 (Cinemachine Impulse)
+            if (_impulseSource == null) 
+            {
+                Debug.LogWarning("[Camera Shake Debug] CinemachineImpulseSource가 없습니다!");
+                return;
+            }
+            if (Camera.main == null)
+            {
+                Debug.LogWarning("[Camera Shake Debug] Camera.main을 찾을 수 없습니다! MainCamera 태그가 설정되어 있는지 확인하세요.");
+                return;
+            }
+            
+            float distance = Vector3.Distance(transform.position, Camera.main.transform.position);
+            
+            // 거리가 가까울수록 1, 멀어질수록 0에 가깝게 감쇠
+            float distanceFactor = Mathf.Clamp01(1f - (distance / cameraShakeMaxDistance));
+            
+            
+            if (distanceFactor > 0)
+            {
+                // 거리에 따른 감쇠를 직접 적용하여 흔들림 발생
+                _impulseSource.GenerateImpulse(Vector3.down * (cameraShakeForce * distanceFactor));
+            }
+        }
+
         private void FireAndStandStill(Vector3 targetPosition)
         {
             // 발사 방향을 향해 회전
@@ -128,6 +183,8 @@ namespace Script.sound
                 transform.rotation = Quaternion.LookRotation(direction);
             }
             onFireEvent?.Invoke(FireDirection);
+
+            PlayFireFeedback();
 
             _state = StateMachine.AttackCooldown;
 
@@ -310,9 +367,13 @@ namespace Script.sound
 
                     foreach (var p in Players)
                     {
-                        PlayerGameState state = p.GetComponent<PlayerGameState>();
-                        if (!state.IsInPlayground)
-                            continue;
+                        if (p.TryGetComponent(out PlayerGameState state))
+                        {
+                            if (!state.IsInPlayground)
+                            {
+                                continue;
+                            }
+                        }
                         float sqrDist = (p.transform.position - transform.position).sqrMagnitude;
                         bool hasPath = _agent.CalculatePath(p.transform.position, path);
                         bool isReachable = hasPath && path.status == NavMeshPathStatus.PathComplete;
@@ -357,6 +418,8 @@ namespace Script.sound
                             {
                                 transform.rotation = Quaternion.LookRotation(direction);
                             }
+
+                            PlayFireFeedback();
 
                             onFireEvent?.Invoke(FireDirection);
 

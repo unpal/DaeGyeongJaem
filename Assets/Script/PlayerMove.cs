@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+//이게왼ㄴ당ㄴ안되는ㄱㅇ어
 
 public class PlayerMove : NetworkBehaviour
 {
@@ -211,10 +212,10 @@ void Update()
             controller.maxSpeed = RunSpeed;
         }
 
-
+        Vector3 move;
         if (!controller.IsClimbing)
         {
-            Vector3 move =
+            move =
                 transform.forward * data.Move.y +
                 transform.right * data.Move.x;
 
@@ -225,7 +226,7 @@ void Update()
             Vector3 wallUp = Vector3.up;
             Vector3 wallRight = Vector3.Cross(wallUp, controller.wallNormal).normalized;
 
-            Vector3 move =
+            move =
                 wallUp * data.Move.y +
                 wallRight * -data.Move.x;
 
@@ -261,10 +262,11 @@ void Update()
       //  Debug.Log($"Move:{data.Move} Look:{data.Look}");
         bool isClimbingNow = Climbing(data);
 
+        
         if (Anim != null)
         {
             Anim.SetBool("Climbing", isClimbingNow);
-            Anim.SetBool("Runing", canSprint);
+            Anim.SetBool("Running", move.sqrMagnitude > 0 && !isClimbingNow);
         }
 
         if (!canSprint && !isClimbingNow && gameState != null)

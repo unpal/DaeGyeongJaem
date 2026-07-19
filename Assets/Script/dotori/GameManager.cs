@@ -14,35 +14,35 @@ public enum RoundPhase
 
 public class GameManager : NetworkBehaviour
 {
-    [Header("UI")]
-    public TMP_Text centerText; //화면 중앙 텍스트 > 카운트다운, 시작
-        
+    [Header("UI")] public TMP_Text centerText; //화면 중앙 텍스트 > 카운트다운, 시작
+
     public TMP_Text bottomText; //화면 하단 텍스트 > 추격자,포탈생성
 
-    [Header("References")]  
-    public GameObject chaserPrefab; // 추격자 프리팹
+    [Header("References")] public GameObject chaserPrefab; // 추격자 프리팹
     public Transform chaserSpawnPoint; // 추격자 생성 위치,방향
     public PortalManager portalManager; // 포탈관리자(활성화)
     public PrototypeRoundManager protoRoundManager; //게임 라운드 매니저
 
-    [Header("Settings")]
-    public float ENDGAME_TIMER = 10f; // 게임시작후 추격자가 플레이어 위치를 알게되는 시간?
+    [Header("Settings")] public float ENDGAME_TIMER = 60f; // 게임시작후 추격자가 플레이어 위치를 알게되는 시간?
 
-    [SerializeField]
-    private int matchingSceneBuildIndex = 0; // 추가, scene에 index 붙여서 종료화면, 게임화면, 로비화면 가리키도록 하는거.
+    [SerializeField] private int matchingSceneBuildIndex = 0; // 추가, scene에 index 붙여서 종료화면, 게임화면, 로비화면 가리키도록 하는거.
     //지금은 samplescene = 0, dotoriscene = 1 이라 0으로 해놨는데 나중에 순서 바뀌거나 scene 추가되면 손 봐줄것.
 
     private const float SUBTITLE_MAINTAIN_TIME = 3f; // 하단 텍스트 완전히 떠있는 시간
     private const float SUBTITLE_FADE_TIME = 2f; // 서서히 사라지는 시간
-    private const float ROUND_RESULT_TIME = 3f;  // 결과 보여주는 시간? 이거 시간으로 안하고 버튼 누르는 식으로 해도 될거같은데. 나중에 변경
+    private const float ROUND_RESULT_TIME = 3f; // 결과 보여주는 시간? 이거 시간으로 안하고 버튼 누르는 식으로 해도 될거같은데. 나중에 변경
 
     private float timer; //경과시간, 타이머
+
     private SoundFollowingAgent spawnedChaser; // 추격자 ai 컴포넌트래요
+
     //추가
     private Coroutine subtitleCoroutine; // 자막 페이드 코루틴?
     private Coroutine centerFadeCoroutine;
     private Coroutine gameFlowCoroutine; // 게임 진행 코루틴
+
     private Coroutine roundFinishCoroutine; // 엔딩화면 코루틴
+
     //거의 다 추가한거라..
     private PlayerGameState pendingRoundWinner; // 크라운위너 저장용도 (1등)
 
@@ -60,6 +60,7 @@ public class GameManager : NetworkBehaviour
             PrototypeRoundManager.OnRoundStart += GameFlowStart;
         }
     }
+
     private void GameFlowStart(PrototypeRoundManager manager)
     {
         gameFlowCoroutine = StartCoroutine(GameFlowRoutine());
@@ -80,7 +81,7 @@ public class GameManager : NetworkBehaviour
     }
 
     //추가
-    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RpcSetCenterText(string text)
     {
         centerText.text = text;
@@ -103,7 +104,8 @@ public class GameManager : NetworkBehaviour
         color.a = 1f;
         centerText.color = color;
     }
-    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RpcCenterFadeOut()
     {
         if (centerText == null)
@@ -141,6 +143,7 @@ public class GameManager : NetworkBehaviour
         }
 
         Phase = RoundPhase.Playing;
+        RpcPlayBGM(false); // 게임 시작 시 기본 BGM 재생
 
         if (chaserPrefab != null)
         {
@@ -151,15 +154,15 @@ public class GameManager : NetworkBehaviour
                 ? chaserSpawnPoint.rotation
                 : Quaternion.identity;
             /*기존코드 ;
-             * 
+             *
              *  gameObject chaserObject = Instantiate(
              *                                  chaserPrefab,
              *                                  spawnPosition,
              *                                  spawnRotation);
-             * 이건데 
-             * 
+             * 이건데
+             *
              * spawn(), despanw 이었나 그걸로 바꿨었던거같음
-             * 
+             *
              */
             NetworkObject chaserNetworkPrefab =
                 chaserPrefab.GetComponent<NetworkObject>();
@@ -175,10 +178,12 @@ public class GameManager : NetworkBehaviour
                 spawnPosition,
                 spawnRotation);
             spawnedChaser = chaserObject.GetComponent<SoundFollowingAgent>();
-
-            RpcSetCenterText("술래 등장!");
+            
+            RpcPrepareCenterText();
+            RpcSetCenterText("도망쳐!");
             RpcCenterFadeOut();
             RpcShowSubtitle("추격자 스폰됨");
+            RpcPlayChaserSpawnSound(); // 추격자 등장 사운드 재생
 
             Debug.Log($"[Flow Test] 추격자 생성 완료: {spawnPosition}");
         }
@@ -192,15 +197,17 @@ public class GameManager : NetworkBehaviour
             timer += Time.deltaTime;
             yield return null;
         }
-
-        RpcShowSubtitle("탈출 포탈 생성됨");
+        
+        RpcPrepareCenterText();
+        RpcSetCenterText("탈출구를 찾으세요");
+        RpcCenterFadeOut();
 
         if (portalManager != null)
         {
             portalManager.ActivateRandomPortals(1);
+            RpcPlayPortalSpawnSound(); // 포탈 생성 사운드 재생
         }
-        
-        
+
 
         while (timer < ENDGAME_TIMER)
         {
@@ -210,8 +217,11 @@ public class GameManager : NetworkBehaviour
 
         if (spawnedChaser != null)
         {
-            RpcShowSubtitle("술래가 눈치챘다");
+            RpcPrepareCenterText();
+            RpcSetCenterText("술래가 당신을 볼 수 있습니다.");
+            RpcCenterFadeOut();
             spawnedChaser.SetStateToKnowWhereYouAre();
+            RpcPlayBGM(true); // 엔드게임 BGM으로 변경
         }
     }
 
@@ -292,7 +302,7 @@ public class GameManager : NetworkBehaviour
 
         // TODO: authority 뭐시기 해서 host 가 scene transition 하기 결과 > 로비
         //추가완료
-        if (Object.HasStateAuthority)//방장만
+        if (Object.HasStateAuthority) //방장만
         {
             Runner.LoadScene( //씬 불러오기
                 SceneRef.FromIndex(matchingSceneBuildIndex));
@@ -353,15 +363,15 @@ public class GameManager : NetworkBehaviour
         yield return new WaitForSeconds(ROUND_RESULT_TIME);
 
         bool hasGameWinner =
-             pendingRoundWinner != null &&
-             pendingRoundWinner.Crowns >= 2;
+            pendingRoundWinner != null &&
+            pendingRoundWinner.Crowns >= 2;
 
         if (hasGameWinner)
         {
             // Phase = RoundPhase.GameFinished; < winner루틴으로 옮겨짐
             //이러고 여기에 승자이름 is WINNER! 이런 문구 나오게 해줘야해요.
             //게임 이겼으니 흠.. 라운드 진행말고
-            yield return StartCoroutine( GameWinnerRoutine(pendingRoundWinner) );
+            yield return StartCoroutine(GameWinnerRoutine(pendingRoundWinner));
             //추가완료.
             yield break;
         }
@@ -375,6 +385,7 @@ public class GameManager : NetworkBehaviour
         {
             player.ResetForNextRound();
         }
+
         //초기화
         pendingRoundWinner = null;
         timer = 0f;
@@ -389,7 +400,7 @@ public class GameManager : NetworkBehaviour
     }
 
 
-    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     //하단에 안내문구 보이게하고 사라지게하는 함수.
     private void RpcShowSubtitle(string text)
     {
@@ -438,5 +449,26 @@ public class GameManager : NetworkBehaviour
         color.a = 0f;
         textComponent.color = color;
         textComponent.text = "";
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPlayBGM(bool isEndgame)
+    {
+        if (PublicSpeaker.Instance != null)
+            PublicSpeaker.Instance.PlayBGM(isEndgame);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPlayChaserSpawnSound()
+    {
+        if (PublicSpeaker.Instance != null)
+            PublicSpeaker.Instance.PlayChaserSpawn();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPlayPortalSpawnSound()
+    {
+        if (PublicSpeaker.Instance != null)
+            PublicSpeaker.Instance.PlayPortalSpawn();
     }
 }
