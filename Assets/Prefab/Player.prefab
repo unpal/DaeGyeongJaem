@@ -196,7 +196,6 @@ MonoBehaviour:
   edgePushTime: 0.2
   edgePushTimer: 0
   HeadUpMove: 0
-  animator: {fileID: 4127296217243919022}
   isRunSound: 0000
   audioSource: {fileID: 8904305096072874574}
   FootSound: {fileID: 8300000, guid: 67c180cea029b1a0f823e5c8eec0f18f, type: 3}
@@ -959,17 +958,17 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 196e6da9b2552915fbc5a5a1f4244a36,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.24703526
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 196e6da9b2552915fbc5a5a1f4244a36,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.21204752
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 196e6da9b2552915fbc5a5a1f4244a36,
         type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.23102339
+      value: 0.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 196e6da9b2552915fbc5a5a1f4244a36,
         type: 3}
@@ -1020,6 +1019,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 196e6da9b2552915fbc5a5a1f4244a36,
+        type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -6418268897070154175, guid: 196e6da9b2552915fbc5a5a1f4244a36,
         type: 3}
