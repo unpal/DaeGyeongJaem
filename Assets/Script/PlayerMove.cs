@@ -81,7 +81,7 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private float HeadUpMove;
     //애니메이션 체크용
     [SerializeField] private Animator animator;
-    [SerializeField] private int lastStepPhase;
+    [SerializeField] private bool isRunSound;
     //추가한점,
 
 void Update()
@@ -169,30 +169,22 @@ void Update()
 
         if (state.IsName("Run"))
         {
-            float time = state.normalizedTime % 1.0f;
-            int currentPhase = 0;
+            float time = state.normalizedTime;
 
-            if (time >= 0.1f && time < 0.5f) currentPhase = 1;
-            else if (time >= 0.6f && time < 0.9f) currentPhase = 2;
-
-            if (currentPhase != 0 && currentPhase != lastStepPhase)
+            if (time >= 0.1f && !isRunSound)
             {
-                lastStepPhase = currentPhase;
-                if (Runner.IsForward)
-                {
-                    SoundEventManager.TriggerSound(transform.position, 5.0f);
-                    noise.MakeNoise(NoiseType.Run);
-                    noise.PlayFootstepSound();
-                }
+                isRunSound = true;
+                SoundEventManager.TriggerSound(transform.position, 5.0f);
+                Debug.Log("소음 발생");
             }
-            else if (currentPhase == 0)
+            else if (time < 0.1f)
             {
-                lastStepPhase = 0;
+                isRunSound = false;
             }
         }
         else
         {
-            lastStepPhase = 0;
+            isRunSound = false;
         }
         if(state.IsName("Climb"))
         {
