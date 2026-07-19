@@ -81,10 +81,12 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private float HeadUpMove;
     //애니메이션 체크용
     [SerializeField] private Animator animator;
-    [SerializeField] private bool isRunSound;
+    [SerializeField] private bool[] isRunSound;
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip FootSound;
     //추가한점,
 
-void Update()
+    void Update()
     {
         if (Object == null || !Object.HasInputAuthority)
             return;
@@ -167,28 +169,13 @@ void Update()
         }
         AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
 
-        if (state.IsName("Run"))
-        {
-            float time = state.normalizedTime;
 
-            if (time >= 0.1f && !isRunSound)
-            {
-                isRunSound = true;
-                SoundEventManager.TriggerSound(transform.position, 5.0f);
-                Debug.Log("소음 발생");
-            }
-            else if (time < 0.1f)
-            {
-                isRunSound = false;
-            }
-        }
-        else
-        {
-            isRunSound = false;
-        }
         if(state.IsName("Climb"))
         {
-
+            for (int i = 0; i < isRunSound.Length; i++)
+            {
+                isRunSound[i] = false;
+            }
         }
         bool sprintPressed = data.Buttons.IsSet((int)PlayerButtons.Sprint);
         bool hasMovementInput = data.Move.sqrMagnitude > 0.01f;
@@ -211,7 +198,30 @@ void Update()
         {
             controller.maxSpeed = RunSpeed;
         }
+        if (state.IsName("Run"))
+        {
+            float time = state.normalizedTime % 1f;
 
+            if (time >= 0.15f && !isRunSound[0] && canSprint)
+            {
+                isRunSound[0] = true;
+                audioSource.PlayOneShot(FootSound);
+                SoundEventManager.TriggerSound(transform.position, 5.0f);
+            }
+            if (time >= 0.65f && !isRunSound[1] && canSprint)
+            {
+                isRunSound[1] = true;
+                audioSource.PlayOneShot(FootSound);
+                SoundEventManager.TriggerSound(transform.position, 5.0f);
+            }
+            if (time < 0.15f)
+            {
+                for (int i = 0; i < isRunSound.Length; i++)
+                {
+                    isRunSound[i] = false;
+                }
+            }
+        }
         Vector3 move;
         if (!controller.IsClimbing)
         {
@@ -259,14 +269,22 @@ void Update()
             jump = false;
         }
         jumpWasPressed = jumpPressed;
-      //  Debug.Log($"Move:{data.Move} Look:{data.Look}");
         bool isClimbingNow = Climbing(data);
 
         
         if (Anim != null)
         {
+            bool isRunning = move.sqrMagnitude > 0 && !isClimbingNow;
             Anim.SetBool("Climbing", isClimbingNow);
-            Anim.SetBool("Running", move.sqrMagnitude > 0 && !isClimbingNow);
+            Anim.SetBool("Running", isRunning);
+            if(isRunning && canSprint)
+            {
+                animator.speed = 1.5f;
+            }
+            else
+            {
+                animator.speed = 1.0f;
+            }
         }
 
         if (!canSprint && !isClimbingNow && gameState != null)
