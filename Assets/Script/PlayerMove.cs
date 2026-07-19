@@ -80,11 +80,9 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private float edgePushTimer;
     [SerializeField] private float HeadUpMove;
     //애니메이션 체크용
-    [SerializeField] private Animator animator;
     [SerializeField] private bool[] isRunSound;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip FootSound;
-    [SerializeField] private bool isRunSound;
     //추가한점,
 
     void Update()
