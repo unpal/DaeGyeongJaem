@@ -80,7 +80,6 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private float edgePushTimer;
     [SerializeField] private float HeadUpMove;
     //애니메이션 체크용
-    [SerializeField] private Animator animator;
     [SerializeField] private bool isRunSound;
     //추가한점,
 
@@ -165,7 +164,7 @@ void Update()
             //Debug.Log("입력 없음");
             return;
         }
-        AnimatorStateInfo state = animator.GetCurrentAnimatorStateInfo(0);
+        AnimatorStateInfo state = Anim.GetCurrentAnimatorStateInfo(0);
 
         if (state.IsName("Run"))
         {
