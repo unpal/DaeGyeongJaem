@@ -57,6 +57,12 @@ public class PlayerNoise : NetworkBehaviour
             StartCoroutine(PeriodicNoiseRoutine());
     }
 
+    public void RestartPeriodicNoise()
+    {
+        StopCoroutine(PeriodicNoiseRoutine());
+        StartCoroutine(PeriodicNoiseRoutine());
+    }
+
 
     public void MakeNoise(NoiseType type)
     {
