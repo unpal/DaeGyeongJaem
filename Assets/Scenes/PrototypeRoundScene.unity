@@ -5549,7 +5549,7 @@ MonoBehaviour:
   panelImage: {fileID: 773258981}
   tmpText: {fileID: 844955628}
   audioSource: {fileID: 274616124}
-  endAudioClip: {fileID: 0}
+  endAudioClip: {fileID: 8300000, guid: 72718d9152b562a44a5da35421efa164, type: 3}
   dialogueLines:
   - "\uC544\uBB34\uB3C4 \uC0B4\uC9C0 \uC54A\uB294 \uB180\uC774\uD130\uC5D0, \uC544\uC774\uB4E4\uC774
     \uCC3E\uC544\uC654\uB2E4."
@@ -12616,8 +12616,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1973289715}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.18334992, y: -0.8007083, z: 0.30441844, w: 0.48226392}
-  m_LocalPosition: {x: 6.1416583, y: 16.141754, z: 1.088932}
+  m_LocalRotation: {x: 0.017151766, y: 0.85008603, z: -0.02779591, w: 0.52563024}
+  m_LocalPosition: {x: 6.5235763, y: 3.4099445, z: 14.474558}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
