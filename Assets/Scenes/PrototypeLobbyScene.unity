@@ -750,7 +750,7 @@ MonoBehaviour:
   playerPrefab: {fileID: 4951107048989055677, guid: a487810742ab4bf4c9ff225da8a4d16e,
     type: 3}
   gameplaySceneBuildIndex: 1
-  sessionName: terst11RoundPrototype4P
+  sessionName: dotori
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
