@@ -35,9 +35,9 @@ public class CameraMove : NetworkBehaviour
     //    transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
 
     //}
-    private void LateUpdate()
-    {
-        Vector3 tempVec = headBone.position;
-        transform.position = tempVec;
-    }
+    // private void LateUpdate()
+    // {
+    //     Vector3 tempVec = headBone.position;
+    //     transform.position = tempVec;
+    // }
 }
