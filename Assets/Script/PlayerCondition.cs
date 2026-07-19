@@ -232,12 +232,4 @@ public class PlayerCondition : MonoBehaviour
         if (playerGameState != null)
             playerGameState.SetDamageBreakdown(temporaryDamage, permanentDamage);
     }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if(other.tag == "ShotgunHit")
-        {
-            ApplyTemporaryDamage(70);
-        }
-    }
 }

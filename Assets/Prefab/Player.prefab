@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6848914197038476723}
   m_Layer: 0
   m_Name: BackGroundRay
-  m_TagString: Player
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -50,9 +50,9 @@ GameObject:
   - component: {fileID: 5997651382988697563}
   - component: {fileID: -6459193691174752318}
   - component: {fileID: 8227757374055377076}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -194,6 +194,8 @@ MonoBehaviour:
   edgePushTime: 0.2
   edgePushTimer: 0
   HeadUpMove: 0
+  animator: {fileID: 4026517282414223039}
+  isRunSound: 0
 --- !u!143 &1928040249987131803
 CharacterController:
   m_ObjectHideFlags: 0
@@ -216,7 +218,7 @@ CharacterController:
   m_Height: 5
   m_Radius: 0.7
   m_SlopeLimit: 45
-  m_StepOffset: 0.3
+  m_StepOffset: 0.11
   m_SkinWidth: 0.02
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 2, z: 0}
@@ -263,6 +265,7 @@ MonoBehaviour:
   wallDistance: 0
   HeadLayCasterTrans: {fileID: 6175063435306810339}
   WallLayCasterTrans: {fileID: 9090896596399048440}
+  animator: {fileID: 0}
 --- !u!114 &872836292970639320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -840,6 +843,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f2636cc1779ba5b2bac5b9f4607065a, type: 3}
+--- !u!95 &4026517282414223039 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 5f2636cc1779ba5b2bac5b9f4607065a,
+    type: 3}
+  m_PrefabInstance: {fileID: 7389146447683642158}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6989935124070040773 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5f2636cc1779ba5b2bac5b9f4607065a,
