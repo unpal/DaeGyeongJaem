@@ -5289,7 +5289,7 @@ MonoBehaviour:
   onFireEvent:
     m_PersistentCalls:
       m_Calls: []
-  gunSoundClip: {fileID: 8300000, guid: 9b40f4f5489997afe834bf0ddeac2ed3, type: 3}
+  gunSoundClip: {fileID: 8300000, guid: ed43fe82f4543d001ad1866b9173c1b5, type: 3}
   gunSoundVolume: 1
   cameraShakeForce: 1
   cameraShakeMaxDistance: 30

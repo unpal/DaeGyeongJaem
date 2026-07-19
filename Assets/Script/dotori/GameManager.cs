@@ -143,6 +143,7 @@ public class GameManager : NetworkBehaviour
         }
 
         Phase = RoundPhase.Playing;
+        RpcPlayBGM(false); // 게임 시작 시 기본 BGM 재생
 
         if (chaserPrefab != null)
         {
@@ -182,6 +183,7 @@ public class GameManager : NetworkBehaviour
             RpcSetCenterText("도망쳐!");
             RpcCenterFadeOut();
             RpcShowSubtitle("추격자 스폰됨");
+            RpcPlayChaserSpawnSound(); // 추격자 등장 사운드 재생
 
             Debug.Log($"[Flow Test] 추격자 생성 완료: {spawnPosition}");
         }
@@ -203,6 +205,7 @@ public class GameManager : NetworkBehaviour
         if (portalManager != null)
         {
             portalManager.ActivateRandomPortals(1);
+            RpcPlayPortalSpawnSound(); // 포탈 생성 사운드 재생
         }
 
 
@@ -218,6 +221,7 @@ public class GameManager : NetworkBehaviour
             RpcSetCenterText("술래가 당신을 볼 수 있습니다.");
             RpcCenterFadeOut();
             spawnedChaser.SetStateToKnowWhereYouAre();
+            RpcPlayBGM(true); // 엔드게임 BGM으로 변경
         }
     }
 
@@ -445,5 +449,26 @@ public class GameManager : NetworkBehaviour
         color.a = 0f;
         textComponent.color = color;
         textComponent.text = "";
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPlayBGM(bool isEndgame)
+    {
+        if (PublicSpeaker.Instance != null)
+            PublicSpeaker.Instance.PlayBGM(isEndgame);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPlayChaserSpawnSound()
+    {
+        if (PublicSpeaker.Instance != null)
+            PublicSpeaker.Instance.PlayChaserSpawn();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcPlayPortalSpawnSound()
+    {
+        if (PublicSpeaker.Instance != null)
+            PublicSpeaker.Instance.PlayPortalSpawn();
     }
 }
