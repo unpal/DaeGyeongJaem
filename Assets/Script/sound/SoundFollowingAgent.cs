@@ -279,6 +279,13 @@ namespace Script.sound
 
                     foreach (var p in players)
                     {
+                        if (p.TryGetComponent(out PlayerGameState state))
+                        {
+                            if (!state.IsInPlayground)
+                            {
+                                continue;
+                            }
+                        }
                         float sqrDist = (p.transform.position - transform.position).sqrMagnitude;
                         bool hasPath = _agent.CalculatePath(p.transform.position, path);
                         bool isReachable = hasPath && path.status == NavMeshPathStatus.PathComplete;
