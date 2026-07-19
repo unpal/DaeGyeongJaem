@@ -28,6 +28,14 @@ namespace Script.UI
         [Tooltip("모든 대사 출력 후 패널이 페이드 아웃되는 시간")]
         [SerializeField] private float panelFadeOutDuration = 1.0f;
 
+        // 시퀀스 전체 재생 시간을 반환하는 함수 (GameManager에서 대기 시간을 계산할 때 사용)
+        public float GetTotalDuration()
+        {
+            if (dialogueLines == null || dialogueLines.Length == 0) return panelFadeOutDuration;
+            float singleLineDuration = (textFadeDuration * 2f) + textDisplayDuration;
+            return (singleLineDuration * dialogueLines.Length) + panelFadeOutDuration;
+        }
+
         // 외부에서 호출할 수 있는 코루틴 (이 시퀀스를 시작합니다)
         public IEnumerator PlayDialogue()
         {
