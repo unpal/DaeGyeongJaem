@@ -159,6 +159,11 @@ public class PrototypeRoundManager : NetworkBehaviour
             FallDamage fallDamage = state.GetComponent<FallDamage>();
             if (fallDamage != null)
                 fallDamage.ResetForNextRound();
+            
+            if (state.TryGetComponent(out PlayerNoise noise))
+            {
+                noise.RestartPeriodicNoise();
+            }
         }
 
         PendingRoundWinner = PlayerRef.None;
