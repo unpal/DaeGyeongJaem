@@ -5003,7 +5003,7 @@ MonoBehaviour:
   _IsRun:
     _value: 0
   gunSoundClip: {fileID: 8300000, guid: ed43fe82f4543d001ad1866b9173c1b5, type: 3}
-  gunSoundVolume: 1
+  gunSoundVolume: 2
   cameraShakeForce: 1
   cameraShakeMaxDistance: 30
   _state: 0
@@ -5026,6 +5026,7 @@ MonoBehaviour:
   NetworkedBehaviours:
   - {fileID: 6036201653601111293}
   - {fileID: 2471139075276887276}
+  - {fileID: 7322098969769993027}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &2471139075276887276
 MonoBehaviour:
