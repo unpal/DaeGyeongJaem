@@ -1232,7 +1232,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC9C0\uC625\uC5D0\uC11C \uB204\uAC00\uB3CC\uC544\uC654\uAC8C~~~~?"
+  m_text: JITAL
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a78e31e876585dc42a81a973119619f6, type: 2}
   m_sharedMaterial: {fileID: 1391565647}
