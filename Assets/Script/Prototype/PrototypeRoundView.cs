@@ -202,7 +202,7 @@ public class PrototypeRoundView : MonoBehaviour
             return;
         */
         if (state == null ||
-            state.IsDead ||
+            !state.IsInPlayground ||
             condition == null ||
             condition.BaseMaxStamina <= 0f) // Nullref 방지용 2개 검사랑 isdead 검사. + 아래코드에서 basemaxstamina 를 나누기때문이 0나누기 제외용
             return;

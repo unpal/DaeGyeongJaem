@@ -10,6 +10,7 @@ public class PlayerStaminaUI : MonoBehaviour
     [Header("Reference")]
     [SerializeField] private PlayerStamina stamina;
     [SerializeField] private PlayerCondition condition;
+    [SerializeField] private PlayerGameState gameState;
 
     [Header("UI")]
     [SerializeField] private Slider currentSlider;
@@ -48,6 +49,7 @@ public class PlayerStaminaUI : MonoBehaviour
 
         stamina = localPlayer.GetComponent<PlayerStamina>();
         condition = localPlayer.GetComponent<PlayerCondition>();
+        gameState = localPlayer.GetComponent<PlayerGameState>();
 
         TryInitialize();
     }
@@ -92,7 +94,8 @@ public class PlayerStaminaUI : MonoBehaviour
         currentSlider.maxValue = baseMax;
         maxSlider.maxValue = baseMax;
 
-        ParentsSliderGameObject.SetActive(true);
+        ParentsSliderGameObject.SetActive(
+            gameState == null || gameState.IsInPlayground);
 
         // 더 이상 이벤트가 필요 없으므로 해제
         /*
@@ -103,6 +106,13 @@ public class PlayerStaminaUI : MonoBehaviour
 
     private void Update()
     {
+        bool shouldBeVisible = gameState == null || gameState.IsInPlayground;
+        if (ParentsSliderGameObject.activeSelf != shouldBeVisible)
+            ParentsSliderGameObject.SetActive(shouldBeVisible);
+
+        if (!shouldBeVisible)
+            return;
+
         if (condition != null && stamina != null)
         {
             float baseMax = condition.BaseMaxStamina;
