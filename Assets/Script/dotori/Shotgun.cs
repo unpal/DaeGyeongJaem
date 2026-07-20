@@ -10,10 +10,11 @@ public class Shotgun : MonoBehaviour
 {
     // Start is called before the first frame update
     SoundFollowingAgent agent;
-    public GameObject hitbox;
+    //public GameObject hitbox;
     public ParticleSystem particles;
     public Vector3 LastRotate;//마지막 총쏜 방향(Debug.Ray 확인용)
     public GameObject ParentObj;//내 부모 오브젝트
+    public Animator Anim;
     void Start()
     {
         transform.parent.TryGetComponent(out agent);
@@ -48,6 +49,7 @@ public class Shotgun : MonoBehaviour
                 Debug.Log("총에 맞음!");
             }
         }
+        Anim.SetTrigger("Fire");
         particles.Play();
     }
 }

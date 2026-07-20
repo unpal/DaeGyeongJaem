@@ -14,21 +14,25 @@ public class PortalManager : NetworkBehaviour
     public void ActivateRandomPortals(int n)
     {
         if (portals == null || portals.Count == 0) return;
+        //포탈 개수 2개이상이면 버그남 이거 고쳐야됨
+        //List<GameObject> availablePortals = new List<GameObject>();
+        //foreach (var portal in portals)
+        //{
+        //    if (portal != null)
+        //        availablePortals.Add(portal);
+        //}
 
-        List<GameObject> availablePortals = new List<GameObject>();
-        foreach (var portal in portals)
-        {
-            if (portal != null)
-                availablePortals.Add(portal);
-        }
-
-        int count = Mathf.Min(n, availablePortals.Count);
+        int count = Mathf.Min(n, portals.Count);
         for (int i = 0; i < count; i++)
         {
-            int randomIndex = Random.Range(0, availablePortals.Count);
-            availablePortals[randomIndex].SetActive(true);
-            availablePortals.RemoveAt(randomIndex);
+            int randomIndex = Random.Range(0, portals.Count);
+            RpcPortalActive(randomIndex);
         }
+    }
+    [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
+    public void RpcPortalActive(int i)
+    {
+        portals[i].SetActive(true);
     }
     [Rpc(RpcSources.StateAuthority,RpcTargets.All)]
     public void RpcDeactivateAllPortals()

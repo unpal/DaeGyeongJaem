@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Cinemachine;
+using Fusion;
 
 /*
  * 객체지향을 무시한 추적자 코드입니다
@@ -10,7 +11,7 @@ using Cinemachine;
 namespace Script.sound
 {
     [RequireComponent(typeof(NavMeshAgent))]
-    public class SoundFollowingAgent : MonoBehaviour
+    public class SoundFollowingAgent : NetworkBehaviour
     {
         private NavMeshAgent _agent;
         public float correctness = 10.0f;
@@ -41,6 +42,14 @@ namespace Script.sound
         public event ShotEvent onFireEvent; // 총 발사 시 호출할 이벤트 (파티클, 발사 로직 등 연결)
         public GameObject GunObj; //총 오브젝트(회전용)
         [SerializeField] GameObject[] Players;
+        [SerializeField] LayerMask WallLayer;
+        public float RemainDistance;
+        public Animator Anim;
+        [Networked]
+        public NetworkBool IsMove { get; set; }
+
+        [Networked]
+        public NetworkBool IsRun { get; set; }
         public struct SoundstackStr
         {
             public Vector3 SoundPosition;
@@ -72,11 +81,14 @@ namespace Script.sound
             KnowWhereYouAre
         }
 
-        private StateMachine _state = StateMachine.IntoTheUnknown;
+        [SerializeField] private StateMachine _state = StateMachine.IntoTheUnknown;
+        private bool isKnowState = false;
 
         public void SetStateToKnowWhereYouAre()
         {
             _state = StateMachine.KnowWhereYouAre;
+            isKnowState = true;
+
         }
 
         private void Awake()
@@ -104,20 +116,41 @@ namespace Script.sound
             _visited = new HashSet<Vector3>();
         }
 
-        private void OnEnable()
+        public override void Spawned()
         {
             SoundEventManager.OnSoundTriggered += HandleSoundTriggered;
             StartCoroutine(UpdatePathRoutine());
         }
 
-        private void OnDisable()
+        public override void Despawned(NetworkRunner runner, bool hasState)
         {
             SoundEventManager.OnSoundTriggered -= HandleSoundTriggered;
             StopCoroutine(UpdatePathRoutine());
         }
-
-        private void FixedUpdate()
+        private void Update()
         {
+            if(IsMove)
+            {
+                Anim.SetBool("IsMove", true);
+                if(IsRun)
+                    Anim.SetBool("IsRun", true);
+                else
+                    Anim.SetBool("IsRun", false);
+            }
+            else
+            {
+                Anim.SetBool("IsMove", false);
+            }
+        }
+        public override void FixedUpdateNetwork()
+        {
+            if (!Object.HasStateAuthority)
+                return;
+
+            IsMove = _agent.velocity.sqrMagnitude > 0.01f;
+            IsRun = _state == StateMachine.KnowWhereYouAre ||
+                    _state == StateMachine.WhatYouGonnaDo;
+
             // 1. 에러 방지: 새로 방문한 노드들을 담을 임시 리스트
             List<Vector3> newlyVisited = new List<Vector3>();
             float sqrDist = distanceForVisit * distanceForVisit;
@@ -172,7 +205,8 @@ namespace Script.sound
             }
         }
 
-        private void FireAndStandStill(Vector3 targetPosition)
+        [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+        private void RpcFireAndStandStill(Vector3 targetPosition)
         {
             // 발사 방향을 향해 회전
             Vector3 direction = (targetPosition - transform.position).normalized;
@@ -201,14 +235,34 @@ namespace Script.sound
             if (_state == StateMachine.AttackCooldown || _state == StateMachine.KnowWhereYouAre)
                 return; // 대기 중이거나 확실한 추적 중에는 추가 소리 무시
 
-            // 에이전트 주변 일정 범위(fireRange) 내에서 소리가 났다면 사격
-            if ((transform.position - soundPosition).sqrMagnitude <= fireRange * fireRange)
+            NavMeshPath path = new NavMeshPath();
+
+            float Tempdistance = 0f;
+
+            //네비게이션에 따른 거리계산(벽같은거 쏘는거 방지)
+            if (NavMesh.CalculatePath(
+                transform.position,
+                soundPosition,
+                NavMesh.AllAreas,
+                path))
             {
-                FireAndStandStill(soundPosition);
+
+                for (int i = 1; i < path.corners.Length; i++)
+                {
+                    Tempdistance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                }
+
+                Debug.Log(Tempdistance);
+            }
+            RemainDistance = Tempdistance;
+            // 에이전트 주변 일정 범위(fireRange) 내에서 소리가 났다면 사격
+            if (Tempdistance <= fireRange)
+            {
+                RpcFireAndStandStill(soundPosition);
                 return;
             }
             
-            if((transform.position - soundPosition).sqrMagnitude > (transform.position - _estimatedSoundPosition).sqrMagnitude)
+            if(Tempdistance > _agent.remainingDistance)
             {
                 Soundstack.Push(new SoundstackStr(soundPosition, soundRange));
             }
@@ -272,6 +326,11 @@ namespace Script.sound
         {
             while (true)
             {
+                if (!Object.HasStateAuthority)
+                {
+                    yield return null;
+                    continue;
+                }
                 if (_state == StateMachine.AttackCooldown)
                 {
                     // 설정한 대기 시간만큼 가만히 있기
@@ -282,7 +341,10 @@ namespace Script.sound
                         if (_agent.isActiveAndEnabled)
                             _agent.isStopped = false; // 다시 이동 가능하게 설정
 
-                        _state = StateMachine.Idle;
+                        if (isKnowState)
+                            _state = StateMachine.KnowWhereYouAre;
+                        else
+                            _state = StateMachine.Idle;
                         _agent.speed = _originalSpeed * 0.3f;
                     }
                 }
@@ -318,6 +380,7 @@ namespace Script.sound
                             // 도달 가능 구역까지만 온 거라면 전진 탐색 시작
                             if(Soundstack.Count > 0)
                             {
+                                _state = StateMachine.WhatYouGonnaDo;
                                 SoundstackStr tempstr = Soundstack.Pop();
                                 HandleSoundTriggered(tempstr.SoundPosition, tempstr.SoundRange);
                             }
@@ -437,12 +500,12 @@ namespace Script.sound
 
                             Vector3 point = nearestPlayer.transform.position + dir * radius;
 
-                            if (NavMesh.SamplePosition(point, out hit, 8f, NavMesh.AllAreas))
+                            if (NavMesh.SamplePosition(point, out hit, 5f, NavMesh.AllAreas))
                             {
-                                Vector3 eye = hit.position + Vector3.up * 1.5f;
-                                Vector3 target = nearestPlayer.transform.position + Vector3.up * 1.2f;
+                                Vector3 eye = hit.position + Vector3.up * 1.0f;
+                                Vector3 target = nearestPlayer.transform.position /*+ Vector3.up * 1.2f*/;
 
-                                if (!Physics.Linecast(eye, target, LayerMask.GetMask("Wall")))
+                                if (!Physics.Linecast(eye, target, WallLayer))
                                 {
                                     NavMeshPath temppath = new NavMeshPath();
                                     if (_agent.CalculatePath(hit.position, path))
@@ -458,7 +521,6 @@ namespace Script.sound
                                             Debug.Log("경로가 끊겨 있음");
                                         }
                                     }
-
                                 }
                             }
                         }
@@ -467,33 +529,38 @@ namespace Script.sound
                             _agent.SetDestination(nearestPlayer.transform.position);
                         }
 
-
+                        while (_agent.pathPending)
+                        {
+                            yield return null; // 다음 프레임까지 대기
+                        }
 
 
                         if (target)
                             target.transform.position = nearestPlayer.transform.position;
 
-                        if (minSqrDist <= fireRange * fireRange)
+                        float tempReMainDistance = _agent.remainingDistance;
+                        RemainDistance = tempReMainDistance;
+                        if (tempReMainDistance <= fireRange)
                         {
-                            // 발사 방향을 향해 회전
-                            Vector3 direction = (nearestPlayer.transform.position - transform.position).normalized;
-                            Vector3 FireDirection = direction;
-                            direction.y = 0; // 평면 회전
-                            if (direction.sqrMagnitude > 0.01f)
-                            {
-                                transform.rotation = Quaternion.LookRotation(direction);
-                            }
+                            //// 발사 방향을 향해 회전
+                            //Vector3 direction = (nearestPlayer.transform.position - transform.position).normalized;
+                            //Vector3 FireDirection = direction;
+                            //direction.y = 0; // 평면 회전
+                            //if (direction.sqrMagnitude > 0.01f)
+                            //{
+                            //    transform.rotation = Quaternion.LookRotation(direction);
+                            //}
 
-                            PlayFireFeedback();
+                            //PlayFireFeedback();
 
-                            onFireEvent?.Invoke(FireDirection);
+                            //onFireEvent?.Invoke(FireDirection);
 
-                            if (_agent.isActiveAndEnabled)
-                            {
-                                _agent.ResetPath();
-                                _agent.isStopped = true;
-                            }
-
+                            //if (_agent.isActiveAndEnabled)
+                            //{
+                            //    _agent.ResetPath();
+                            //    _agent.isStopped = true;
+                            //}
+                            RpcFireAndStandStill(nearestPlayer.transform.position);
                             // 발사 후 대기 (상태 전환 없이)
                             yield return new WaitForSeconds(standStillAfterFire);
 

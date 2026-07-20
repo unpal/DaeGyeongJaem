@@ -41,6 +41,14 @@ public class PublicSpeaker : MonoBehaviour
         }
     }
 
+    public void StopBGM()
+    {
+        if (BGMSpeaker != null)
+        {
+            BGMSpeaker.Stop();
+        }
+    }
+
     public void PlayChaserSpawn()
     {
         if (OtherSpeaker != null && sfxChaserSpawn != null)

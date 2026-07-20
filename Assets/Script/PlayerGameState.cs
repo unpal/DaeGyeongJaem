@@ -151,10 +151,15 @@ public class PlayerGameState : NetworkBehaviour
         IsDead = false;
         HasEscaped = false;
     }
-
+    public bool CanUseStamina(float amount)
+    {
+        if (amount <= 0f /*|| CurrentStamina < amount*/|| CurrentStamina <= 0)
+            return false;
+        return true;
+    }
     public bool TryUseStamina(float amount)
     {
-        if (!Object.HasStateAuthority || amount <= 0f /*|| CurrentStamina < amount*/|| CurrentStamina <= 0)
+        if (!Object.HasStateAuthority)
             return false;
 
         CurrentStamina -= amount;
