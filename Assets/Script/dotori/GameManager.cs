@@ -78,7 +78,7 @@ public class GameManager : NetworkBehaviour
             // 호스트는 다이얼로그 전체 길이만큼 대기
             yield return new WaitForSeconds(introDialogue.GetTotalDuration());
         }
-        
+
         // 다이얼로그가 끝나면 기존 카운트다운(GameFlowRoutine) 시작
         yield return StartCoroutine(GameFlowRoutine());
     }
@@ -153,6 +153,7 @@ public class GameManager : NetworkBehaviour
 
         float countdownTime = 10f;
         RpcPrepareCenterText();
+        RpcPlayBGM(false); // 게임 시작 시 기본 BGM 재생
 
         while (timer < countdownTime)
         {
@@ -168,7 +169,6 @@ public class GameManager : NetworkBehaviour
         }
 
         Phase = RoundPhase.Playing;
-        RpcPlayBGM(false); // 게임 시작 시 기본 BGM 재생
 
         if (chaserPrefab != null)
         {
@@ -203,7 +203,7 @@ public class GameManager : NetworkBehaviour
                 spawnPosition,
                 spawnRotation);
             spawnedChaser = chaserObject.GetComponent<SoundFollowingAgent>();
-            
+
             RpcPrepareCenterText();
             RpcSetCenterText("도망쳐!");
             RpcCenterFadeOut();
@@ -222,7 +222,7 @@ public class GameManager : NetworkBehaviour
             timer += Time.deltaTime;
             yield return null;
         }
-        
+
         RpcPrepareCenterText();
         RpcSetCenterText("탈출구를 찾으세요");
         RpcCenterFadeOut();
@@ -321,7 +321,11 @@ public class GameManager : NetworkBehaviour
             winnerName = winner.Object.InputAuthority.ToString();
 
         if (centerText != null)
-            centerText.text = $"{winnerName} is WINNER!";
+        {
+            RpcPrepareCenterText();
+            RpcSetCenterText(winnerName + " 우승!");
+            RpcCenterFadeOut();
+        }
 
         yield return new WaitForSeconds(5f); //시간조정하기 or 버튼, 코루틴으로 바꾸기?
 
@@ -341,6 +345,7 @@ public class GameManager : NetworkBehaviour
             yield break;
 
         Phase = RoundPhase.RoundFinished;
+        RpcStopBGM();
 
         if (spawnedChaser != null)
         {
@@ -481,6 +486,13 @@ public class GameManager : NetworkBehaviour
     {
         if (PublicSpeaker.Instance != null)
             PublicSpeaker.Instance.PlayBGM(isEndgame);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcStopBGM()
+    {
+        if (PublicSpeaker.Instance != null)
+            PublicSpeaker.Instance.StopBGM();
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
