@@ -258,7 +258,7 @@ public class PlayerMove : NetworkBehaviour
                 wallRight * -data.Move.x;
 
 
-            if (gameState.TryUseStamina(climbDrain * Runner.DeltaTime))
+            if (gameState.CanUseStamina(climbDrain * Runner.DeltaTime))
             {
                 spentStaminaThisTick = true;
                 //Debug.Log(move);
@@ -266,6 +266,7 @@ public class PlayerMove : NetworkBehaviour
                 //{
                 //    controller.Move((-wallNormal * 0.2f) * Runner.DeltaTime);
                 //}
+                gameState.TryUseStamina(climbDrain * Runner.DeltaTime);
                 controller.Move(move * Runner.DeltaTime);
             }
             else
@@ -281,9 +282,10 @@ public class PlayerMove : NetworkBehaviour
         }
         bool jumpPressed = data.Buttons.IsSet((int)PlayerButtons.Jump);
         if (jumpPressed && !jumpWasPressed && controller.Grounded &&
-            gameState != null && gameState.TryUseStamina(jumpCost))
+            gameState != null && gameState.CanUseStamina(jumpCost))
         {
             spentStaminaThisTick = true;
+            gameState.TryUseStamina(jumpCost);
             controller.Jump();
             jump = false;
         }
