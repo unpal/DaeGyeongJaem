@@ -5003,7 +5003,7 @@ MonoBehaviour:
     _value: 0
   _IsRun:
     _value: 0
-  gunSoundClip: {fileID: 8300000, guid: ed43fe82f4543d001ad1866b9173c1b5, type: 3}
+  gunSoundClip: {fileID: 8300000, guid: 6751eed68028d8326a79efb7eaae46c6, type: 3}
   gunSoundVolume: 2
   cameraShakeForce: 1
   cameraShakeMaxDistance: 30
