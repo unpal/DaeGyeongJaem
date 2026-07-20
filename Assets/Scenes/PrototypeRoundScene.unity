@@ -4490,6 +4490,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EscapePortal 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3431376652806813104, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7895757449455119706, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
         type: 3}
       propertyPath: gameManager
@@ -6977,6 +6982,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: EscapePortal 4
       objectReference: {fileID: 0}
+    - target: {fileID: 3431376652806813104, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7895757449455119706, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
         type: 3}
       propertyPath: gameManager
@@ -7196,6 +7206,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: EscapePortal 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3431376652806813104, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7895757449455119706, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
         type: 3}
@@ -8652,6 +8667,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: EscapePortal 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3431376652806813104, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7895757449455119706, guid: cfb73a5e334d050fa8e48c23e66e6b4a,
         type: 3}
