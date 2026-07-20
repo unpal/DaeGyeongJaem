@@ -86,7 +86,7 @@ public class PlayerNoise : NetworkBehaviour
         if (!_gameState.IsInPlayground)
             return;
 
-        Rpc_PlayPeriodicWhistle();
+        Rpc_PlayPeriodicWhistle(transform.position);
         SoundEventManager.TriggerSound(transform.position, periodicRadius);
         MakeNoise(NoiseType.Periodic);
     }
@@ -201,23 +201,26 @@ private void OnDisable()
             return;
         }
         
-        PlayWhistleAudio();
+        PlayWhistleAudio(transform.position);
         SoundEventManager.TriggerSound(transform.position, 20.0f);
         MakeNoise(NoiseType.Whistle);
     }
 
     //교체,추가 RpcSources << 원격 함수 실행
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)] //호스트만 사용가능, 모든 플레이어를 대상으로,
-    private void Rpc_PlayPeriodicWhistle()
+    private void Rpc_PlayPeriodicWhistle(Vector3 pos)
     {
-        PlayWhistleAudio();
+        PlayWhistleAudio(pos);
     }
     //교체,추가, 위에서 씀.
-    private void PlayWhistleAudio()
+    private void PlayWhistleAudio(Vector3 pos)
     {
         if (_audioSource != null)
         {
-            _audioSource.Play();
+            AudioSource.PlayClipAtPoint(
+                _audioSource.clip,
+                pos
+            );
         }
         else
         {

@@ -147,6 +147,16 @@ public class PlayerMove : NetworkBehaviour
 
         playerInput.enabled = isMine;
     }
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.All)]
+    private void Rpc_PlayFootStep(Vector3 pos)
+    {
+        AudioSource.PlayClipAtPoint(
+            FootSound,
+            pos
+        );
+    }
+
     private void OnMove(InputValue value)
     {
         inputVec = value.Get<Vector2>();
@@ -221,14 +231,14 @@ public class PlayerMove : NetworkBehaviour
             if (time >= 0.15f && !isRunSound[0] && canSprint)
             {
                 isRunSound[0] = true;
-                audioSource.PlayOneShot(FootSound);
+                Rpc_PlayFootStep(transform.position);
 
                 SoundEventManager.TriggerSound(transform.position, 5.0f);
             }
             if (time >= 0.65f && !isRunSound[1] && canSprint)
             {
                 isRunSound[1] = true;
-                audioSource.PlayOneShot(FootSound);
+                Rpc_PlayFootStep(transform.position);
                 SoundEventManager.TriggerSound(transform.position, 5.0f);
             }
             if (time < 0.15f)
