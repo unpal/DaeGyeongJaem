@@ -45,6 +45,7 @@ namespace Script.sound
         [SerializeField] LayerMask WallLayer;
         public float RemainDistance;
         public Animator Anim;
+        public BossLook bosslook;
         [Networked]
         public NetworkBool IsMove { get; set; }
 
@@ -88,6 +89,7 @@ namespace Script.sound
         {
             _state = StateMachine.KnowWhereYouAre;
             isKnowState = true;
+            fireRange = 0.1f;
 
         }
 
@@ -118,6 +120,7 @@ namespace Script.sound
 
         public override void Spawned()
         {
+            Players = GameObject.FindGameObjectsWithTag("Player");
             SoundEventManager.OnSoundTriggered += HandleSoundTriggered;
             StartCoroutine(UpdatePathRoutine());
         }
@@ -142,6 +145,25 @@ namespace Script.sound
                 Anim.SetBool("IsMove", false);
             }
         }
+
+        private void UpdateRotation()
+        {
+            Vector3 dir = _agent.desiredVelocity;
+
+            dir.y = 0;
+
+            if (dir.sqrMagnitude > 0.01f)
+            {
+                Quaternion rot = Quaternion.LookRotation(dir);
+
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    rot,
+                    Runner.DeltaTime * 8f
+                );
+            }
+        }
+
         public override void FixedUpdateNetwork()
         {
             if (!Object.HasStateAuthority)
@@ -150,7 +172,7 @@ namespace Script.sound
             IsMove = _agent.velocity.sqrMagnitude > 0.01f;
             IsRun = _state == StateMachine.KnowWhereYouAre ||
                     _state == StateMachine.WhatYouGonnaDo;
-
+            UpdateRotation();
             // 1. 에러 방지: 새로 방문한 노드들을 담을 임시 리스트
             List<Vector3> newlyVisited = new List<Vector3>();
             float sqrDist = distanceForVisit * distanceForVisit;
@@ -216,6 +238,7 @@ namespace Script.sound
             {
                 transform.rotation = Quaternion.LookRotation(direction);
             }
+            bosslook.target = targetPosition;
             onFireEvent?.Invoke(FireDirection);
 
             PlayFireFeedback();
@@ -239,28 +262,7 @@ namespace Script.sound
 
             float Tempdistance = 0f;
 
-            //네비게이션에 따른 거리계산(벽같은거 쏘는거 방지)
-            if (NavMesh.CalculatePath(
-                transform.position,
-                soundPosition,
-                NavMesh.AllAreas,
-                path))
-            {
 
-                for (int i = 1; i < path.corners.Length; i++)
-                {
-                    Tempdistance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
-                }
-
-                Debug.Log(Tempdistance);
-            }
-            RemainDistance = Tempdistance;
-            // 에이전트 주변 일정 범위(fireRange) 내에서 소리가 났다면 사격
-            if (Tempdistance <= fireRange)
-            {
-                RpcFireAndStandStill(soundPosition);
-                return;
-            }
             
             if(Tempdistance > _agent.remainingDistance)
             {
@@ -290,6 +292,30 @@ namespace Script.sound
             Vector3 generalDestZone = _constAll.Length > 0
                 ? FindNearestPoint(_constAll, _estimatedSoundPosition)
                 : transform.position;
+
+
+            //네비게이션에 따른 거리계산(벽같은거 쏘는거 방지)
+            if (NavMesh.CalculatePath(
+                transform.position,
+                generalDestZone,
+                NavMesh.AllAreas,
+                path))
+            {
+
+                for (int i = 1; i < path.corners.Length; i++)
+                {
+                    Tempdistance += Vector3.Distance(path.corners[i - 1], path.corners[i]);
+                }
+
+                Debug.Log(Tempdistance);
+            }
+            RemainDistance = Tempdistance;
+            // 에이전트 주변 일정 범위(fireRange) 내에서 소리가 났다면 사격
+            if (Tempdistance <= fireRange)
+            {
+                RpcFireAndStandStill(soundPosition);
+                return;
+            }
 
             _agent.speed = _originalSpeed; // 소리를 들었으니 원래 속도로 복귀
             _searchTimer = 0f; // 탐색 타이머 초기화
@@ -438,12 +464,13 @@ namespace Script.sound
                 }
                 else if (_state == StateMachine.KnowWhereYouAre)
                 {
-                    Players = GameObject.FindGameObjectsWithTag("Player");
                     GameObject nearestPlayer = null;
                     float minSqrDist = float.MaxValue;
                     bool bestIsReachable = false;
 
                     NavMeshPath path = new NavMeshPath();
+
+                    bosslook.target =  new Vector3(0, 0, 0);
 
                     foreach (var p in Players)
                     {
@@ -487,11 +514,14 @@ namespace Script.sound
                         NavMeshHit hit;
 
                         float radius = 8f;
+                        Vector3 bestPosition = Vector3.zero;
+                        float bestScore = Mathf.Infinity;
+                        bool found = false;
 
-                        bool isSampleing = false;
-                        for (int i = 0; i < 72; i++)
+                        NavMeshPath bestPath = new NavMeshPath();
+                        for (int i = 0; i < 24; i++)
                         {
-                            float angle = i * 360f / 72;
+                            float angle = i * 360f / 24;
 
                             Vector3 dir = new Vector3(
                                 Mathf.Cos(angle * Mathf.Deg2Rad),
@@ -507,14 +537,32 @@ namespace Script.sound
 
                                 if (!Physics.Linecast(eye, target, WallLayer))
                                 {
-                                    NavMeshPath temppath = new NavMeshPath();
                                     if (_agent.CalculatePath(hit.position, path))
                                     {
                                         if (path.status == NavMeshPathStatus.PathComplete)
                                         {
-                                            Debug.Log("도달 가능");
-                                            _agent.SetDestination(hit.position);
-                                            isSampleing = true;
+                                            float pathLength = 0f;
+
+                                            for (int j = 1; j < path.corners.Length; j++)
+                                            {
+                                                pathLength += Vector3.Distance(
+                                                    path.corners[j - 1],
+                                                    path.corners[j]);
+                                            }
+
+
+                                            // 점수 계산
+                                            // 낮을수록 좋음
+                                            float score = pathLength;
+
+
+                                            if (score < bestScore)
+                                            {
+                                                bestScore = score;
+                                                bestPosition = hit.position;
+                                                bestPath = path;
+                                                found = true;
+                                            }
                                         }
                                         else
                                         {
@@ -524,15 +572,25 @@ namespace Script.sound
                                 }
                             }
                         }
-                        if(!isSampleing)
+                        if(!found)
                         {
-                            _agent.SetDestination(nearestPlayer.transform.position);
+                            if (Vector3.Distance(_agent.destination, nearestPlayer.transform.position) > 1.0f)
+                            {
+                                _agent.SetDestination(nearestPlayer.transform.position);
+                            }
+                        }
+                        else
+                        {
+                            if (Vector3.Distance(_agent.destination, bestPosition) > 1.0f)
+                            {
+                                _agent.SetDestination(bestPosition);
+                            }
                         }
 
                         while (_agent.pathPending)
-                        {
-                            yield return null; // 다음 프레임까지 대기
-                        }
+                            {
+                                yield return null; // 다음 프레임까지 대기
+                            }
 
 
                         if (target)

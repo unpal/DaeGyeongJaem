@@ -2,10 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SiSun : MonoBehaviour
+public class BossLook : MonoBehaviour
 {
     public Animator animator;
-    public Transform target;
+    public Vector3 target;
 
     [Range(0, 1)]
     public float weight = 1f;
@@ -17,7 +17,7 @@ public class SiSun : MonoBehaviour
 
         animator.SetLookAtWeight(weight);
 
-        animator.SetLookAtPosition(target.position);
+        animator.SetLookAtPosition(target);
         Debug.Log("IK »£√‚");
     }
 }
