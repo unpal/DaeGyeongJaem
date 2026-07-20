@@ -5280,6 +5280,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4fa2f452f6eea9e08c1c2c042f23cc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  agent: {fileID: 6036201653601111293}
   particles: {fileID: 7799426424517246427}
   LastRotate: {x: 0, y: 0, z: 0}
   ParentObj: {fileID: 8774740471196656705}

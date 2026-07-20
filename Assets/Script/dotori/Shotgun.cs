@@ -9,7 +9,7 @@ using UnityEngine.UIElements;
 public class Shotgun : MonoBehaviour
 {
     // Start is called before the first frame update
-    SoundFollowingAgent agent;
+    public SoundFollowingAgent agent;
     //public GameObject hitbox;
     public ParticleSystem particles;
     public Vector3 LastRotate;//마지막 총쏜 방향(Debug.Ray 확인용)

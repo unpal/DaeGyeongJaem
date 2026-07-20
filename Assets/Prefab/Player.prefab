@@ -135,7 +135,6 @@ MonoBehaviour:
   - {fileID: -6459193691174752318}
   - {fileID: -8482163007196616827}
   - {fileID: 8770475609500432936}
-  - {fileID: 1965214795072521352}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &8980457805791645807
 MonoBehaviour:
@@ -591,7 +590,7 @@ Transform:
   m_GameObject: {fileID: 3913893799221358603}
   serializedVersion: 2
   m_LocalRotation: {x: 0.099516116, y: -0.0031262967, z: -0.031445462, w: 0.9945341}
-  m_LocalPosition: {x: 0.0007799504, y: -0.7493, z: -0.018215982}
+  m_LocalPosition: {x: 0.00063144864, y: -0.9126835, z: -0.015769817}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1052,11 +1051,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 196e6da9b2552915fbc5a5a1f4244a36,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1965214795072521352}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 196e6da9b2552915fbc5a5a1f4244a36, type: 3}
 --- !u!95 &4127296217243919022 stripped
 Animator:
@@ -1070,30 +1065,6 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 7506814085017870143}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &7272440879094080110 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 196e6da9b2552915fbc5a5a1f4244a36,
-    type: 3}
-  m_PrefabInstance: {fileID: 7506814085017870143}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1965214795072521352
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7272440879094080110}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 506319458, guid: e725a070cec140c4caffb81624c8c787, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Animator: {fileID: 4127296217243919022}
-  ApplyTiming: 2
-  SyncSettings: 79
-  StateHashes: 000000000e78689c8c37241920e23b685928a8ce2b1a167c79406955
-  TriggerHashes: 00000000
-  TotalWords: 1
 --- !u!4 &8045459587687446740 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 196e6da9b2552915fbc5a5a1f4244a36,
