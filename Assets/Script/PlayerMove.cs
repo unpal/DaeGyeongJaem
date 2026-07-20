@@ -83,6 +83,12 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private bool[] isRunSound;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip FootSound;
+    [Networked]
+    private NetworkBool IsRunning { get; set; }
+
+    [Networked]
+    private NetworkBool IsClimbing { get; set; }
+
     //추가한점,
 
     void Update()
@@ -187,24 +193,27 @@ public class PlayerMove : NetworkBehaviour
                          condition != null &&
                          condition.CanSprint &&
                          gameState != null &&
-                         gameState.TryUseStamina(sprintDrain * Runner.DeltaTime);
-        transform.Rotate(Vector3.up * data.Look.x * sensitivity);
+                         gameState.CanUseStamina(sprintDrain * Runner.DeltaTime);
+
+transform.Rotate(Vector3.up * data.Look.x * sensitivity);
         if(!canSprint)
         {
+
             controller.maxSpeed = Speed;
         }
         else
         {
+            gameState.TryUseStamina(sprintDrain * Runner.DeltaTime);
             controller.maxSpeed = RunSpeed;
         }
         if (state.IsName("Run"))
         {
             float time = state.normalizedTime % 1f;
-
             if (time >= 0.15f && !isRunSound[0] && canSprint)
             {
                 isRunSound[0] = true;
                 audioSource.PlayOneShot(FootSound);
+
                 SoundEventManager.TriggerSound(transform.position, 5.0f);
             }
             if (time >= 0.65f && !isRunSound[1] && canSprint)
@@ -273,10 +282,11 @@ public class PlayerMove : NetworkBehaviour
         
         if (Anim != null)
         {
-            bool isRunning = move.sqrMagnitude > 0 && !isClimbingNow;
+            IsRunning = move.sqrMagnitude > 0 && !isClimbingNow;
+            IsClimbing = isClimbingNow;
             Anim.SetBool("Climbing", isClimbingNow);
-            Anim.SetBool("Running", isRunning);
-            if(isRunning && canSprint)
+            Anim.SetBool("Running", IsRunning);
+            if(IsRunning && canSprint)
             {
                 Anim.speed = 1.5f;
             }
