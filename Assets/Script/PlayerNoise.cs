@@ -1,5 +1,4 @@
 using Fusion;
-using System.Collections;
 using UnityEngine;
 
 public class PlayerNoise : NetworkBehaviour
@@ -28,6 +27,10 @@ public class PlayerNoise : NetworkBehaviour
     
     private PlayerGameState _gameState;
 
+    //periodic 코루틴으로 쓰던거 그냥 네트워크 타이머로 변경 > 라운드마다 초기화
+    [Networked]
+    private TickTimer PeriodicNoiseTimer { get; set; }
+
     public static System.Action<Vector3, float, NoiseType> OnNoiseGenerated; //나중에 ai 테스트 하고 지우기
 
     private void Awake()
@@ -54,15 +57,47 @@ public class PlayerNoise : NetworkBehaviour
 
         //이거 조건문 붙히고 내렸어용, 본인소리는 (periodic whistle은) 본인만 들리구로
         if (Object.HasStateAuthority)
-            StartCoroutine(PeriodicNoiseRoutine());
+            RestartPeriodicNoise();
     }
 
+    //타이머 초기화수목금토일  
     public void RestartPeriodicNoise()
     {
-        StopCoroutine(PeriodicNoiseRoutine());
-        StartCoroutine(PeriodicNoiseRoutine());
+        if (!Object.HasStateAuthority)
+            return;
+
+        PeriodicNoiseTimer = TickTimer.CreateFromSeconds(
+            Runner,
+            Mathf.Max(0.01f, periodicInterval));
     }
 
+    //틱마다 만료 여부를 확인;;???????
+    public override void FixedUpdateNetwork()
+    {
+        if (!Object.HasStateAuthority ||
+            !PeriodicNoiseTimer.Expired(Runner))
+            return;
+
+        RestartPeriodicNoise();
+
+        if (_gameState == null && !TryGetComponent(out _gameState))
+            return;
+
+        if (!_gameState.IsInPlayground)
+            return;
+
+        Rpc_PlayPeriodicWhistle();
+        SoundEventManager.TriggerSound(transform.position, periodicRadius);
+        MakeNoise(NoiseType.Periodic);
+    }
+    /*
+     플레이어 생성 또는 새 라운드 시작
+     periodicInterval만큼 TickTimer 설정
+     타이머 만료
+     다음 주기 타이머 즉시 설정
+     살아 있는 플레이어면 휘파람 재생
+     
+     */
 
     public void MakeNoise(NoiseType type)
     {
@@ -146,28 +181,6 @@ private void OnDisable()
         }
 
         return 0f;
-    }
-
-    //추가
-    private IEnumerator PeriodicNoiseRoutine()
-    {
-        while (true)
-        {
-                
-
-            yield return new WaitForSeconds(periodicInterval);
-            //아래에 있던거 양식 살짝 빌려와서 작성. 수정, 추가.
-            if (_gameState == null && !TryGetComponent(out _gameState))
-                continue;
-            //조건문 복잡하길래 분리해서 가시적으로.
-            if (!_gameState.IsInPlayground)
-                continue;
-
-            Rpc_PlayPeriodicWhistle();
-            SoundEventManager.TriggerSound(transform.position, 20.0f);
-            MakeNoise(NoiseType.Periodic);
-
-        }
     }
 
     public void Whistle()

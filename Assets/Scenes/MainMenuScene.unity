@@ -360,8 +360,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 46aa89f3501c4bd1911ba78e87f8245d, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   roundSceneName: PrototypeRoundScene
   orbitSpeed: 3
   elevationAngle: 48
@@ -1158,6 +1158,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   matchingSceneName: PrototypeLobbyScene
+  backgroundMusic: {fileID: 8300000, guid: aaee8b8fff253cf43b611910713e85f2, type: 3}
+  backgroundMusicVolume: 0.157
 --- !u!4 &1417274894
 Transform:
   m_ObjectHideFlags: 0

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cinemachine;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
@@ -38,6 +39,8 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     //
     private void Awake()
     {
+        EnsureLocalPlayerCameraOutput();
+
         //로비씬번호 저장?
         //Bootstrap 오브젝트가 처음 들어 있던 씬 번호를 저장 <<
         lobbySceneBuildIndex = SceneManager.GetActiveScene().buildIndex;
@@ -65,6 +68,21 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 
         //플레이어 접속과 입력 등의 Fusion 콜백을 이 Bootstrap이 받도록 등록
         runner.AddCallbacks(this);
+    }
+
+    private static void EnsureLocalPlayerCameraOutput()
+    {
+        Camera mainCamera = Camera.main;
+        if (mainCamera == null)
+        {
+            Debug.LogError("[Lobby] MainCamera를 찾지 못했습니다.");
+            return;
+        }
+
+        // 실제 화면을 렌더링하는 카메라는 씬에 하나만 두고,
+        // 각 클라이언트의 로컬 플레이어 Virtual Camera가 이를 제어한다.
+        if (mainCamera.GetComponent<CinemachineBrain>() == null)
+            mainCamera.gameObject.AddComponent<CinemachineBrain>();
     }
 
     private void Update()
