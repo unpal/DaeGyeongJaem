@@ -137,6 +137,14 @@ public class PlayerMove : NetworkBehaviour
         attackAction = playerInput.actions["Attack"];
         playerCamera.gameObject.SetActive(isMine);
 
+        if (isMine)
+        {
+            // 프리팹에 남아 있는 X/Z 기울기와 비균일 스케일이
+            // 로비의 1인칭 시점에 반영되지 않도록 정규화한다.
+            playerCamera.transform.localRotation = Quaternion.identity;
+            playerCamera.transform.localScale = Vector3.one;
+        }
+
         playerInput.enabled = isMine;
     }
     private void OnMove(InputValue value)
@@ -184,6 +192,7 @@ public class PlayerMove : NetworkBehaviour
         }
         bool sprintPressed = data.Buttons.IsSet((int)PlayerButtons.Sprint);
         bool hasMovementInput = data.Move.sqrMagnitude > 0.01f;
+        bool spentStaminaThisTick = false;
 
         if (gameState != null && condition != null)
             gameState.SetMaxStamina(condition.CurrentMaxStamina);
@@ -194,8 +203,8 @@ public class PlayerMove : NetworkBehaviour
                          condition.CanSprint &&
                          gameState != null &&
                          gameState.CanUseStamina(sprintDrain * Runner.DeltaTime);
-
-transform.Rotate(Vector3.up * data.Look.x * sensitivity);
+        spentStaminaThisTick |= canSprint;
+        transform.Rotate(Vector3.up * data.Look.x * sensitivity);
         if(!canSprint)
         {
 
@@ -251,6 +260,7 @@ transform.Rotate(Vector3.up * data.Look.x * sensitivity);
 
             if (gameState.TryUseStamina(climbDrain * Runner.DeltaTime))
             {
+                spentStaminaThisTick = true;
                 //Debug.Log(move);
                 //if(wallDistance > 0.15f)
                 //{
@@ -273,6 +283,7 @@ transform.Rotate(Vector3.up * data.Look.x * sensitivity);
         if (jumpPressed && !jumpWasPressed && controller.Grounded &&
             gameState != null && gameState.TryUseStamina(jumpCost))
         {
+            spentStaminaThisTick = true;
             controller.Jump();
             jump = false;
         }
@@ -296,7 +307,9 @@ transform.Rotate(Vector3.up * data.Look.x * sensitivity);
             }
         }
 
-        if (!canSprint && !isClimbingNow && gameState != null)
+        bool isTryingToSprint = sprintPressed && hasMovementInput;
+        if (!spentStaminaThisTick && !isTryingToSprint &&
+            !isClimbingNow && gameState != null)
             gameState.RecoverStamina(recoverRate * Runner.DeltaTime);
 
 

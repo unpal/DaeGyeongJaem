@@ -994,7 +994,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.08, g: 0.06, b: 0.1, a: 0.82}
+  m_Color: {r: 0.08, g: 0.06, b: 0.1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1158,8 +1158,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   matchingSceneName: PrototypeLobbyScene
-  backgroundMusic: {fileID: 8300000, guid: aaee8b8fff253cf43b611910713e85f2, type: 3}
-  backgroundMusicVolume: 0.157
+  backgroundMusic: {fileID: 8300000, guid: 424046d0016bbda4fa6314afb1337604, type: 3}
+  backgroundMusicVolume: 0.356
 --- !u!4 &1417274894
 Transform:
   m_ObjectHideFlags: 0
@@ -1417,7 +1417,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.08, g: 0.06, b: 0.1, a: 0.82}
+  m_Color: {r: 0.08, g: 0.06, b: 0.1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
