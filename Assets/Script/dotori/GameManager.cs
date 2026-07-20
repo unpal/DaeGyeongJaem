@@ -27,7 +27,7 @@ public class GameManager : NetworkBehaviour
 
     [Header("Settings")] public float ENDGAME_TIMER = 60f; // 게임시작후 추격자가 플레이어 위치를 알게되는 시간?
 
-    [SerializeField] private int matchingSceneBuildIndex = 0; // 추가, scene에 index 붙여서 종료화면, 게임화면, 로비화면 가리키도록 하는거.
+    [SerializeField] private int matchingSceneBuildIndex = 1; // PrototypeLobbyScene
     //지금은 samplescene = 0, dotoriscene = 1 이라 0으로 해놨는데 나중에 순서 바뀌거나 scene 추가되면 손 봐줄것.
 
     private const float SUBTITLE_MAINTAIN_TIME = 3f; // 하단 텍스트 완전히 떠있는 시간
