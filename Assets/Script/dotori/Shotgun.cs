@@ -13,9 +13,10 @@ public class Shotgun : NetworkBehaviour
     public SoundFollowingAgent agent;
     //public GameObject hitbox;
     public ParticleSystem particles;
-    public Vector3 LastRotate;//¸¶Áö¸· ÃÑ½ð ¹æÇâ(Debug.Ray È®ÀÎ¿ë)
-    public GameObject ParentObj;//³» ºÎ¸ð ¿ÀºêÁ§Æ®
+    public Vector3 LastRotate;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ñ½ï¿½ ï¿½ï¿½ï¿½ï¿½(Debug.Ray È®ï¿½Î¿ï¿½)
+    public GameObject ParentObj;//ï¿½ï¿½ ï¿½Î¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     public Animator Anim;
+    public GameObject light;
     public override void Spawned()
     {
         //transform.parent.TryGetComponent(out agent);
@@ -46,7 +47,10 @@ public class Shotgun : NetworkBehaviour
         LayerMask shootMask = LayerMask.GetMask("Player", "Wall");
         RaycastHit hit;
         LastRotate = Rotate;
+        
+        light.SetActive(true);
         yield return new WaitForSeconds(0.1f);
+        light.SetActive(false);
 
         Vector3 halfExtents = new Vector3(0.25f, 0.25f, 0.25f);
 
@@ -63,7 +67,7 @@ public class Shotgun : NetworkBehaviour
             if (condition != null)
             {
                 condition.ApplyPermanentDamage(70);
-                Debug.Log("ÃÑ¿¡ ¸ÂÀ½!");
+                Debug.Log("ï¿½Ñ¿ï¿½ ï¿½ï¿½ï¿½ï¿½!");
             }
         }
         particles.Play();

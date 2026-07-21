@@ -91,10 +91,10 @@ MonoBehaviour:
     m_Value: 0
   intensity:
     m_OverrideState: 1
-    m_Value: 0.332
+    m_Value: 0.825
   response:
     m_OverrideState: 1
-    m_Value: 0.795
+    m_Value: 0.52
   texture:
     m_OverrideState: 1
     m_Value: {fileID: 0}
@@ -113,10 +113,10 @@ MonoBehaviour:
   active: 1
   lift:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: -0.018231539}
+    m_Value: {x: 1, y: 1, z: 1, w: -0.018382354}
   gamma:
     m_OverrideState: 1
-    m_Value: {x: 0.9833157, y: 0.98230255, z: 1, w: 0}
+    m_Value: {x: 0.97744465, y: 0.9830835, z: 1, w: 0}
   gain:
     m_OverrideState: 1
-    m_Value: {x: 1, y: 1, z: 1, w: 0}
+    m_Value: {x: 1, y: 1, z: 1, w: -0.03676471}
