@@ -483,10 +483,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cac324606b0d6ec6d999b3127ee610c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  volumeThreshold: 0.1
+  volumeThreshold: 0.3
   soundRange: 20
   minDecibels: -50
-  debugVolume: 1
+  debugVolume: 0
   _audioSource: {fileID: -7234672658272878036}
 --- !u!82 &-7234672658272878036
 AudioSource:
