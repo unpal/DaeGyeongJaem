@@ -30,7 +30,6 @@ public class PlayerMic : MonoBehaviour
 
     System.Collections.IEnumerator Start()
     {
-        _audioSource = GetComponent<AudioSource>();
         _samples = new float[SampleSize];
 
         if (Microphone.devices.Length == 0)

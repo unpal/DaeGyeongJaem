@@ -486,7 +486,7 @@ MonoBehaviour:
   volumeThreshold: 0.3
   soundRange: 20
   minDecibels: -50
-  debugVolume: 0
+  debugVolume: 1
   _audioSource: {fileID: -7234672658272878036}
 --- !u!82 &-7234672658272878036
 AudioSource:
