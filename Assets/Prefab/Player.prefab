@@ -307,6 +307,7 @@ MonoBehaviour:
   landRadius: 8
   climbRadius: 4
   crouchMultiplier: 0.3
+  _audioSource: {fileID: 647982741412882925}
 --- !u!114 &5997651382988697563
 MonoBehaviour:
   m_ObjectHideFlags: 0

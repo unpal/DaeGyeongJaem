@@ -23,7 +23,7 @@ public class PlayerNoise : NetworkBehaviour
     [SerializeField] private float crouchMultiplier = 0.3f;
 
     private bool isCrouching;
-    private AudioSource _audioSource;
+    public AudioSource _audioSource;
     
     private PlayerGameState _gameState;
 
