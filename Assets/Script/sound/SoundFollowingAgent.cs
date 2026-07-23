@@ -352,6 +352,10 @@ namespace Script.sound
         {
             while (true)
             {
+                if (!Object)
+                {
+                    break;
+                }
                 if (!Object.HasStateAuthority)
                 {
                     yield return null;

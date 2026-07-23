@@ -12,6 +12,9 @@ public class PlayerGameState : NetworkBehaviour
 {
     private Vector3 roundSpawnPosition;
     private Quaternion roundSpawnRotation;
+    
+    public GameObject globalVolume;
+    public GameObject wbVolume;
 
     //음
     //player가 저장할 정보 : 죽었는지 탈출했는지> 몇번째로 탈출했는가?도 저장해야하나, 왕관, 게임안에 있는지(서버전달용) 
@@ -37,6 +40,7 @@ public class PlayerGameState : NetworkBehaviour
 
     public bool IsInPlayground => !IsDead && !HasEscaped;
 
+
     public override void Spawned()
     {
         //if (!Object.HasStateAuthority)
@@ -61,6 +65,7 @@ public class PlayerGameState : NetworkBehaviour
         if (Object.HasInputAuthority && CameraManager.Instance)
         {
             CameraManager.Instance.state = this;
+            VolumeManager.instance.player = this;
         }
         //추가했습니다 rpc < chatgpt..
         if (Object.HasInputAuthority && !string.IsNullOrWhiteSpace(PrototypeLobbyBootstrap.LocalPlayerName))
@@ -124,6 +129,7 @@ public class PlayerGameState : NetworkBehaviour
             return;
 
         IsDead = true;
+        RenderSettings.fog = false;
     }
 
     public void MarkEscaped() // 탈출한거 마킹
@@ -132,6 +138,7 @@ public class PlayerGameState : NetworkBehaviour
             return;
 
         HasEscaped = true;
+        RenderSettings.fog = false;
     }
 
     public void AddCrown() //왕관추가
@@ -207,10 +214,8 @@ public class PlayerGameState : NetworkBehaviour
     {
         if (!Object.HasStateAuthority)
             return;
-
         IsDead = false;
         HasEscaped = false;
-
         PlayerCondition condition = GetComponent<PlayerCondition>();
 
         if (condition != null)

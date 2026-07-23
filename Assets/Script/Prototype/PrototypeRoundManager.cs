@@ -144,6 +144,7 @@ public class PrototypeRoundManager : NetworkBehaviour
     {
         if (IsMatchEnding)
             return;
+        RenderSettings.fog = true;
 
         foreach (PlayerRef playerRef in Runner.ActivePlayers)
         {

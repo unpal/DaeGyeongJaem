@@ -74,12 +74,12 @@ public class PrototypeRoundView : MonoBehaviour
         if (virtualCamera != null)
         {
             virtualCamera.Priority = 100;
-            virtualCamera.m_Lens.FieldOfView = 75f;
-            virtualCamera.m_Lens.NearClipPlane = 0.05f;
+            virtualCamera.m_Lens.FieldOfView = 60f;
+            virtualCamera.m_Lens.NearClipPlane = 0.25f;
         }
 
         foreach (Renderer bodyRenderer in localPlayer.GetComponentsInChildren<Renderer>(true))
-            bodyRenderer.enabled = false;
+            bodyRenderer.enabled = true;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;

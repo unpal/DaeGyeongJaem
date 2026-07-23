@@ -30,6 +30,7 @@ public class LavaBurn : MonoBehaviour
     private void Start()
     {
         hiddenLocalPosition = transform.localPosition;
+        hiddenLocalPosition.y = -0.5f;
         activeLocalPosition = hiddenLocalPosition + Vector3.up * riseHeight;
         FindRoundManager();
         RestartActivationDelay();
@@ -130,8 +131,9 @@ public class LavaBurn : MonoBehaviour
 
         float duration = Mathf.Max(0.01f, riseDuration);
         float progress = Mathf.Clamp01((Time.time - riseStartedTime) / duration); //상한선이 흠.. 1초말고 더 시간 길게 해도됨. 비율 이용.
+        //0-1 0.55
 
-        progress = Mathf.SmoothStep(0f, 1f, progress); //부드럽게 진행.
+        progress = Mathf.SmoothStep(0f, 1f, progress); //부드럽게 진행.  0.55
         transform.localPosition = Vector3.Lerp(
             hiddenLocalPosition,
             activeLocalPosition,
