@@ -1,0 +1,16 @@
+Key,Slot,In,Stay,Out,Text
+Prologue_1,PanelText,1.0,2.0,1.0,"아무도 살지 않는 놀이터에, 아이들이 찾아왔다."
+Prologue_2,PanelText,1.0,2.0,1.0,"수십 년간 쓰이지 않았던 놀이터가\n오랜만에 웃음소리로 시끄러워졌다."
+Prologue_3,PanelText,1.0,2.0,1.0,"그런데 — \n웃음소리 사이로, 다른 소리가 섞여 들었다."
+Prologue_4,PanelText,1.0,2.0,1.0,"그것은, 아이들의 웃음소리가 아니었다."
+Prologue_5,PanelText,1.0,2.0,1.0,"그것은 앞을 보지 못한다.\n대신, 아주 잘 듣는다."
+Prologue_6,PanelText,1.0,2.0,1.0,"달려라.          [ <b>W A S D + Shift</b> ]\n높이 뛰어라.      [ <b>Space</b> ]\n벽이 막아서면,붙잡고 올라라.    [ <b>마우스 좌클릭 꾹—</b> ]"
+ChaserSpawn,CenterText,0.2,2.0,0.5,도망쳐!
+ChaserSpawn_Sub,BottomText,0.2,3.0,0.8,추격자 스폰됨
+PortalSpawn,CenterText,0.2,2.5,0.5,탈출구를 찾으세요
+Endgame,CenterText,0.2,3.0,0.5,술래가 당신을 볼 수 있습니다.
+PlayerEscaped,BottomText,0.2,2.0,0.5,{0} 탈출 성공!
+PlayerDied,BottomText,0.2,2.0,0.5,{0} 탈락!
+RoundWin,CenterText,0.2,2.5,0.5,{0} 승리! (★ 획득)
+NoSurvivors,CenterText,0.2,2.5,0.5,전원 탈락 - 왕관 지급 없음
+MatchWin,CenterText,0.5,4.0,0.5,{0} 님 최종 우승!
