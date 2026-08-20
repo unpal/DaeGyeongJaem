@@ -1,235 +1,244 @@
-using System.Collections;
-using System.Collections.Generic;
+using Fusion;
 using UnityEngine;
 
-public class PlayerCondition : MonoBehaviour
+[DisallowMultipleComponent]
+[RequireComponent(typeof(PlayerGameState))]
+public class PlayerCondition : NetworkBehaviour
 {
     [Header("Base")]
-    [SerializeField] private float baseMaxStamina = 100f;
+    [SerializeField, Min(0f)] private float baseMaxStamina = 100f;
 
-    [Header("Damage")]
-    [SerializeField] private float permanentDamage = 0f;
-    [SerializeField] private float temporaryDamage = 0f;
-
-    [Header("Sprint Lock")]
-    [SerializeField] private float sprintLockTimer = 0f;
-
-    [Header("Burn")] //화상관련
-    [SerializeField] private float burnTime;
-    [SerializeField] private float burnDuration = 3f;
-    [SerializeField] private float burnTick = 0.5f; 
-    [SerializeField] private float burnDamage = 2f;
-
-    private float burnTickTimer;
+    [Header("Burn")]
+    [SerializeField, Min(0f)] private float burnDuration = 3f;
+    [SerializeField, Min(0.01f)] private float burnTick = 0.5f;
+    [SerializeField, Min(0f)] private float burnDamage = 2f;
 
     [Header("Recovery")]
-    [SerializeField] private float recoverDelay = 5f;     // 화상 종료 후 대기
-    [SerializeField] private float recoverRate = 1f;      // 초당 회복
+    [SerializeField, Min(0f)] private float recoverDelay = 5f;
+    [SerializeField, Min(0f)] private float recoverRate = 1f;
 
-    private float recoverTimer;
+    [Networked] public float CurrentStamina { get; private set; }
+    [Networked] public float TemporaryDamage { get; private set; }
+    [Networked] public float PermanentDamage { get; private set; }
+    [Networked] private float BurnRemaining { get; set; }
+    [Networked] private float BurnTickAccumulator { get; set; }
+    [Networked] private float RecoveryDelayRemaining { get; set; }
+    [Networked] private float SprintLockRemaining { get; set; }
 
-    //추가,
-    private PlayerGameState playerGameState; // 게임진행상태 가져오기(플레이어별)
-    private GameManager gameManager; // 게임매니저
+    private PlayerGameState playerGameState;
+    private GameManager gameManager;
     private PrototypeRoundManager prototypeRoundManager;
-    private bool deathReported; // 사망했는지 확인하는 변수 < checkgameover 계속 실행되어도 사망보고는 한번만<중복사망방지
+    private bool deathReported;
 
-    [SerializeField]
-    public float BaseMaxStamina => baseMaxStamina; //아 짜증나
-    public float TemporaryDamage => temporaryDamage;//추가 ui용으로 값 가져오기용
-    public float PermanentDamage => permanentDamage;
+    public float BaseMaxStamina => Mathf.Max(0f, baseMaxStamina);
+    public float CurrentMaxStamina => Mathf.Clamp(
+        BaseMaxStamina - PermanentDamage - TemporaryDamage,
+        0f,
+        BaseMaxStamina);
+    public bool CanSprint => SprintLockRemaining <= 0f;
+    public bool IsGameOver => CurrentMaxStamina <= 0f;
 
+    // 기존 Shotgun 코드와 Inspector 데이터 호환을 위해 유지한다.
     public bool isShotGunHit;
-    public float CurrentMaxStamina
-    {
-        get
-        {
-            return Mathf.Clamp(
-                baseMaxStamina - permanentDamage - temporaryDamage,
-                0,
-                baseMaxStamina);
-        }
-    }
 
-    public bool CanSprint => sprintLockTimer <= 0f; //총에 맞은것처럼~
-
-    public bool IsGameOver => CurrentMaxStamina <= 0f;// 게임오버조건
-
-    [SerializeField]
-    private float burnRecovery = 1f; //화상회복틱당몇?
-
-
-    //추가
     private void Awake()
     {
-        playerGameState = GetComponent<PlayerGameState>(); // 컴포넌트 가져오기
+        playerGameState = GetComponent<PlayerGameState>();
     }
 
-    void Update()
+    public override void Spawned()
     {
-        //리팩토링
-        HandleBurn();
+        if (!Object.HasStateAuthority)
+            return;
 
-        HandleRecover();
+        ResetVitals();
+    }
 
-        HandleSprintLock();
+    public override void FixedUpdateNetwork()
+    {
+        if (!Object.HasStateAuthority)
+            return;
 
+        float deltaTime = Runner.DeltaTime;
+        UpdateBurn(deltaTime);
+        UpdateRecovery(deltaTime);
+        SprintLockRemaining = Mathf.Max(0f, SprintLockRemaining - deltaTime);
         CheckGameOver();
 
-        if(isShotGunHit)
-        {
+        if (isShotGunHit)
             isShotGunHit = false;
-        }
+    }
 
-        /* if (temporaryDamage > 0)
-         {
-             RecoverTemporaryDamage(
-                 burnRecovery * Time.deltaTime);
-         }
+    public bool CanUseStamina(float amount)
+    {
+        // 남은 스태미나가 비용보다 적어도 마지막 행동은 허용한다.
+        return IsPositiveFinite(amount) && CurrentStamina > 0f;
+    }
 
-         if (sprintLockTimer > 0)
-             sprintLockTimer -= Time.deltaTime;
-        */
+    public bool TryUseStamina(float amount)
+    {
+        if (!Object.HasStateAuthority || !CanUseStamina(amount))
+            return false;
+
+        CurrentStamina = Mathf.Max(0f, CurrentStamina - amount);
+        return true;
+    }
+
+    public void RecoverStamina(float amount)
+    {
+        if (!Object.HasStateAuthority || !IsPositiveFinite(amount))
+            return;
+
+        CurrentStamina = Mathf.Min(CurrentStamina + amount, CurrentMaxStamina);
+    }
+
+    public void ResetStamina()
+    {
+        if (!Object.HasStateAuthority)
+            return;
+
+        CurrentStamina = CurrentMaxStamina;
     }
 
     public void ResetForNextRound()
     {
-        deathReported = false;
-        permanentDamage = 0f;
-        temporaryDamage = 0f;
-        sprintLockTimer = 0f;
-        burnTime = 0f;
-        burnTickTimer = 0f;
-        recoverTimer = 0f;
-        SyncDamageBreakdown();//추가
-
-        PlayerStamina stamina = GetComponent<PlayerStamina>();
-        if (stamina != null)
-            stamina.ResetForNextRound();
-    }
-
-    //이거 추가, 게임오버조건체크 > 
-    private void CheckGameOver()
-    {
-        //사망보고 되었는지(중복사망불가), 회복가능한 최대 스태미나가 0 이하, 컴포넌트 부재시 오류 방지,
-        //fusion? networkbehavior 오브젝트 부재 오류 방지, 호스트인지 확인(fusion)
-        if (!deathReported && CurrentMaxStamina <= 0f &&
-            playerGameState != null &&
-            playerGameState.Object != null &&
-            playerGameState.Object.HasStateAuthority)
-        {
-            //gamemanager 있어야함.
-            if (gameManager == null)
-                gameManager = FindFirstObjectByType<GameManager>();
-
-            //라운드 플레이중인지
-            if (gameManager != null && gameManager.Phase == RoundPhase.Playing)
-            {
-                deathReported = true;
-                gameManager.ReportPlayerDied(playerGameState);
-            }
-            else
-            {
-                if (prototypeRoundManager == null)
-                    prototypeRoundManager = FindFirstObjectByType<PrototypeRoundManager>();
-
-                if (prototypeRoundManager != null &&
-                    prototypeRoundManager.Phase == PrototypeRoundPhase.Playing)
-                {
-                    deathReported = true;
-                    prototypeRoundManager.ReportPlayerEliminated(playerGameState);
-                }
-            }
-        }
-    }
-
-    private void HandleBurn()
-    {
-        if (burnTime <= 0)
+        if (!Object.HasStateAuthority)
             return;
 
-        burnTime -= Time.deltaTime;
-
-        burnTickTimer += Time.deltaTime;
-
-        if (burnTickTimer >= burnTick)
-        {
-            burnTickTimer = 0;
-
-            ApplyTemporaryDamage(burnDamage);
-        }
-
-        // 화상 걸린동안에는 회복 x
-        recoverTimer = recoverDelay;
-    }
-
-    private void HandleRecover()
-    {
-        // 아직 화상 중이면 회복하지 않음
-        if (burnTime > 0f)
-            return;
-
-        // 회복 대기시간
-        if (recoverTimer > 0f)
-        {
-            recoverTimer -= Time.deltaTime;
-            return;
-        }
-
-        // 천천히 회복
-        if (temporaryDamage > 0f)
-        {
-            RecoverTemporaryDamage(recoverRate * Time.deltaTime);
-        }
-    }
-
-    public void RefreshBurn()
-    {
-        burnTime = burnDuration;
-    }
-
-    private void HandleSprintLock()
-    {
-        if (sprintLockTimer > 0f)
-        {
-            sprintLockTimer -= Time.deltaTime;
-
-            if (sprintLockTimer < 0f)
-                sprintLockTimer = 0f;
-        }
-    }
-    //나중에 총맞을때 condition.LockSprint(2f); 이것만 추가해주면 총맞고 못뛰게 할수이썽요.
-    public void LockSprint(float seconds)
-    {
-        sprintLockTimer = Mathf.Max(sprintLockTimer, seconds);
+        ResetVitals();
     }
 
     public void ApplyPermanentDamage(float amount)
     {
-        permanentDamage += amount;
-        SyncDamageBreakdown();//+
+        if (!Object.HasStateAuthority || !IsPositiveFinite(amount))
+            return;
 
-        Debug.Log($"영구 손상 +{amount}"); //디버깅용 나중에 지우기
-        Debug.Log($"현재 최대 스태미나 : {CurrentMaxStamina}");
+        PermanentDamage = Mathf.Clamp(
+            PermanentDamage + amount,
+            0f,
+            BaseMaxStamina);
+        TemporaryDamage = Mathf.Clamp(
+            TemporaryDamage,
+            0f,
+            BaseMaxStamina - PermanentDamage);
+        ClampCurrentStamina();
     }
 
     public void ApplyTemporaryDamage(float amount)
     {
-        temporaryDamage += amount;
-        recoverTimer = recoverDelay;
-        SyncDamageBreakdown();//+
+        if (!Object.HasStateAuthority || !IsPositiveFinite(amount))
+            return;
+
+        TemporaryDamage = Mathf.Clamp(
+            TemporaryDamage + amount,
+            0f,
+            BaseMaxStamina - PermanentDamage);
+        RecoveryDelayRemaining = recoverDelay;
+        ClampCurrentStamina();
     }
 
-    public void RecoverTemporaryDamage(float amount)    
+    public void RecoverTemporaryDamage(float amount)
     {
-        temporaryDamage -= amount;
-        temporaryDamage = Mathf.Max(0, temporaryDamage);
-        SyncDamageBreakdown();
+        if (!Object.HasStateAuthority || !IsPositiveFinite(amount))
+            return;
+
+        TemporaryDamage = Mathf.Max(0f, TemporaryDamage - amount);
     }
-    //hmm
-    private void SyncDamageBreakdown()
+
+    public void RefreshBurn()
     {
-        if (playerGameState != null)
-            playerGameState.SetDamageBreakdown(temporaryDamage, permanentDamage);
+        if (!Object.HasStateAuthority)
+            return;
+
+        BurnRemaining = Mathf.Max(BurnRemaining, burnDuration);
+        RecoveryDelayRemaining = recoverDelay;
+    }
+
+    public void LockSprint(float seconds)
+    {
+        if (!Object.HasStateAuthority || !IsPositiveFinite(seconds))
+            return;
+
+        SprintLockRemaining = Mathf.Max(SprintLockRemaining, seconds);
+    }
+
+    private void UpdateBurn(float deltaTime)
+    {
+        if (BurnRemaining <= 0f)
+            return;
+
+        BurnRemaining = Mathf.Max(0f, BurnRemaining - deltaTime);
+        BurnTickAccumulator += deltaTime;
+        RecoveryDelayRemaining = recoverDelay;
+
+        float interval = Mathf.Max(0.01f, burnTick);
+        while (BurnTickAccumulator >= interval)
+        {
+            BurnTickAccumulator -= interval;
+            ApplyTemporaryDamage(burnDamage);
+        }
+    }
+
+    private void UpdateRecovery(float deltaTime)
+    {
+        if (BurnRemaining > 0f || TemporaryDamage <= 0f)
+            return;
+
+        if (RecoveryDelayRemaining > 0f)
+        {
+            RecoveryDelayRemaining = Mathf.Max(0f, RecoveryDelayRemaining - deltaTime);
+            return;
+        }
+
+        RecoverTemporaryDamage(recoverRate * deltaTime);
+    }
+
+    private void CheckGameOver()
+    {
+        if (deathReported || !IsGameOver || playerGameState == null)
+            return;
+
+        if (gameManager == null)
+            gameManager = FindFirstObjectByType<GameManager>();
+
+        if (gameManager != null && gameManager.Phase == RoundPhase.Playing)
+        {
+            gameManager.ReportPlayerDied(playerGameState);
+            deathReported = playerGameState.IsDead;
+            return;
+        }
+
+        if (prototypeRoundManager == null)
+            prototypeRoundManager = FindFirstObjectByType<PrototypeRoundManager>();
+
+        if (prototypeRoundManager != null &&
+            prototypeRoundManager.Phase == PrototypeRoundPhase.Playing)
+        {
+            prototypeRoundManager.ReportPlayerEliminated(playerGameState);
+            deathReported = playerGameState.IsDead;
+        }
+    }
+
+    private void ResetVitals()
+    {
+        deathReported = false;
+        CurrentStamina = BaseMaxStamina;
+        TemporaryDamage = 0f;
+        PermanentDamage = 0f;
+        BurnRemaining = 0f;
+        BurnTickAccumulator = 0f;
+        RecoveryDelayRemaining = 0f;
+        SprintLockRemaining = 0f;
+        isShotGunHit = false;
+    }
+
+    private void ClampCurrentStamina()
+    {
+        CurrentStamina = Mathf.Min(CurrentStamina, CurrentMaxStamina);
+    }
+
+    private static bool IsPositiveFinite(float value)
+    {
+        return value > 0f && !float.IsNaN(value) && !float.IsInfinity(value);
     }
 }

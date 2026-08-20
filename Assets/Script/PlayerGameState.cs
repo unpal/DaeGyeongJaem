@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
 using Script.dotori;
@@ -10,9 +8,6 @@ using Script.dotori;
 
 public class PlayerGameState : NetworkBehaviour
 {
-    private Vector3 roundSpawnPosition;
-    private Quaternion roundSpawnRotation;
-    
     public GameObject globalVolume;
     public GameObject wbVolume;
 
@@ -25,12 +20,6 @@ public class PlayerGameState : NetworkBehaviour
     [Networked]
     public NetworkString<_32> DisplayName { get; private set; }
     public int SortNum;
-
-    [Networked] public float CurrentStamina { get; private set; }
-    [Networked] public float MaxStamina { get; private set; }
-    //추가
-    [Networked] public float TemporaryDamage { get; private set; }
-    [Networked] public float PermanentDamage { get; private set; }
 
     [Networked]
     public NetworkBool IsDead { get; private set; }
@@ -46,18 +35,10 @@ public class PlayerGameState : NetworkBehaviour
         //if (!Object.HasStateAuthority)
         //    return;
 
-        roundSpawnPosition = transform.position;
-        roundSpawnRotation = transform.rotation;
-        
         //헷갈려
         if (Object.HasStateAuthority)
         {
             DisplayName = $"Player {Object.InputAuthority.PlayerId}";
-            MaxStamina = 100f;
-            CurrentStamina = MaxStamina;
-        //초기화
-            TemporaryDamage = 0f;
-            PermanentDamage = 0f;
         }
         
         
@@ -158,91 +139,13 @@ public class PlayerGameState : NetworkBehaviour
         IsDead = false;
         HasEscaped = false;
     }
-    public bool CanUseStamina(float amount)
-    {
-        if (amount <= 0f /*|| CurrentStamina < amount*/|| CurrentStamina <= 0)
-            return false;
-        return true;
-    }
-    public bool TryUseStamina(float amount)
-    {
-        if (!Object.HasStateAuthority)
-            return false;
-
-        CurrentStamina -= amount;
-
-        if (CurrentStamina < 0)
-            CurrentStamina = 0;
-        return true;
-    }
-
-    public void RecoverStamina(float amount)
-    {
-        if (!Object.HasStateAuthority || amount <= 0f)
-            return;
-
-        CurrentStamina = Mathf.Min(CurrentStamina + amount, MaxStamina);
-    }
-
-    public void SetMaxStamina(float amount)
+    public void ResetRoundResult()
     {
         if (!Object.HasStateAuthority)
             return;
 
-        MaxStamina = Mathf.Max(0f, amount);
-        CurrentStamina = Mathf.Min(CurrentStamina, MaxStamina);
-    }
-    //추가
-    public void SetDamageBreakdown(float temporaryDamage, float permanentDamage)
-    {
-        if (!Object.HasStateAuthority)
-            return;
-
-        TemporaryDamage = Mathf.Max(0f, temporaryDamage);
-        PermanentDamage = Mathf.Max(0f, permanentDamage);
-    }
-
-    public void ResetStamina()
-    {
-        if (!Object.HasStateAuthority)
-            return;
-
-        CurrentStamina = MaxStamina;
-    }
-
-    public void ResetForNextRound() //초기화
-    {
-        if (!Object.HasStateAuthority)
-            return;
         IsDead = false;
         HasEscaped = false;
-        PlayerCondition condition = GetComponent<PlayerCondition>();
-
-        if (condition != null)
-        {
-            condition.ResetForNextRound();
-            SetMaxStamina(condition.CurrentMaxStamina);
-        }
-
-        ResetStamina();
-
-        PlayerMove move = GetComponent<PlayerMove>();
-        if (move != null)
-            move.ResetForNextRound();
-
-        FallDamage fallDamage = GetComponent<FallDamage>();
-        if (fallDamage != null)
-            fallDamage.ResetForNextRound();
-
-        NetworkCharacterController controller =
-            GetComponent<NetworkCharacterController>();
-
-        if (controller != null)
-            controller.Teleport(roundSpawnPosition, roundSpawnRotation);
-        else
-            transform.SetPositionAndRotation(
-                roundSpawnPosition,
-                roundSpawnRotation);
     }
 
 }

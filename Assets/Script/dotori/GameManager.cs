@@ -216,7 +216,9 @@ public class GameManager : NetworkBehaviour
         PlayerGameState[] players = FindObjectsByType<PlayerGameState>(FindObjectsSortMode.None);
         foreach (PlayerGameState player in players)
         {
-            player.ResetForNextRound();
+            PlayerRoundLifecycle lifecycle = player.GetComponent<PlayerRoundLifecycle>();
+            if (lifecycle != null)
+                lifecycle.ResetForRound();
         }
 
         StartRound(false);

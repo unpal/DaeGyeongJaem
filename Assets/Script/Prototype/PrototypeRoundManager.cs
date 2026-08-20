@@ -206,19 +206,11 @@ public class PrototypeRoundManager : NetworkBehaviour
             if (state == null)
                 continue;
 
-            state.ResetForNextRound();
-            NetworkCharacterController controller = state.GetComponent<NetworkCharacterController>();
-            if (controller != null)
-                controller.Teleport(PrototypeSpawnPoints.Get(playerRef.PlayerId), Quaternion.identity);
-
-            FallDamage fallDamage = state.GetComponent<FallDamage>();
-            if (fallDamage != null)
-                fallDamage.ResetForNextRound();
-
-            if (state.TryGetComponent(out PlayerNoise noise))
-            {
-                noise.RestartPeriodicNoise();
-            }
+            PlayerRoundLifecycle lifecycle = state.GetComponent<PlayerRoundLifecycle>();
+            if (lifecycle != null)
+                lifecycle.ResetForRound(
+                    PrototypeSpawnPoints.Get(playerRef.PlayerId),
+                    Quaternion.identity);
         }
 
         PendingRoundWinner = PlayerRef.None;

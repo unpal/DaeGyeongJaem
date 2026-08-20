@@ -45,9 +45,9 @@ GameObject:
   - component: {fileID: 8980457805791645807}
   - component: {fileID: 1928040249987131803}
   - component: {fileID: -6885646200158004593}
-  - component: {fileID: 872836292970639320}
   - component: {fileID: 1663332307230815107}
   - component: {fileID: 5997651382988697563}
+  - component: {fileID: 4412345678901234567}
   - component: {fileID: -6459193691174752318}
   - component: {fileID: 647982741412882925}
   - component: {fileID: -8482163007196616827}
@@ -135,6 +135,7 @@ MonoBehaviour:
   - {fileID: 8980457805791645807}
   - {fileID: -6885646200158004593}
   - {fileID: 1663332307230815107}
+  - {fileID: 5997651382988697563}
   - {fileID: -6459193691174752318}
   - {fileID: -8482163007196616827}
   - {fileID: 8770475609500432936}
@@ -275,18 +276,6 @@ MonoBehaviour:
   HeadLayCasterTrans: {fileID: 6175063435306810339}
   WallLayCasterTrans: {fileID: 9090896596399048440}
   animator: {fileID: 0}
---- !u!114 &872836292970639320
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 80510252676572901}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a08ca8791d2d3d438a461766a23d2d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1663332307230815107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -322,17 +311,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseMaxStamina: 100
-  permanentDamage: 0
-  temporaryDamage: 0
-  sprintLockTimer: 0
-  burnTime: 0
   burnDuration: 3
   burnTick: 0.5
   burnDamage: 2
   recoverDelay: 5
   recoverRate: 1
   isShotGunHit: 0
-  burnRecovery: 1
+--- !u!114 &4412345678901234567
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e3d43a29f947a6a03de23926f871c2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!114 &-6459193691174752318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -351,10 +347,6 @@ MonoBehaviour:
     _data:
       Data: 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
   SortNum: 0
-  _CurrentStamina: 0
-  _MaxStamina: 0
-  _TemporaryDamage: 0
-  _PermanentDamage: 0
   _IsDead:
     _value: 0
   _HasEscaped:

@@ -210,9 +210,9 @@ public class PrototypeRoundView : MonoBehaviour
         float width = 320f;
         float baseMaximum = condition.BaseMaxStamina;
         //수정
-        float available = Mathf.Clamp(state.CurrentStamina, 0f, baseMaximum);
-        float lavaDamage = Mathf.Clamp(state.TemporaryDamage, 0f, baseMaximum);
-        float fallDamage = Mathf.Clamp(state.PermanentDamage, 0f, baseMaximum - lavaDamage);
+        float available = Mathf.Clamp(condition.CurrentStamina, 0f, baseMaximum);
+        float lavaDamage = Mathf.Clamp(condition.TemporaryDamage, 0f, baseMaximum);
+        float fallDamage = Mathf.Clamp(condition.PermanentDamage, 0f, baseMaximum - lavaDamage);
         //수정
         float usableMaximum = Mathf.Max(0f, baseMaximum - lavaDamage - fallDamage);
         //이것도 ui에 쓸거.
@@ -246,8 +246,8 @@ public class PrototypeRoundView : MonoBehaviour
 
         GUI.color = Color.white;
         GUI.Label(new Rect(background.x, background.y - 25f, width, 24f),
-            $"STAMINA {Mathf.CeilToInt(state.CurrentStamina)} / " +
-            $"{Mathf.CeilToInt(state.MaxStamina)}  " +
+            $"STAMINA {Mathf.CeilToInt(condition.CurrentStamina)} / " +
+            $"{Mathf.CeilToInt(condition.CurrentMaxStamina)}  " +
             $"LAVA {Mathf.CeilToInt(lavaDamage)}  FALL {Mathf.CeilToInt(fallDamage)}");
     }
 

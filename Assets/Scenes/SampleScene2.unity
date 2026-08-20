@@ -669,7 +669,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c2fa078cfe446fe46ab371e7b2147078, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stamina: {fileID: 1971775213}
   condition: {fileID: 1971775214}
   currentSlider: {fileID: 1681357720}
   maxSlider: {fileID: 1825567676}
@@ -1834,8 +1833,8 @@ GameObject:
   - component: {fileID: 1971775208}
   - component: {fileID: 1971775206}
   - component: {fileID: 1971775205}
-  - component: {fileID: 1971775213}
   - component: {fileID: 1971775214}
+  - component: {fileID: 1971775299}
   - component: {fileID: 1971775215}
   - component: {fileID: 1971775217}
   - component: {fileID: 1971775216}
@@ -2028,18 +2027,6 @@ Transform:
   - {fileID: 330585546}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1971775213
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1971775204}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6a08ca8791d2d3d438a461766a23d2d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1971775214
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2053,16 +2040,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseMaxStamina: 100
-  permanentDamage: 0
-  temporaryDamage: 0
-  sprintLockTimer: 0
-  burnTime: 0
   burnDuration: 3
   burnTick: 0.5
   burnDamage: 2
   recoverDelay: 5
   recoverRate: 1
-  burnRecovery: 1
+  isShotGunHit: 0
+--- !u!114 &1971775299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1971775204}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83e3d43a29f947a6a03de23926f871c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1971775215
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2191,7 +2186,6 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: 1971775205}
-  - {fileID: 1971775213}
   - {fileID: 1971775214}
   - {fileID: 1971775215}
   - {fileID: 1971775216}

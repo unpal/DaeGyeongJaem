@@ -1,38 +1,25 @@
 using System.Collections;
-using System.Collections.Generic;
-//추가했어요
 using Fusion;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class PlayerStaminaUI : MonoBehaviour
 {
     [Header("Reference")]
-    [SerializeField] private PlayerStamina stamina;
     [SerializeField] private PlayerCondition condition;
     [SerializeField] private PlayerGameState gameState;
 
     [Header("UI")]
     [SerializeField] private Slider currentSlider;
     [SerializeField] private Slider maxSlider;
-    [SerializeField] private GameObject ParentsSliderGameObject;
-
-    /*
-    private void Start()
-    {
-        //원래는 플레이어가 씬에 생성되있던 상태였지만 플레이어가 프리펩으로 스폰되기에 처음부터 플레이어 생성 이벤트를 리슨하도록 변경
-        ParentsSliderGameObject.SetActive(false);
-    }
-    */
-
-    //수정.. 원래 onenable 이랑 밑에 두개 플레이스 홀더 onlocalplayerspanwed onoff 코드였던거같은데 없어서
-    //ruuner.localplayer의 playerobject가 준비될때까지 대기 > why?
-    // spawned 호출 > spawn 호출 되는 역순 방지를 위해서..?
+    [FormerlySerializedAs("ParentsSliderGameObject")]
+    [SerializeField] private GameObject parentsSliderGameObject;
 
     private IEnumerator Start()
     {
         NetworkRunner runner = null;
-        NetworkObject localPlayer = null;   
+        NetworkObject localPlayer = null;
 
         while (localPlayer == null)
         {
@@ -40,88 +27,54 @@ public class PlayerStaminaUI : MonoBehaviour
                 runner = FindFirstObjectByType<NetworkRunner>();
 
             if (runner != null && runner.IsRunning)
-                runner.TryGetPlayerObject(
-                    runner.LocalPlayer,
-                    out localPlayer);
+                runner.TryGetPlayerObject(runner.LocalPlayer, out localPlayer);
 
             yield return null;
         }
 
-        stamina = localPlayer.GetComponent<PlayerStamina>();
         condition = localPlayer.GetComponent<PlayerCondition>();
         gameState = localPlayer.GetComponent<PlayerGameState>();
-
-        TryInitialize();
+        Initialize();
     }
 
-    //혹시 모르니 남겨놓을게요.
-    /*
-    private void OnEnable()
+    private void Initialize()
     {
-    }
-
-    private void OnDisable()
-    {
-
-    }
-    */
-
-    /*
-    private void SetStamina(PlayerStamina stamina)
-    {
-        this.stamina = stamina;
-        TryInitialize();
-    }
-    private void SetCondition(PlayerCondition condition)
-    {
-        this.condition = condition;
-        TryInitialize();
-    }
-    */
-
-    private void TryInitialize()
-    {
-        if (stamina == null || condition == null)
+        if (condition == null)
         {
-            Debug.LogError(
-                  "로컬 플레이어에 PlayerStamina 또는 PlayerCondition이 없습니다.");
+            Debug.LogError("Local player is missing PlayerCondition.");
+            enabled = false;
             return;
         }
-    
 
-        float baseMax = condition.BaseMaxStamina;
+        if (currentSlider == null || maxSlider == null || parentsSliderGameObject == null)
+        {
+            Debug.LogError("PlayerStaminaUI references are not assigned.");
+            enabled = false;
+            return;
+        }
 
-        currentSlider.maxValue = baseMax;
-        maxSlider.maxValue = baseMax;
-
-        ParentsSliderGameObject.SetActive(
-            gameState == null || gameState.IsInPlayground);
-
-        // 더 이상 이벤트가 필요 없으므로 해제
-        /*
-        PlayerStamina.OnLocalPlayerSpawned -= SetStamina;
-        PlayerCondition.OnLocalPlayerSpawned -= SetCondition;
-        */
+        float baseMaximum = condition.BaseMaxStamina;
+        currentSlider.maxValue = baseMaximum;
+        maxSlider.maxValue = baseMaximum;
+        parentsSliderGameObject.SetActive(gameState == null || gameState.IsInPlayground);
     }
 
     private void Update()
     {
+        if (condition == null)
+            return;
+
         bool shouldBeVisible = gameState == null || gameState.IsInPlayground;
-        if (ParentsSliderGameObject.activeSelf != shouldBeVisible)
-            ParentsSliderGameObject.SetActive(shouldBeVisible);
+        if (parentsSliderGameObject.activeSelf != shouldBeVisible)
+            parentsSliderGameObject.SetActive(shouldBeVisible);
 
         if (!shouldBeVisible)
             return;
 
-        if (condition != null && stamina != null)
-        {
-            float baseMax = condition.BaseMaxStamina;
-
-            currentSlider.maxValue = baseMax;
-            maxSlider.maxValue = baseMax;
-
-            currentSlider.value = stamina.CurrentStamina;
-            maxSlider.value = condition.CurrentMaxStamina;
-        }
+        float baseMaximum = condition.BaseMaxStamina;
+        currentSlider.maxValue = baseMaximum;
+        maxSlider.maxValue = baseMaximum;
+        currentSlider.value = condition.CurrentStamina;
+        maxSlider.value = condition.CurrentMaxStamina;
     }
 }
