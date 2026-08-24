@@ -71,6 +71,7 @@ namespace Fusion {
         public Transform HeadLayCasterTrans;
         public Transform WallLayCasterTrans;
     [SerializeField] private Animator animator;
+
         public Vector3 Velocity {
       get => Data.Velocity;
       set => Data.Velocity = value;
@@ -165,32 +166,13 @@ namespace Fusion {
       {
           edgePushTimer = Runner.DeltaTime;
       }
-      if (/*Data.Grounded*/IsFrontGround() && IsBackGround() && moveVelocity.y < 0) {
-        moveVelocity.y = 0f;
-      }
+      //if (IsFrontGround() && IsBackGround() && moveVelocity.y < 0) {
+      //  moveVelocity.y = 0f;
+      //}
 
       //클라이밍이나 마지막 대쉬때는 중력 계산 안되게
      moveVelocity.y += (IsClimbing || IsDash ? 0 : gravity) * Runner.DeltaTime;
 
-      //float verticalVelocity = 0;
-      //if (IsFrontGround() && IsBackGround() && verticalVelocity < 0)
-      //{
-      //    verticalVelocity = 0;
-      //}
-      //else if (IsFrontGround() && !IsBackGround())
-      //{
-      //    verticalVelocity += gravity * Runner.DeltaTime;
-      //    moveVelocity = transform.forward * verticalVelocity;
-      //}
-      //else if (!IsFrontGround() && IsBackGround())
-      //{
-      //    verticalVelocity += gravity * Runner.DeltaTime;
-      //    moveVelocity = -transform.forward * verticalVelocity;
-      //}
-      //else if (!IsFrontGround() && !IsBackGround())
-      //{
-      //    verticalVelocity = 0;
-      //}
       var horizontalVel = default(Vector3);
       horizontalVel.x = moveVelocity.x;
       if (IsClimbing)

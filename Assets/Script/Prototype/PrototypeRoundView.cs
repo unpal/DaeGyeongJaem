@@ -1,7 +1,8 @@
-using System.Collections.Generic;
 using Cinemachine;
 using Fusion;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PrototypeRoundView : MonoBehaviour
 {
@@ -39,9 +40,8 @@ public class PrototypeRoundView : MonoBehaviour
         if (configuredCameraOwner != localObject)
             ConfigureFirstPersonCamera(localObject);
 
-        if (state != null && move != null && move.playerInput != null)
-            move.playerInput.enabled = state.IsInPlayground &&
-                                       manager.Phase == PrototypeRoundPhase.Playing;
+        if (state != null && move != null && move.isPlayerInput())
+            move.PlayerInputSetting(state.IsInPlayground && manager.Phase == PrototypeRoundPhase.Playing);
     }
 
     private void ConfigureFirstPersonCamera(NetworkObject localPlayer)
