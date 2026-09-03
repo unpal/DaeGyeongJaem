@@ -7,6 +7,8 @@ public class PlayerFootstep
 
     private bool firstStep;
     private bool secondStep;
+    private bool FirstForce;
+    private bool SecondForce;
 
     public PlayerFootstep(
         PlayerAnimation animation,
@@ -16,7 +18,7 @@ public class PlayerFootstep
         this.soundRange = soundRange;
     }
 
-    public bool Update(
+    public int Update(
         Vector3 position,
         bool climbing,
         bool sprinting)
@@ -24,18 +26,32 @@ public class PlayerFootstep
         AnimatorStateInfo state =
             animation.GetState();
 
+        float time =
+        state.normalizedTime % 1f;
         if (climbing ||
             state.IsName("Climb"))
         {
-            Reset();
-            return false;
+            ResetStep();
+            if(time >= 0.4f && time < 0.8f && !FirstForce)
+            {
+                FirstForce = true;
+                return 2;
+            }
+            if (time >= 0.8f && !SecondForce)
+            {
+                SecondForce = true;
+                return 2;
+            }
+            if(time < 0.4f)
+            {
+                ResetForce();
+            }
         }
 
         if (!state.IsName("Run"))
-            return false;
+            return 0;
 
-        float time =
-            state.normalizedTime % 1f;
+        ResetForce();
 
         if (time >= 0.15f &&
             time < 0.65f &&
@@ -44,7 +60,7 @@ public class PlayerFootstep
         {
             firstStep = true;
 
-            return true;
+            return 1;
         }
 
         if (time >= 0.65f &&
@@ -53,21 +69,26 @@ public class PlayerFootstep
         {
             secondStep = true;
 
-            return true;
+            return 1;
         }
 
         if (time < 0.15f)
-            Reset();
+            ResetStep();
 
-        return false;
+        return 0;
     }
 
     public float SoundRange =>
         soundRange;
 
-    public void Reset()
+    public void ResetStep()
     {
         firstStep = false;
         secondStep = false;
+    }
+    public void ResetForce()
+    {
+        FirstForce = false;
+        SecondForce = false;
     }
 }

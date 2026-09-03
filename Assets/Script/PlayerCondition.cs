@@ -75,6 +75,12 @@ public class PlayerCondition : NetworkBehaviour
         return IsPositiveFinite(amount) && CurrentStamina > 0f;
     }
 
+    public float StaminaRat()
+    {
+        //남은 스테미나 비율 반환
+        return  CurrentStamina / CurrentMaxStamina;
+    }
+
     public bool TryUseStamina(float amount)
     {
         if (!Object.HasStateAuthority || !CanUseStamina(amount))

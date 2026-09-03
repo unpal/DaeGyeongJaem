@@ -67,7 +67,6 @@ public class Shotgun : NetworkBehaviour
             if (condition != null)
             {
                 condition.ApplyPermanentDamage(70);
-                Debug.Log("�ѿ� ����!");
             }
         }
         particles.Play();

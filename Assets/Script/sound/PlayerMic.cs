@@ -80,7 +80,7 @@ public class PlayerMic : MonoBehaviour
 
         if (debugVolume)
         {
-            Debug.Log($"[PlayerMic] Current Volume: {volume:F4} (Threshold: {volumeThreshold})");
+           // Debug.Log($"[PlayerMic] Current Volume: {volume:F4} (Threshold: {volumeThreshold})");
         }
         
         if (volume > volumeThreshold)

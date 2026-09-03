@@ -154,6 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   runSpeed: 8
+  ClimbForceTime: 0.4
   sensitivity: 0.1
   sprintDrain: 15
   jumpCost: 10
@@ -215,7 +216,7 @@ MonoBehaviour:
   rotationSpeed: 0
   IsClimbing: 0
   IsDash: 0
-  ClimbingSpeed: 1.5
+  ClimbingSpeed: 2
   edgePushTime: 0.2
   edgePushTimer: 0
   edgePushForce: 5

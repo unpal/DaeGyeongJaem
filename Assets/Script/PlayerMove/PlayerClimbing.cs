@@ -17,6 +17,9 @@ public class PlayerClimbing
     private Vector3 wallNormal;
     private float wallDistance;
 
+    private bool IsForce;
+    private float ForceTime;
+    private float CurrentForceTime;
     public PlayerClimbing(
         NetworkCharacterController controller,
         PlayerCondition condition,
@@ -24,7 +27,8 @@ public class PlayerClimbing
         FallDamage fallDamage,
         Transform wallCaster,
         LayerMask wallLayer,
-        float climbDrain)
+        float climbDrain,
+        float ForceTime)
     {
         this.controller = controller;
         this.condition = condition;
@@ -33,6 +37,7 @@ public class PlayerClimbing
         this.wallCaster = wallCaster;
         this.wallLayer = wallLayer;
         this.climbDrain = climbDrain;
+        this.ForceTime = ForceTime;
     }
 
     public bool IsClimbing =>
@@ -61,10 +66,33 @@ public class PlayerClimbing
         else if (!canClimb &&
                  controller.IsClimbing)
         {
+            Debug.Log("클라이밍 종료 사유 \n"+
+                $"IsWall(): {IsWall()}\n" +
+                $"attackPressed: {attackPressed}\n" +
+                $"controller.IsDash: {!controller.IsDash}\n" +
+                $"gameState: {gameState != null}" + 
+                $"gameState.IsInPlayground: {gameState.IsInPlayground}\n"
+            );
+
+
             StopClimbing(attackPressed);
         }
 
         return controller.IsClimbing;
+    }
+
+    public void UpdateForce(float deltaTime)
+    {
+        if (IsForce)
+        {
+            CurrentForceTime -= deltaTime;
+            //Debug.Log(CurrentForceTime);
+            if (CurrentForceTime < 0)
+            {
+                CurrentForceTime = 0;
+                IsForce = false;
+            }
+        }
     }
 
     private void StartClimbing()
@@ -114,9 +142,10 @@ public class PlayerClimbing
             condition.CanUseStamina(stamina))
         {
             condition.TryUseStamina(stamina);
-
+            float staminarat = condition.StaminaRat();
+           // Debug.Log(staminarat);
             controller.Move(
-                move * deltaTime);
+                move * deltaTime * (staminarat < 0.3f ? staminarat : 1),IsForce);
         }
         else
         {
@@ -168,7 +197,7 @@ public class PlayerClimbing
                     start,
                     forward,
                     out hit,
-                    0.8f,
+                    1.5f,
                     wallLayer))
                 {
                     if (hit.distance < wallDistance)
@@ -191,5 +220,11 @@ public class PlayerClimbing
     public void Reset()
     {
         controller.IsClimbing = false;
+    }
+   
+    public void SetIsForce(bool Force)
+    {
+        IsForce = Force;
+        CurrentForceTime = ForceTime;
     }
 }
