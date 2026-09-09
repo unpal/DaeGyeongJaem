@@ -1,222 +1,314 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Cinemachine;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum LobbySessionState { Idle, Connecting, Connected, StartingGame, Leaving, Error }
 
-//얘가 하는일
-// 매칭, 로비scene의 네트워크 관련된 모든일?
-//host client 접속, 플레이어 생성, 네트워크 입력 전달,
-//화면 표시와 버튼 입력은 prototypelobbyui였던걸로
+// One persistent owner handles callbacks. A newly loaded lobby delegates to that owner.
 public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] private NetworkObject playerPrefab;
-    //하드코딩된 scene index
     [SerializeField] private int gameplaySceneBuildIndex = 2;
-    //방 코드
     [SerializeField] private string sessionName = "";
+    [SerializeField, Min(5f)] private float connectionTimeoutSeconds = 30f;
 
+    private static PrototypeLobbyBootstrap activeSession;
+    private PrototypeLobbyBootstrap owner;
     private NetworkRunner runner;
-    private string status = "Host 또는 Client를 선택하세요.";
     private int lobbySceneBuildIndex;
-    //runner.startgame 중복호출 방지용 
-    private bool isConnecting;
-    //이름
-    //플레이어 networkobject spawn 됨 > playergamestate가 rpc 로 host에 전달
+    private LobbySessionState state;
+    private string status = "이름을 입력하고 방을 만들거나 참가해 주세요.";
+    private string lastError;
+    private int errorVersion;
+    private CancellationTokenSource connectionCancellation;
+    private bool applicationQuitting;
+
+    private PrototypeLobbyBootstrap Session => owner != null ? owner : this;
     public static string LocalPlayerName { get; private set; } = string.Empty;
+    public LobbySessionState State => Session.state;
+    public string Status => Session.status;
+    public string RoomCode => Session.sessionName;
+    public string LastError => Session.lastError;
+    public int ErrorVersion => Session.errorVersion;
+    public bool IsConnecting => State == LobbySessionState.Connecting;
+    public bool IsBusy => State == LobbySessionState.Connecting ||
+                          State == LobbySessionState.StartingGame ||
+                          State == LobbySessionState.Leaving;
+    public bool IsConnected => Session.runner != null && Session.runner.IsRunning &&
+        (State == LobbySessionState.Connected || State == LobbySessionState.StartingGame);
+    public bool IsHost => IsConnected && Session.runner.IsServer;
+    public int PlayerCount => IsConnected ? CountPlayers(Session.runner) : 0;
 
-    public string Status => status;
-    public string RoomCode => sessionName;
-    public bool IsConnecting => isConnecting;
-    public bool IsConnected => runner != null && runner.IsRunning;
-    public bool IsHost => IsConnected && runner.IsServer;
-    public int PlayerCount => IsConnected ? CountPlayers(runner) : 0;
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        activeSession = null;
+        LocalPlayerName = string.Empty;
+    }
 
-
-    //
     private void Awake()
     {
-        EnsureLocalPlayerCameraOutput();
-
-        //로비씬번호 저장?
-        //Bootstrap 오브젝트가 처음 들어 있던 씬 번호를 저장 <<
-        lobbySceneBuildIndex = SceneManager.GetActiveScene().buildIndex;
-
-        //라운드 종료 > 로비 복귀시 기존 runner 가 살아있을수도 있음
-        //이러면 runner 재사용하기
-        foreach (NetworkRunner existing in NetworkRunner.Instances)
-        {
-            if (existing == null || !existing.IsRunning)
-                continue;
-
-            runner = existing;
-            sessionName = existing.SessionInfo.Name;
-            status = existing.IsServer
-                ? "방 준비 완료 - Enter로 게임 시작"
-                : "Host가 게임을 시작하기를 기다리는 중";
-            enabled = false;
-            return;
-        }
-
-        //최초 매칭 진입에서만 새 Runner를 만들기
-        runner = gameObject.AddComponent<NetworkRunner>();
-        gameObject.AddComponent<NetworkSceneManagerDefault>();
-        gameObject.AddComponent<NetworkObjectProviderDefault>();
-
-        //플레이어 접속과 입력 등의 Fusion 콜백을 이 Bootstrap이 받도록 등록
-        runner.AddCallbacks(this);
-    }
-
-    private static void EnsureLocalPlayerCameraOutput()
-    {
         Camera mainCamera = Camera.main;
-        if (mainCamera == null)
+        if (mainCamera != null && mainCamera.GetComponent<CinemachineBrain>() == null)
+            mainCamera.gameObject.AddComponent<CinemachineBrain>();
+
+        if (activeSession != null && activeSession != this)
         {
-            Debug.LogError("[Lobby] MainCamera를 찾지 못했습니다.");
+            owner = activeSession;
             return;
         }
-
-        // 실제 화면을 렌더링하는 카메라는 씬에 하나만 두고,
-        // 각 클라이언트의 로컬 플레이어 Virtual Camera가 이를 제어한다.
-        if (mainCamera.GetComponent<CinemachineBrain>() == null)
-            mainCamera.gameObject.AddComponent<CinemachineBrain>();
+        activeSession = this;
+        lobbySceneBuildIndex = gameObject.scene.buildIndex;
+        // Detach only this service; UI and environment stay owned by the scene.
+        transform.SetParent(null);
+        DontDestroyOnLoad(gameObject);
     }
 
-    private void Update()
-    {
-
-        // Runner 오브젝트가 다른 씬에서도 유지될 수 있으므로> 로비에서 Enter 검사?
-        //오브젝트가 살아있는채로(다른씬에서) enter 누르면 게임시작이 다시 호출될수도 있을거같긴한데
-        if (!IsLobbySceneActive())
-            return;
-
-        // 네트워크 씬 전환은 모든 참가자를 이동시킬 수 있는 Host만 요청.
-        if (runner != null && runner.IsRunning && runner.IsServer &&
-            Input.GetKeyDown(KeyCode.Return))
-            runner.LoadScene(SceneRef.FromIndex(gameplaySceneBuildIndex));
-    }
-
-    //이름을 저장하고 무작위 방 코드를 생성한 뒤 Host 세션을 시작
     public void StartHost(string playerName)
     {
-        if (isConnecting || IsConnected || !TrySetPlayerName(playerName))
-            return;
-
+        if (Session != this) { Session.StartHost(playerName); return; }
+        if (IsBusy || IsConnected || !TrySetPlayerName(playerName)) return;
         sessionName = GenerateRoomCode();
-        StartSession(GameMode.Host, sessionName);
+        StartSession(GameMode.Host);
     }
 
-    //이름과 방 코드를 검사한 뒤 해당 SessionName의 방에 Client로 참가
     public void JoinClient(string playerName, string roomCode)
     {
-        if (isConnecting || IsConnected || !TrySetPlayerName(playerName))
-            return;
-
-        string normalizedCode = NormalizeRoomCode(roomCode);
-        if (normalizedCode.Length != 6)
+        if (Session != this) { Session.JoinClient(playerName, roomCode); return; }
+        if (IsBusy || IsConnected || !TrySetPlayerName(playerName)) return;
+        string code = (roomCode ?? "").Trim().ToUpperInvariant();
+        if (!IsValidRoomCode(code))
         {
-            status = "방 코드는 6자리입니다.";
+            ReportError("영문과 숫자로 된 6자리 방 코드를 입력해 주세요.");
             return;
         }
-
-        sessionName = normalizedCode;
-        StartSession(GameMode.Client, sessionName);
+        sessionName = code;
+        StartSession(GameMode.Client);
     }
 
+    private async void StartSession(GameMode mode)
+    {
+        // Acquire before the first await; callbacks never release this operation's lock.
+        state = LobbySessionState.Connecting;
+        status = mode == GameMode.Host ? "방을 만들고 있어요..." : "방에 연결하고 있어요...";
+        string failure = null;
+        using (var cancellation = new CancellationTokenSource())
+        {
+            connectionCancellation = cancellation;
+            cancellation.CancelAfter(TimeSpan.FromSeconds(Mathf.Max(5f, connectionTimeoutSeconds)));
+            try
+            {
+                // Allow the loading overlay to be presented before connection work starts.
+                await Task.Yield();
+                if (this == null || applicationQuitting) return;
+                await DisposeRunner();
+                cancellation.Token.ThrowIfCancellationRequested();
+                var runnerObject = new GameObject("LobbyNetworkRunner");
+                DontDestroyOnLoad(runnerObject);
+                runner = runnerObject.AddComponent<NetworkRunner>();
+                var sceneManager = runnerObject.AddComponent<NetworkSceneManagerDefault>();
+                var objectProvider = runnerObject.AddComponent<NetworkObjectProviderDefault>();
+                runner.AddCallbacks(this);
+
+                StartGameResult result = await runner.StartGame(new StartGameArgs
+                {
+                    GameMode = mode,
+                    SessionName = sessionName,
+                    PlayerCount = 5,
+                    Scene = SceneRef.FromIndex(lobbySceneBuildIndex),
+                    SceneManager = sceneManager,
+                    ObjectProvider = objectProvider,
+                    EnableClientSessionCreation = false,
+                    StartGameCancellationToken = cancellation.Token
+                });
+                if (this == null || applicationQuitting) return;
+                if (cancellation.IsCancellationRequested)
+                    failure = "연결 시간이 초과됐어요. 인터넷 연결을 확인하고 다시 시도해 주세요.";
+                else if (!result.Ok || runner == null || !runner.IsRunning)
+                    failure = FriendlyFailure(result.ShutdownReason);
+                else
+                    SetConnected();
+            }
+            catch (OperationCanceledException)
+            {
+                failure = "연결 시간이 초과됐어요. 인터넷 연결을 확인하고 다시 시도해 주세요.";
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                failure = "방에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.";
+            }
+            finally
+            {
+                if (connectionCancellation == cancellation)
+                    connectionCancellation = null;
+            }
+        }
+        if (failure != null && this != null && !applicationQuitting)
+        {
+            // A failed Fusion runner is never reused. Keep input locked through cleanup.
+            status = "연결을 정리하고 있어요...";
+            try { await DisposeRunner(); }
+            catch (Exception exception) { Debug.LogException(exception); }
+            if (this != null) ReportError(failure);
+        }
+    }
+
+    public async void StartGame()
+    {
+        if (Session != this) { Session.StartGame(); return; }
+        if (IsBusy || !IsHost || !IsLobbySceneActive()) return;
+        state = LobbySessionState.StartingGame;
+        status = "게임을 불러오고 있어요...";
+        try
+        {
+            await Task.Yield();
+            if (this == null || applicationQuitting) return;
+            if (runner == null || !runner.IsRunning)
+                throw new InvalidOperationException("The session ended before loading the game.");
+            NetworkSceneAsyncOp operation = runner.LoadScene(SceneRef.FromIndex(gameplaySceneBuildIndex));
+            while (!operation.IsDone)
+            {
+                await Task.Yield();
+                if (this == null || applicationQuitting) return;
+                if (runner == null || !runner.IsRunning)
+                    throw new InvalidOperationException("The session ended while loading the game.");
+            }
+            if (operation.Error != null) throw operation.Error;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            if (this != null)
+                ReportError("게임을 불러오지 못했어요. 다시 시도하거나 방에서 나가 주세요.");
+        }
+    }
 
     public async void LeaveToMainMenu()
     {
-
-        // Runner를 남겨둔 채 메인으로 이동하면 다음 매칭 진입 시
-        // 기존 세션이나 네트워크 콜백이 중복될 수 있으므로 먼저 종료한다.
-        if (runner != null && runner.IsRunning)
-            await runner.Shutdown();
-
-        // 메인 화면은 네트워크 씬이 아니므로 일반 SceneManager로 이동
-        SceneManager.LoadScene("MainMenuScene");
-    }
-
-    private async void StartSession(GameMode mode, string roomCode)
-    {
-        // 버튼을 여러 번 눌러 StartGame이 중복 호출되는 것을 방지
-        isConnecting = true;
-        status = mode == GameMode.Host ? "방을 만드는 중..." : "방에 접속하는 중...";
-
-        StartGameResult result = await runner.StartGame(new StartGameArgs
+        if (Session != this) { Session.LeaveToMainMenu(); return; }
+        if (IsBusy) return;
+        state = LobbySessionState.Leaving;
+        status = "방에서 나가고 있어요...";
+        try
         {
-            GameMode = mode,
-            // 같은 코드를 사용하는 Host와 Client가 동일한 세션에 접속
-            SessionName = roomCode,
-            //플레이어 수 조정가능
-            PlayerCount = 5,
-
-            // 세션 시작 후에도 현재 매칭 씬을 네트워크 씬으로 사용한다.
-            Scene = SceneRef.FromIndex(gameObject.scene.buildIndex)
-        });
-
-        isConnecting = false;
-        status = result.Ok
-            ? (mode == GameMode.Host
-                ? "방 준비 완료 - Enter로 게임 시작"
-                : "접속 완료 - Host가 게임을 시작하기를 기다리는 중")
-            : $"접속 실패: {result.ShutdownReason}";
+            await Task.Yield();
+            await DisposeRunner();
+            if (this == null || applicationQuitting) return;
+            AsyncOperation operation = SceneManager.LoadSceneAsync("MainMenuScene");
+            while (operation != null && !operation.isDone) await Task.Yield();
+            activeSession = null;
+            Destroy(gameObject);
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            if (this != null) ReportError("나가기를 완료하지 못했어요. 다시 시도해 주세요.");
+        }
     }
 
-    //문자열 처리
+    private async Task DisposeRunner()
+    {
+        NetworkRunner previous = runner;
+        if (previous == null) { runner = null; return; }
+        previous.RemoveCallbacks(this);
+        try { await previous.Shutdown(destroyGameObject: false); }
+        finally
+        {
+            if (previous != null) Destroy(previous.gameObject);
+            if (runner == previous) runner = null;
+        }
+    }
+
+    private void SetConnected()
+    {
+        state = LobbySessionState.Connected;
+        status = runner != null && runner.IsServer
+            ? "준비되면 게임 시작 버튼을 눌러 주세요."
+            : "방장이 게임을 시작하기를 기다리고 있어요.";
+    }
+
+    private void ReportError(string message)
+    {
+        state = runner != null && runner.IsRunning ? LobbySessionState.Connected : LobbySessionState.Error;
+        status = message;
+        lastError = message;
+        errorVersion++;
+    }
+
+    private async void HandleDisconnect(NetworkRunner source, string message)
+    {
+        if (source != runner || IsBusy || applicationQuitting) return;
+        state = LobbySessionState.Leaving;
+        status = "끊어진 연결을 정리하고 있어요...";
+        try
+        {
+            // Do not invoke Shutdown recursively inside a shutdown callback.
+            await Task.Yield();
+            if (this == null || applicationQuitting) return;
+            await DisposeRunner();
+        }
+        catch (Exception exception) { Debug.LogException(exception); }
+        if (this != null && !applicationQuitting) ReportError(message);
+    }
+
+    private static string FriendlyFailure(ShutdownReason reason)
+    {
+        // Keep engine details in logs, while explaining useful next steps to players.
+        Debug.LogWarning($"[Lobby] Connection failed: {reason}");
+        switch (reason.ToString())
+        {
+            case "GameNotFound": return "방을 찾지 못했어요. 방 코드를 확인해 주세요.";
+            case "GameIsFull": return "방이 가득 찼어요. 다른 방에 참가해 주세요.";
+            case "GameClosed": return "참가할 수 없는 방이에요. 방장에게 확인해 주세요.";
+            case "GameIdAlreadyExists": return "방 코드가 겹쳤어요. 방 만들기를 다시 눌러 주세요.";
+            case "PhotonCloudTimeout":
+            case "ConnectionTimeout": return "서버 응답이 늦어지고 있어요. 인터넷 연결을 확인하고 다시 시도해 주세요.";
+            default: return "방에 연결하지 못했어요. 방 코드와 인터넷 연결을 확인하고 다시 시도해 주세요.";
+        }
+    }
+
     private bool TrySetPlayerName(string playerName)
     {
-        string normalizedName = string.IsNullOrWhiteSpace(playerName) ? "" : playerName.Trim();
-        if (normalizedName.Length == 0)
-        {
-            status = "플레이어 이름을 입력하세요.";
-            return false;
-        }
-
-        LocalPlayerName = normalizedName.Length <= 16
-            ? normalizedName
-            : normalizedName.Substring(0, 16);
+        string name = (playerName ?? "").Trim();
+        if (name.Length == 0) { ReportError("플레이어 이름을 입력해 주세요."); return false; }
+        LocalPlayerName = name.Length <= 16 ? name : name.Substring(0, 16);
         PlayerPrefs.SetString("PlayerName", LocalPlayerName);
         PlayerPrefs.Save();
         return true;
     }
 
-    private static string NormalizeRoomCode(string roomCode)
+    public static bool IsValidRoomCode(string code)
     {
-        return string.IsNullOrWhiteSpace(roomCode)
-            ? ""
-            : roomCode.Trim().ToUpperInvariant();
+        if (string.IsNullOrEmpty(code) || code.Length != 6) return false;
+        foreach (char c in code)
+            if (!(c >= 'A' && c <= 'Z') && !(c >= '0' && c <= '9')) return false;
+        return true;
     }
 
     private static string GenerateRoomCode()
     {
-
-        // O/0, I/1처럼 서로 혼동하기 쉬운 문자는 제외
-        //랜덤
         const string characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
         char[] code = new char[6];
         for (int i = 0; i < code.Length; i++)
-            //이런게 있는.. securerandom쓸뻔
             code[i] = characters[UnityEngine.Random.Range(0, characters.Length)];
         return new string(code);
     }
 
-    private bool IsLobbySceneActive()
-    {
-        return SceneManager.GetActiveScene().buildIndex == lobbySceneBuildIndex;
-    }
-
+    private bool IsLobbySceneActive() => SceneManager.GetActiveScene().buildIndex == lobbySceneBuildIndex;
     private static int CountPlayers(NetworkRunner networkRunner)
     {
         int count = 0;
-        foreach (PlayerRef ignored in networkRunner.ActivePlayers)
-            count++;
+        foreach (PlayerRef ignored in networkRunner.ActivePlayers) count++;
         return count;
     }
 
-    //플레이어생성
     public void OnPlayerJoined(NetworkRunner networkRunner, PlayerRef player)
     {
         //Host만 수행
@@ -250,54 +342,69 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
             roundManager.ReevaluateAfterRosterChange();
     }
 
-    //네트워크 입력인데 이 밑으로는 제가 할수있는 영역이 아니에요..
+
     public void OnInput(NetworkRunner networkRunner, NetworkInput input)
     {
+        if (IsBusy || (IsLobbySceneActive() && Cursor.lockState != CursorLockMode.Locked))
+        {
+            input.Set(default(NetworkInputData));
+            return;
+        }
         if (!networkRunner.TryGetPlayerObject(networkRunner.LocalPlayer, out NetworkObject playerObject) ||
-            playerObject == null)
-            return;
-
+            playerObject == null) return;
         PlayerMove move = playerObject.GetComponent<PlayerMove>();
-        PlayerGameState state = playerObject.GetComponent<PlayerGameState>();
-        if (move == null)
-            return;
-
-        input.Set(state != null && !state.IsInPlayground ? default : move.GetNetworkInput());
+        PlayerGameState playerState = playerObject.GetComponent<PlayerGameState>();
+        if (move == null) return;
+        input.Set(playerState != null && !playerState.IsInPlayground ? default : move.GetNetworkInput());
     }
 
     public void OnConnectedToServer(NetworkRunner r) { }
     public void OnConnectFailed(NetworkRunner r, NetAddress a, NetConnectFailedReason reason)
     {
-        isConnecting = false;
-        status = $"접속 실패: {reason}";
+        // StartSession owns cleanup and will report its final result.
+        Debug.LogWarning($"[Lobby] Connect failed: {reason}");
     }
+    public void OnDisconnectedFromServer(NetworkRunner r, NetDisconnectReason reason) =>
+        HandleDisconnect(r, "방과의 연결이 끊어졌어요. 다시 참가해 주세요.");
+    public void OnShutdown(NetworkRunner r, ShutdownReason reason) =>
+        HandleDisconnect(r, "방이 종료됐어요. 다른 방을 만들거나 참가해 주세요.");
+
+    public void OnSceneLoadStart(NetworkRunner r)
+    {
+        if (r != runner || state != LobbySessionState.Connected) return;
+        state = LobbySessionState.StartingGame;
+        status = "게임 화면을 불러오고 있어요...";
+    }
+    public void OnSceneLoadDone(NetworkRunner r)
+    {
+        if (r != runner) return;
+        if (r.IsServer)
+            foreach (PlayerRef player in r.ActivePlayers) OnPlayerJoined(r, player);
+        if (state == LobbySessionState.StartingGame) SetConnected();
+    }
+
+    private void OnApplicationQuit() => applicationQuitting = true;
+    private void OnDestroy()
+    {
+        if (activeSession != this) return;
+        activeSession = null;
+        connectionCancellation?.Cancel();
+        if (runner != null)
+        {
+            runner.RemoveCallbacks(this);
+            if (!applicationQuitting) _ = runner.Shutdown();
+        }
+    }
+
     public void OnConnectRequest(NetworkRunner r, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnCustomAuthenticationResponse(NetworkRunner r, Dictionary<string, object> data) { }
-    public void OnDisconnectedFromServer(NetworkRunner r, NetDisconnectReason reason)
-    {
-        status = $"연결 종료: {reason}";
-    }
     public void OnHostMigration(NetworkRunner r, HostMigrationToken token) { }
     public void OnInputMissing(NetworkRunner r, PlayerRef p, NetworkInput input) { }
     public void OnObjectEnterAOI(NetworkRunner r, NetworkObject obj, PlayerRef p) { }
     public void OnObjectExitAOI(NetworkRunner r, NetworkObject obj, PlayerRef p) { }
     public void OnReliableDataProgress(NetworkRunner r, PlayerRef p, ReliableKey key, float progress) { }
     public void OnReliableDataReceived(NetworkRunner r, PlayerRef p, ReliableKey key, ArraySegment<byte> data) { }
-    public void OnSceneLoadDone(NetworkRunner r)
-    {
-        if (!r.IsServer)
-            return;
-
-        foreach (PlayerRef player in r.ActivePlayers)
-            OnPlayerJoined(r, player);
-    }
-    public void OnSceneLoadStart(NetworkRunner r) { }
     public void OnSessionListUpdated(NetworkRunner r, List<SessionInfo> sessions) { }
-    public void OnShutdown(NetworkRunner r, ShutdownReason reason)
-    {
-        isConnecting = false;
-        status = $"연결 종료: {reason}";
-    }
     public void OnUserSimulationMessage(NetworkRunner r, SimulationMessagePtr message) { }
 }
 
