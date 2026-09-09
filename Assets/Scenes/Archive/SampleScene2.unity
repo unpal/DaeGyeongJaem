@@ -575,7 +575,6 @@ GameObject:
   m_Component:
   - component: {fileID: 467260812}
   - component: {fileID: 467260813}
-  - component: {fileID: 467260814}
   m_Layer: 5
   m_Name: StaminaBar
   m_TagString: Untagged
@@ -657,22 +656,6 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &467260814
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 467260811}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c2fa078cfe446fe46ab371e7b2147078, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  condition: {fileID: 1971775214}
-  currentSlider: {fileID: 1681357720}
-  maxSlider: {fileID: 1825567676}
-  ParentsSliderGameObject: {fileID: 0}
 --- !u!1 &537266536
 GameObject:
   m_ObjectHideFlags: 0
