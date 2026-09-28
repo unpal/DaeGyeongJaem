@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 
 public class CameraMove : NetworkBehaviour
 {
-    [SerializeField] private PlayerInput playerInput;
     [SerializeField] private Transform player;
 
     [SerializeField] private float sensitivity = 0.1f;
@@ -13,16 +12,7 @@ public class CameraMove : NetworkBehaviour
     private float xRotation = 0f;
     private Vector2 lookInput;
 
-    private void Awake()
-    {
-        lookAction = playerInput.actions["Look"];
-    }
 
-    private void Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
     //private void Update()
     //{
     //    if (!Object.HasInputAuthority)
