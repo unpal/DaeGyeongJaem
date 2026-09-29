@@ -230,15 +230,30 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             return;
         }
 
-        if (data.Buttons.IsSet(PlayerButtons.Attack))
-            WallCheck();
+
+
+
+        //if (stateMachine == StateMachine.Wall)
+        //{
+        //    TransitionToFloor();
+        //}
 
         switch (stateMachine)
         {
             case StateMachine.Floor:
                 FloorMove(data);
+
+                if (data.Buttons.IsSet(PlayerButtons.Attack))
+                    WallCheck();
+
                 break;
             case StateMachine.Wall:
+
+                WallClimb(data);
+
+                if (!data.Buttons.IsSet(PlayerButtons.Attack))
+                    TransitionToFloor();
+
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -391,20 +406,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         vector3.y += 1;
         ray.origin = vector3;
         Debug.DrawRay(ray.origin, ray.direction * rayMaxDistance, Color.red);
-        if (Physics.Raycast(ray, out _, rayMaxDistance, wallLayerMask))
+        if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
         {
 
-            Debug.Log("이거 되긴됨?");
+            TransitionToWall(transHit.point, transHit.normal);
 
-
-            _wallCheckCoroutine = null;
-
-            if (_wallClimbCoroutine != null)
-            {
-                StopCoroutine(_wallClimbCoroutine);
-            }
-
-            _wallClimbCoroutine = StartCoroutine(WallClimbCoroutine());
         }
     }
 
@@ -500,7 +506,186 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             return origin + direction * rayMaxDistance;
         }
     }
+    private void WallClimb(NetworkInputData data)
+    {
+        try
+        {
+            var ray = new Ray
+            {
+                origin = transform.position,
+                direction = transform.forward
+            };
+            if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
+            {
+                var angle = Vector3.Angle(Vector3.up, transHit.normal);
+                if (angle >= 45f)
+                {
+                    TransitionToWall(transHit.point, transHit.normal);
+                }
+                else
+                {
+                    TransitionToFloor();
+                    return;
+                }
+            }
 
+            // 손과 발의 초기 위치 및 법선 설정
+            _rightHandPos = SimpleRaycast(rightUpperArm.position, transform.forward, rayMaxDistance, out _rightHandNormal);
+            _leftHandPos = SimpleRaycast(leftUpperArm.position, transform.forward, rayMaxDistance, out _leftHandNormal);
+            _rightFootPos = SimpleRaycast(rightCalf.position, transform.forward, rayMaxDistance, out _rightFootNormal);
+            _leftFootPos = SimpleRaycast(leftCalf.position, transform.forward, rayMaxDistance, out _leftFootNormal);
+
+            while (stateMachine == StateMachine.Wall)
+            {
+                Transform arm;
+                Transform calf;
+                if (_isRightTurn)
+                {
+                    arm = rightUpperArm;
+                    calf = leftCalf;
+                }
+                else
+                {
+                    arm = leftUpperArm;
+                    calf = rightCalf;
+                }
+
+                if (arm == null || calf == null)
+                {
+                    return;
+                }
+
+                RaycastHit hit;
+
+                var armLowerBound = (transform.forward - transform.up).normalized;
+                var armUpperBound = transform.up;
+                RaycastHit lastHit = default;
+                bool anyHit = false;
+
+                for (var i = 0; i < searchCount; i++)
+                {
+                    var midDir = (armLowerBound + armUpperBound).normalized;
+                    var query = new Ray
+                    {
+                        origin = arm.position,
+                        direction = midDir,
+                    };
+                    if (Physics.Raycast(query, out hit, armLength, wallLayerMask))
+                    {
+                        armLowerBound = midDir;
+                        lastHit = hit;
+                        anyHit = true;
+                    }
+                    else
+                    {
+                        armUpperBound = midDir;
+                    }
+                }
+
+                if (anyHit)
+                {
+                    if (_isRightTurn)
+                    {
+                        _rightHandPos = lastHit.point;
+                        _rightHandNormal = lastHit.normal;
+                    }
+                    else
+                    {
+                        _leftHandPos = lastHit.point;
+                        _leftHandNormal = lastHit.normal;
+                    }
+                }
+
+                var calfRay = new Ray
+                {
+                    origin = calf.position,
+                    direction = transform.forward
+                };
+                Debug.DrawRay(calfRay.origin, calfRay.direction * rayMaxDistance, Color.red);
+                if (Physics.Raycast(calfRay, out hit, rayMaxDistance, wallLayerMask))
+                {
+                    if (_isRightTurn)
+                    {
+                        _leftFootPos = hit.point;
+                        _leftFootNormal = hit.normal;
+                    }
+                    else
+                    {
+                        _rightFootPos = hit.point;
+                        _rightFootNormal = hit.normal;
+                    }
+                }
+
+                // 1. 손발 ray들의 hit normal 평균 계산
+                Vector3 avgNormal = Vector3.zero;
+                int normalCount = 0;
+                if (_rightHandNormal.sqrMagnitude > 0.001f) { avgNormal += _rightHandNormal; normalCount++; }
+                if (_leftHandNormal.sqrMagnitude > 0.001f) { avgNormal += _leftHandNormal; normalCount++; }
+                if (_rightFootNormal.sqrMagnitude > 0.001f) { avgNormal += _rightFootNormal; normalCount++; }
+                if (_leftFootNormal.sqrMagnitude > 0.001f) { avgNormal += _leftFootNormal; normalCount++; }
+
+                if (normalCount > 0)
+                {
+                    _surfaceNormal = (avgNormal / normalCount).normalized;
+                }
+
+                // surface normal이 45도 미만(평지/완만한 경사)이면 Floor로 복귀
+                if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
+                {
+                    TransitionToFloor();
+                    return;
+                }
+
+                // 2. 손발 ray 평균 법선을 바탕으로 wallUp 결정
+                var wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
+                if (wallUp.sqrMagnitude < 0.001f)
+                {
+                    wallUp = transform.up;
+                }
+
+                float upGoingDistance;
+                if (anyHit)
+                {
+                    var reachUp = Vector3.Dot(lastHit.point - arm.position, wallUp);
+                    upGoingDistance = Mathf.Max(0f, reachUp * upGoingDistanceDivider);
+                }
+                else
+                {
+                    upGoingDistance = 0f;
+                }
+
+                // 위치 이동 보간
+                float duration = Mathf.Max(wallClimbDuration, 0.01f);
+                float counter = 0f;
+                while (counter < duration && stateMachine == StateMachine.Wall)
+                {
+                    float dt = Time.deltaTime;
+                    counter += dt;
+
+                    // 캐릭터 위치 이동
+                    transform.position += wallUp * (upGoingDistance * (dt / duration));
+
+                    // 이동 중 벽면과의 거리 실시간 보정 (몸체 로테이팅 법선은 손발 평균 _surfaceNormal 유지)
+                    if (Physics.Raycast(transform.position, -_surfaceNormal, out var moveHit,
+                            rayMaxDistance,
+                            wallLayerMask))
+                    {
+                        var currentDistanceToWall = Vector3.Dot(transform.position - moveHit.point, _surfaceNormal);
+                        var distanceError = wallDistance - currentDistanceToWall;
+                        transform.position += _surfaceNormal * distanceError;
+                    }
+
+                    return;
+                }
+
+                _isRightTurn = !_isRightTurn;
+            }
+        }
+        finally
+        {
+            _wallClimbCoroutine = null;
+        }
+    }
     private IEnumerator WallClimbCoroutine()
     {
         try
@@ -694,6 +879,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     private void OnAnimatorIK(int layerIndex)
     {
+        Debug.Log("IK 호출");
+
         if (animator == null) return;
         if (layerIndex != 0) return; // 베이스 레이어에서만 실행 (다중 레이어 중복 호출 방지)
 
