@@ -257,12 +257,12 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
             playerObject == null)
             return;
 
-        PlayerMove move = playerObject.GetComponent<PlayerMove>();
+        Un Un = playerObject.GetComponent<Un>();
         PlayerGameState state = playerObject.GetComponent<PlayerGameState>();
-        if (move == null)
+        if (Un == null)
             return;
 
-        input.Set(state != null && !state.IsInPlayground ? default : move.GetNetworkInput());
+        input.Set(state != null && !state.IsInPlayground ? default : Un.GetNetworkInput());
     }
 
     public void OnConnectedToServer(NetworkRunner r) { }

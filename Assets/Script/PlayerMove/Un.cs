@@ -33,6 +33,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private Animator animator;
 
     private Vector2 _moveInput;
+    private bool JumpPressed;
+    private bool AttackPressed;
+    private bool SprintPressed;
     Vector2 mouseDelta;
     private Vector3 _surfaceNormal = Vector3.up;
     private bool _isClicking = false;
@@ -190,17 +193,17 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         data.Move = _moveInput;
         data.Look = mouseDelta;
 
-        //data.Buttons.Set(
-        //    (int)PlayerButtons.Jump,
-        //    JumpPressed);
+        data.Buttons.Set(
+            (int)PlayerButtons.Jump,
+            JumpPressed);
 
-        //data.Buttons.Set(
-        //    (int)PlayerButtons.Attack,
-        //    AttackPressed);
+        data.Buttons.Set(
+            (int)PlayerButtons.Attack,
+            AttackPressed);
 
-        //data.Buttons.Set(
-        //    (int)PlayerButtons.Sprint,
-        //    SprintPressed);
+        data.Buttons.Set(
+            (int)PlayerButtons.Sprint,
+            SprintPressed);
 
         return data;
     }
@@ -220,12 +223,20 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         }
     }
 
-    private void FixedUpdate()
+    public override void FixedUpdateNetwork()
     {
+        if (!GetInput(out NetworkInputData data))
+        {
+            return;
+        }
+
+        if (data.Buttons.IsSet(PlayerButtons.Attack))
+            WallCheck();
+
         switch (stateMachine)
         {
             case StateMachine.Floor:
-                FloorMove();
+                FloorMove(data);
                 break;
             case StateMachine.Wall:
                 break;
@@ -282,7 +293,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _moveInput = context.ReadValue<Vector2>();
     }
 
-    private void FloorMove()
+    private void FloorMove(NetworkInputData data)
     {
         float checkDist = _collider != null ? _collider.bounds.extents.y + 0.1f : groundCheckDistance;
         _isGrounded = Physics.Raycast(transform.position, Vector3.down, checkDist, groundLayerMask);
@@ -309,38 +320,91 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         {
             _verticalVelocity -= gravity * Time.fixedDeltaTime;
         }
-
-        var move = (transform.right * _moveInput.x + transform.forward * _moveInput.y) * moveSpeed;
+        var move = (transform.right * data.Move.x + transform.forward * data.Move.y) * moveSpeed;
         move.y = _verticalVelocity;
 
         _rb.velocity = move;
+
+        if(move.sqrMagnitude > 0)
+        {
+            animator.SetBool("Running",true);
+        }
+        else
+        {
+            animator.SetBool("Running", false);
+        }
     }
 
     public void OnJump(InputAction.CallbackContext context)
     {
         if (context.started || context.performed)
         {
+            JumpPressed = true;
+        }
+        else
+        {
+            JumpPressed = false;
         }
     }
 
     public void OnClick(InputAction.CallbackContext context)
     {
-        if (context.started || (context.performed && _wallCheckCoroutine == null))
+        //if (context.started || (context.performed && _wallCheckCoroutine == null))
+        //{
+        //    _wallCheckCoroutine ??= StartCoroutine(WallCheckCoroutine());
+        //}
+        //else if (context.canceled)
+        //{
+        //    if (_wallCheckCoroutine != null)
+        //    {
+        //        StopCoroutine(_wallCheckCoroutine);
+        //        _wallCheckCoroutine = null;
+        //    }
+
+        //    if (stateMachine == StateMachine.Wall)
+        //    {
+        //        TransitionToFloor();
+        //    }
+        //}
+
+        if (context.started || (context.performed))
         {
-            _wallCheckCoroutine ??= StartCoroutine(WallCheckCoroutine());
+            AttackPressed = true;
         }
-        else if (context.canceled)
+        else
         {
-            if (_wallCheckCoroutine != null)
+            AttackPressed = false;
+
+        }
+    }
+
+    private void WallCheck()
+    {
+
+        var rayDirTransform = headTransform != null ? headTransform : transform;
+        var ray = new Ray
+        {
+            origin = transform.position,
+            direction = rayDirTransform.forward
+        };
+        Vector3 vector3 = ray.origin;
+        vector3.y += 1;
+        ray.origin = vector3;
+        Debug.DrawRay(ray.origin, ray.direction * rayMaxDistance, Color.red);
+        if (Physics.Raycast(ray, out _, rayMaxDistance, wallLayerMask))
+        {
+
+            Debug.Log("이거 되긴됨?");
+
+
+            _wallCheckCoroutine = null;
+
+            if (_wallClimbCoroutine != null)
             {
-                StopCoroutine(_wallCheckCoroutine);
-                _wallCheckCoroutine = null;
+                StopCoroutine(_wallClimbCoroutine);
             }
 
-            if (stateMachine == StateMachine.Wall)
-            {
-                TransitionToFloor();
-            }
+            _wallClimbCoroutine = StartCoroutine(WallClimbCoroutine());
         }
     }
 
@@ -449,9 +513,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
             {
                 var angle = Vector3.Angle(Vector3.up, transHit.normal);
+                Debug.Log(transHit);
                 if (angle >= 45f)
                 {
                     TransitionToWall(transHit.point, transHit.normal);
+                    Debug.Log(angle);
                 }
                 else
                 {
