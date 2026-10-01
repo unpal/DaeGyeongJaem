@@ -8,7 +8,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class Un : NetworkBehaviour, RawInput.IPlayerActions
 {
-    private enum StateMachine
+    public enum StateMachine
     {
         Floor, // 0~45도: 평지/완만한 경사 (점프/중력 적용)
         Wall // 45~180도: 수직벽/오버행/천장/기둥 (등반)
@@ -17,6 +17,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private Rigidbody _rb;
     public Collider _collider;
     [SerializeField] private StateMachine stateMachine = StateMachine.Floor;
+    public StateMachine statemachine => stateMachine;
+
     private RawInput _rawInput;
     private RawInput.PlayerActions _playerActions;
 
@@ -68,6 +70,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     [SerializeField] private float armLength = 0.7f;
     [SerializeField] private float wallClimbDuration = 0.5f;
     [SerializeField] private float tweenConst = 0.1f;
+    public float tweenconst => tweenConst;
     [SerializeField] private float wallRotationTweenSpeed = 10f; // 벽 회전 트위닝 속도
     [SerializeField] private int searchCount = 10;
     [SerializeField] private float upGoingDistanceDivider = 0.5f;
@@ -84,15 +87,15 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private float _pitch; // 상하 각도 (Pitch)
     private float _yaw; // 지상: 월드 Yaw, 벽: 벽 기준 상대 Yaw
     private bool _isRightTurn = true;
-    private Vector3 _rightHandPos;
-    private Vector3 _leftHandPos;
-    private Vector3 _rightFootPos;
-    private Vector3 _leftFootPos;
-
-    private Vector3 _rightHandNormal;
-    private Vector3 _leftHandNormal;
-    private Vector3 _rightFootNormal;
-    private Vector3 _leftFootNormal;
+    public Vector3 _rightHandPos;
+    public Vector3 _leftHandPos;
+    public Vector3 _rightFootPos;
+    public Vector3 _leftFootPos;
+    
+    public Vector3 _rightHandNormal;
+    public Vector3 _leftHandNormal;
+    public Vector3 _rightFootNormal;
+    public Vector3 _leftFootNormal;
     private Quaternion _smoothedWallRot = Quaternion.identity;
 
 
@@ -100,10 +103,16 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     [Range(0f, 1f)]
     [SerializeField]
     private float handIKWeight = 1f;
+    public float handikweight => handIKWeight;
 
     [Range(0f, 1f)][SerializeField] private float footIKWeight = 1f;
+    public float footikweight => footIKWeight;
 
 
+    private bool _climbStepActive = false;
+    private bool _climbInitialized = false;
+    private float _climbTimer = 0f;
+    private float _climbUpGoingDistance = 0f;
 
     public override void Spawned()
     {
@@ -113,6 +122,40 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             _playerActions = _rawInput.Player;
             _playerActions.Enable();
             _playerActions.AddCallbacks(this);
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            // 카메라 설정
+            if (cam == null)
+            {
+                cam = GetComponentInChildren<CinemachineVirtualCamera>();
+                if (cam == null)
+                    Debug.LogError("카메라 설정 오류 발생 바로 확인 바람");
+            }
+
+            // 머리 뼈 Transform 자동 탐색 (Humanoid Avatar 기준)
+            if (headTransform == null && animator != null && animator.isHuman)
+            {
+                headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
+            }
+
+            // 독립 카메라 피벗 생성 (뼈대의 회전 왜곡 영향 차단)
+            if (camPivot == null)
+            {
+                GameObject pivotGo = new GameObject("CameraPivot");
+                camPivot = pivotGo.transform;
+                camPivot.position = GetCameraPivotPosition();
+                camPivot.rotation = transform.rotation;
+            }
+
+            if (cam != null)
+            {
+                // 카메라는 피벗의 자식으로 배치
+                cam.transform.SetParent(camPivot, false);
+                _currentCamDistance = Mathf.Clamp(cam.transform.localPosition.z, minDistance, maxDistance);
+                cam.transform.localPosition = new Vector3(0f, 0f, _currentCamDistance);
+                cam.transform.localRotation = Quaternion.identity;
+            }
         }
 
 
@@ -138,44 +181,14 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _yaw = transform.eulerAngles.y;
         _smoothedWallRot = transform.rotation;
 
-        // 카메라 설정
-        if (cam == null)
-        {
-            cam = GetComponentInChildren<CinemachineVirtualCamera>();
-            if (cam == null)
-                Debug.LogError("카메라 설정 오류 발생 바로 확인 바람");
-        }
-
-        // 머리 뼈 Transform 자동 탐색 (Humanoid Avatar 기준)
-        if (headTransform == null && animator != null && animator.isHuman)
-        {
-            headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
-        }
-
-        // 독립 카메라 피벗 생성 (뼈대의 회전 왜곡 영향 차단)
-        if (camPivot == null)
-        {
-            GameObject pivotGo = new GameObject("CameraPivot");
-            camPivot = pivotGo.transform;
-            camPivot.position = GetCameraPivotPosition();
-            camPivot.rotation = transform.rotation;
-        }
-
-        if (cam != null)
-        {
-            // 카메라는 피벗의 자식으로 배치
-            cam.transform.SetParent(camPivot, false);
-            _currentCamDistance = Mathf.Clamp(cam.transform.localPosition.z, minDistance, maxDistance);
-            cam.transform.localPosition = new Vector3(0f, 0f, _currentCamDistance);
-            cam.transform.localRotation = Quaternion.identity;
-        }
+ 
     }
 
-    private void Start()
-    {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
+    //private void Start()
+    //{
+    //    Cursor.lockState = CursorLockMode.Locked;
+    //    Cursor.visible = false;
+    //}
 
     private void OnDestroy()
     {
@@ -265,7 +278,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     /// </summary>
     private void LateUpdate()
     {
-        if (camPivot == null) return;
+        if (!Object.HasInputAuthority)
+            return;
+
+        if (camPivot == null)
+            return;
 
         // 1. 카메라 피벗 위치 동기화 (머리 뼈 기준)
         camPivot.position = GetCameraPivotPosition();
@@ -336,18 +353,22 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             _verticalVelocity -= gravity * Time.fixedDeltaTime;
         }
         var move = (transform.right * data.Move.x + transform.forward * data.Move.y) * moveSpeed;
-        move.y = _verticalVelocity;
 
-        _rb.velocity = move;
 
-        if(move.sqrMagnitude > 0)
+        if (move.sqrMagnitude > 0)
         {
-            animator.SetBool("Running",true);
+            animator.SetBool("Running", true);
         }
         else
         {
             animator.SetBool("Running", false);
         }
+
+        move.y = _verticalVelocity;
+
+        _rb.velocity = move;
+
+
     }
 
     public void OnJump(InputAction.CallbackContext context)
@@ -436,6 +457,12 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         transform.position = hitPoint + hitNormal * wallDistance;
         _smoothedWallRot = Quaternion.LookRotation(-hitNormal, wallUp);
         transform.rotation = _smoothedWallRot;
+
+
+        _climbInitialized = false;
+        _climbStepActive = false;
+        _climbTimer = 0f;
+        _climbUpGoingDistance = 0f;
     }
 
     private void TransitionToFloor()
@@ -506,186 +533,538 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             return origin + direction * rayMaxDistance;
         }
     }
+
+   // Fusion 에서는 yieid return 을 사용할 수 없음
+   // 그렇기에 Coroutine을 제거하고 일반 함수로 변경해 벽을 타게 변경함
     private void WallClimb(NetworkInputData data)
     {
-        try
+
+        float dt = Runner.DeltaTime;
+
+        // 1. 벽 진입 직후 한 번만 손/발 초기화
+
+        if (!_climbInitialized)
         {
-            var ray = new Ray
+            _rightHandPos = SimpleRaycast(
+                rightUpperArm.position,
+                transform.forward,
+                rayMaxDistance,
+                out _rightHandNormal
+            );
+
+            _leftHandPos = SimpleRaycast(
+                leftUpperArm.position,
+                transform.forward,
+                rayMaxDistance,
+                out _leftHandNormal
+            );
+
+            _rightFootPos = SimpleRaycast(
+                rightCalf.position,
+                transform.forward,
+                rayMaxDistance,
+                out _rightFootNormal
+            );
+
+            _leftFootPos = SimpleRaycast(
+                leftCalf.position,
+                transform.forward,
+                rayMaxDistance,
+                out _leftFootNormal
+            );
+
+            _climbInitialized = true;
+            _climbStepActive = false;
+            _climbTimer = 0f;
+        }
+
+        // 2. 현재 climbing step이 끝났다면 다음 손/발 동작을 계산한다.
+
+        if (!_climbStepActive)
+        {
+            Transform arm;
+            Transform calf;
+
+            // 원본과 동일
+            if (_isRightTurn)
             {
-                origin = transform.position,
-                direction = transform.forward
-            };
-            if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
+                arm = rightUpperArm;
+                calf = leftCalf;
+            }
+            else
             {
-                var angle = Vector3.Angle(Vector3.up, transHit.normal);
-                if (angle >= 45f)
+                arm = leftUpperArm;
+                calf = rightCalf;
+            }
+
+            if (arm == null || calf == null)
+                return;
+
+            // =====================================================
+            // 2-1. 팔 Raycast
+            // =====================================================
+
+            var armLowerBound =
+                (transform.forward - transform.up).normalized;
+
+            var armUpperBound =
+                transform.up;
+
+            RaycastHit lastHit = default;
+            bool anyHit = false;
+
+            for (var i = 0; i < searchCount; i++)
+            {
+                var midDir =
+                    (armLowerBound + armUpperBound).normalized;
+
+                var query = new Ray
                 {
-                    TransitionToWall(transHit.point, transHit.normal);
+                    origin = arm.position,
+                    direction = midDir
+                };
+
+                if (Physics.Raycast(
+                    query,
+                    out RaycastHit hit,
+                    armLength,
+                    wallLayerMask))
+                {
+                    armLowerBound = midDir;
+                    lastHit = hit;
+                    anyHit = true;
                 }
                 else
                 {
-                    TransitionToFloor();
-                    return;
+                    armUpperBound = midDir;
                 }
             }
 
-            // 손과 발의 초기 위치 및 법선 설정
-            _rightHandPos = SimpleRaycast(rightUpperArm.position, transform.forward, rayMaxDistance, out _rightHandNormal);
-            _leftHandPos = SimpleRaycast(leftUpperArm.position, transform.forward, rayMaxDistance, out _leftHandNormal);
-            _rightFootPos = SimpleRaycast(rightCalf.position, transform.forward, rayMaxDistance, out _rightFootNormal);
-            _leftFootPos = SimpleRaycast(leftCalf.position, transform.forward, rayMaxDistance, out _leftFootNormal);
+            // =====================================================
+            // 2-2. 손 IK 목표 위치 설정
+            // =====================================================
 
-            while (stateMachine == StateMachine.Wall)
+            if (anyHit)
             {
-                Transform arm;
-                Transform calf;
                 if (_isRightTurn)
                 {
-                    arm = rightUpperArm;
-                    calf = leftCalf;
+                    _rightHandPos = lastHit.point;
+                    _rightHandNormal = lastHit.normal;
                 }
                 else
                 {
-                    arm = leftUpperArm;
-                    calf = rightCalf;
+                    _leftHandPos = lastHit.point;
+                    _leftHandNormal = lastHit.normal;
                 }
-
-                if (arm == null || calf == null)
-                {
-                    return;
-                }
-
-                RaycastHit hit;
-
-                var armLowerBound = (transform.forward - transform.up).normalized;
-                var armUpperBound = transform.up;
-                RaycastHit lastHit = default;
-                bool anyHit = false;
-
-                for (var i = 0; i < searchCount; i++)
-                {
-                    var midDir = (armLowerBound + armUpperBound).normalized;
-                    var query = new Ray
-                    {
-                        origin = arm.position,
-                        direction = midDir,
-                    };
-                    if (Physics.Raycast(query, out hit, armLength, wallLayerMask))
-                    {
-                        armLowerBound = midDir;
-                        lastHit = hit;
-                        anyHit = true;
-                    }
-                    else
-                    {
-                        armUpperBound = midDir;
-                    }
-                }
-
-                if (anyHit)
-                {
-                    if (_isRightTurn)
-                    {
-                        _rightHandPos = lastHit.point;
-                        _rightHandNormal = lastHit.normal;
-                    }
-                    else
-                    {
-                        _leftHandPos = lastHit.point;
-                        _leftHandNormal = lastHit.normal;
-                    }
-                }
-
-                var calfRay = new Ray
-                {
-                    origin = calf.position,
-                    direction = transform.forward
-                };
-                Debug.DrawRay(calfRay.origin, calfRay.direction * rayMaxDistance, Color.red);
-                if (Physics.Raycast(calfRay, out hit, rayMaxDistance, wallLayerMask))
-                {
-                    if (_isRightTurn)
-                    {
-                        _leftFootPos = hit.point;
-                        _leftFootNormal = hit.normal;
-                    }
-                    else
-                    {
-                        _rightFootPos = hit.point;
-                        _rightFootNormal = hit.normal;
-                    }
-                }
-
-                // 1. 손발 ray들의 hit normal 평균 계산
-                Vector3 avgNormal = Vector3.zero;
-                int normalCount = 0;
-                if (_rightHandNormal.sqrMagnitude > 0.001f) { avgNormal += _rightHandNormal; normalCount++; }
-                if (_leftHandNormal.sqrMagnitude > 0.001f) { avgNormal += _leftHandNormal; normalCount++; }
-                if (_rightFootNormal.sqrMagnitude > 0.001f) { avgNormal += _rightFootNormal; normalCount++; }
-                if (_leftFootNormal.sqrMagnitude > 0.001f) { avgNormal += _leftFootNormal; normalCount++; }
-
-                if (normalCount > 0)
-                {
-                    _surfaceNormal = (avgNormal / normalCount).normalized;
-                }
-
-                // surface normal이 45도 미만(평지/완만한 경사)이면 Floor로 복귀
-                if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
-                {
-                    TransitionToFloor();
-                    return;
-                }
-
-                // 2. 손발 ray 평균 법선을 바탕으로 wallUp 결정
-                var wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
-                if (wallUp.sqrMagnitude < 0.001f)
-                {
-                    wallUp = transform.up;
-                }
-
-                float upGoingDistance;
-                if (anyHit)
-                {
-                    var reachUp = Vector3.Dot(lastHit.point - arm.position, wallUp);
-                    upGoingDistance = Mathf.Max(0f, reachUp * upGoingDistanceDivider);
-                }
-                else
-                {
-                    upGoingDistance = 0f;
-                }
-
-                // 위치 이동 보간
-                float duration = Mathf.Max(wallClimbDuration, 0.01f);
-                float counter = 0f;
-                while (counter < duration && stateMachine == StateMachine.Wall)
-                {
-                    float dt = Time.deltaTime;
-                    counter += dt;
-
-                    // 캐릭터 위치 이동
-                    transform.position += wallUp * (upGoingDistance * (dt / duration));
-
-                    // 이동 중 벽면과의 거리 실시간 보정 (몸체 로테이팅 법선은 손발 평균 _surfaceNormal 유지)
-                    if (Physics.Raycast(transform.position, -_surfaceNormal, out var moveHit,
-                            rayMaxDistance,
-                            wallLayerMask))
-                    {
-                        var currentDistanceToWall = Vector3.Dot(transform.position - moveHit.point, _surfaceNormal);
-                        var distanceError = wallDistance - currentDistanceToWall;
-                        transform.position += _surfaceNormal * distanceError;
-                    }
-
-                    return;
-                }
-
-                _isRightTurn = !_isRightTurn;
             }
+
+            // =====================================================
+            // 2-3. 반대쪽 발 Raycast
+            // =====================================================
+
+            var calfRay = new Ray
+            {
+                origin = calf.position,
+                direction = transform.forward
+            };
+
+            Debug.DrawRay(
+                calfRay.origin,
+                calfRay.direction * rayMaxDistance,
+                Color.red
+            );
+
+            if (Physics.Raycast(
+                calfRay,
+                out RaycastHit calfHit,
+                rayMaxDistance,
+                wallLayerMask))
+            {
+                if (_isRightTurn)
+                {
+                    _leftFootPos = calfHit.point;
+                    _leftFootNormal = calfHit.normal;
+                }
+                else
+                {
+                    _rightFootPos = calfHit.point;
+                    _rightFootNormal = calfHit.normal;
+                }
+            }
+
+            // =====================================================
+            // 2-4. 손/발 Raycast Normal 평균
+            // =====================================================
+
+            Vector3 avgNormal = Vector3.zero;
+            int normalCount = 0;
+
+            if (_rightHandNormal.sqrMagnitude > 0.001f)
+            {
+                avgNormal += _rightHandNormal;
+                normalCount++;
+            }
+
+            if (_leftHandNormal.sqrMagnitude > 0.001f)
+            {
+                avgNormal += _leftHandNormal;
+                normalCount++;
+            }
+
+            if (_rightFootNormal.sqrMagnitude > 0.001f)
+            {
+                avgNormal += _rightFootNormal;
+                normalCount++;
+            }
+
+            if (_leftFootNormal.sqrMagnitude > 0.001f)
+            {
+                avgNormal += _leftFootNormal;
+                normalCount++;
+            }
+
+            if (normalCount > 0)
+            {
+                _surfaceNormal =
+                    (avgNormal / normalCount).normalized;
+            }
+
+            // =====================================================
+            // 2-5. 벽 각도 확인
+            // =====================================================
+
+            if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
+            {
+                TransitionToFloor();
+                return;
+            }
+
+            // =====================================================
+            // 2-6. Wall Up 계산
+            // =====================================================
+
+            Vector3 wallUp =
+                Vector3.ProjectOnPlane(
+                    Vector3.up,
+                    _surfaceNormal
+                ).normalized;
+
+            if (wallUp.sqrMagnitude < 0.001f)
+            {
+                wallUp = transform.up;
+            }
+
+            // =====================================================
+            // 2-7. 이번 climbing step의 상승 거리 계산
+            //
+            // 원본 코드 그대로:
+            //
+            // reachUp = 손 위치와 Raycast 위치의
+            //           wallUp 방향 거리
+            //
+            // upGoingDistance =
+            //           reachUp * upGoingDistanceDivider
+            // =====================================================
+
+            if (anyHit)
+            {
+                float reachUp =
+                    Vector3.Dot(
+                        lastHit.point - arm.position,
+                        wallUp
+                    );
+
+                _climbUpGoingDistance =
+                    Mathf.Max(
+                        0f,
+                        reachUp * upGoingDistanceDivider
+                    );
+            }
+            else
+            {
+                _climbUpGoingDistance = 0f;
+            }
+
+            // =====================================================
+            // 2-8. 새로운 climbing step 시작
+            // =====================================================
+
+            _climbTimer = 0f;
+            _climbStepActive = true;
         }
-        finally
+
+        // =========================================================
+        // 3. 현재 climbing step 진행
+        // =========================================================
+
+        float duration =
+            Mathf.Max(wallClimbDuration, 0.01f);
+
+        // 이번 Tick에서 실제로 사용할 시간
+        float stepDeltaTime =
+            Mathf.Min(
+                dt,
+                duration - _climbTimer
+            );
+
+        if (stepDeltaTime > 0f)
         {
-            _wallClimbCoroutine = null;
+            // 현재 벽 기준의 위쪽 방향
+            Vector3 wallUp =
+                Vector3.ProjectOnPlane(
+                    Vector3.up,
+                    _surfaceNormal
+                ).normalized;
+
+            if (wallUp.sqrMagnitude < 0.001f)
+            {
+                wallUp = transform.up;
+            }
+
+            // =====================================================
+            // 원본 Coroutine의:
+            //
+            // transform.position +=
+            //     wallUp * (upGoingDistance * dt / duration);
+            //
+            // 를 그대로 Fusion Tick으로 변환
+            // =====================================================
+
+            transform.position +=
+                wallUp *
+                (
+                    _climbUpGoingDistance *
+                    (stepDeltaTime / duration)
+                );
+
+            // =====================================================
+            // 벽과의 거리 실시간 보정
+            // =====================================================
+
+            if (Physics.Raycast(
+                transform.position,
+                -_surfaceNormal,
+                out RaycastHit moveHit,
+                rayMaxDistance,
+                wallLayerMask))
+            {
+                float currentDistanceToWall =
+                    Vector3.Dot(
+                        transform.position - moveHit.point,
+                        _surfaceNormal
+                    );
+
+                float distanceError =
+                    wallDistance -
+                    currentDistanceToWall;
+
+                transform.position +=
+                    _surfaceNormal * distanceError;
+            }
+
+            _climbTimer += stepDeltaTime;
+        }
+
+        // =========================================================
+        // 4. 현재 climbing step 완료
+        // =========================================================
+
+        if (_climbTimer >= duration)
+        {
+            _climbTimer = duration;
+
+            // 원본의:
+            //
+            // _isRightTurn = !_isRightTurn;
+            //
+            // 과 동일
+            _isRightTurn = !_isRightTurn;
+
+            _climbTimer = 0f;
+            _climbStepActive = false;
         }
     }
+
+    //private void WallClimb(NetworkInputData data)
+    //{
+    //    try
+    //    {
+    //        var ray = new Ray
+    //        {
+    //            origin = transform.position,
+    //            direction = transform.forward
+    //        };
+    //        if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
+    //        {
+    //            var angle = Vector3.Angle(Vector3.up, transHit.normal);
+    //            if (angle >= 45f)
+    //            {
+    //                TransitionToWall(transHit.point, transHit.normal);
+    //            }
+    //            else
+    //            {
+    //                TransitionToFloor();
+    //                return;
+    //            }
+    //        }
+
+    //        // 손과 발의 초기 위치 및 법선 설정
+    //        _rightHandPos = SimpleRaycast(rightUpperArm.position, transform.forward, rayMaxDistance, out _rightHandNormal);
+    //        _leftHandPos = SimpleRaycast(leftUpperArm.position, transform.forward, rayMaxDistance, out _leftHandNormal);
+    //        _rightFootPos = SimpleRaycast(rightCalf.position, transform.forward, rayMaxDistance, out _rightFootNormal);
+    //        _leftFootPos = SimpleRaycast(leftCalf.position, transform.forward, rayMaxDistance, out _leftFootNormal);
+
+    //        while (stateMachine == StateMachine.Wall)
+    //        {
+    //            Transform arm;
+    //            Transform calf;
+    //            if (_isRightTurn)
+    //            {
+    //                arm = rightUpperArm;
+    //                calf = leftCalf;
+    //            }
+    //            else
+    //            {
+    //                arm = leftUpperArm;
+    //                calf = rightCalf;
+    //            }
+
+    //            if (arm == null || calf == null)
+    //            {
+    //                return;
+    //            }
+
+    //            RaycastHit hit;
+
+    //            var armLowerBound = (transform.forward - transform.up).normalized;
+    //            var armUpperBound = transform.up;
+    //            RaycastHit lastHit = default;
+    //            bool anyHit = false;
+
+    //            for (var i = 0; i < searchCount; i++)
+    //            {
+    //                var midDir = (armLowerBound + armUpperBound).normalized;
+    //                var query = new Ray
+    //                {
+    //                    origin = arm.position,
+    //                    direction = midDir,
+    //                };
+    //                if (Physics.Raycast(query, out hit, armLength, wallLayerMask))
+    //                {
+    //                    armLowerBound = midDir;
+    //                    lastHit = hit;
+    //                    anyHit = true;
+    //                }
+    //                else
+    //                {
+    //                    armUpperBound = midDir;
+    //                }
+    //            }
+
+    //            if (anyHit)
+    //            {
+    //                if (_isRightTurn)
+    //                {
+    //                    _rightHandPos = lastHit.point;
+    //                    _rightHandNormal = lastHit.normal;
+    //                }
+    //                else
+    //                {
+    //                    _leftHandPos = lastHit.point;
+    //                    _leftHandNormal = lastHit.normal;
+    //                }
+    //            }
+
+    //            var calfRay = new Ray
+    //            {
+    //                origin = calf.position,
+    //                direction = transform.forward
+    //            };
+    //            Debug.DrawRay(calfRay.origin, calfRay.direction * rayMaxDistance, Color.red);
+    //            if (Physics.Raycast(calfRay, out hit, rayMaxDistance, wallLayerMask))
+    //            {
+    //                if (_isRightTurn)
+    //                {
+    //                    _leftFootPos = hit.point;
+    //                    _leftFootNormal = hit.normal;
+    //                }
+    //                else
+    //                {
+    //                    _rightFootPos = hit.point;
+    //                    _rightFootNormal = hit.normal;
+    //                }
+    //            }
+
+    //            // 1. 손발 ray들의 hit normal 평균 계산
+    //            Vector3 avgNormal = Vector3.zero;
+    //            int normalCount = 0;
+    //            if (_rightHandNormal.sqrMagnitude > 0.001f) { avgNormal += _rightHandNormal; normalCount++; }
+    //            if (_leftHandNormal.sqrMagnitude > 0.001f) { avgNormal += _leftHandNormal; normalCount++; }
+    //            if (_rightFootNormal.sqrMagnitude > 0.001f) { avgNormal += _rightFootNormal; normalCount++; }
+    //            if (_leftFootNormal.sqrMagnitude > 0.001f) { avgNormal += _leftFootNormal; normalCount++; }
+
+    //            if (normalCount > 0)
+    //            {
+    //                _surfaceNormal = (avgNormal / normalCount).normalized;
+    //            }
+
+    //            // surface normal이 45도 미만(평지/완만한 경사)이면 Floor로 복귀
+    //            if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
+    //            {
+    //                TransitionToFloor();
+    //                return;
+    //            }
+
+    //            // 2. 손발 ray 평균 법선을 바탕으로 wallUp 결정
+    //            var wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
+    //            if (wallUp.sqrMagnitude < 0.001f)
+    //            {
+    //                wallUp = transform.up;
+    //            }
+
+    //            float upGoingDistance;
+    //            if (anyHit)
+    //            {
+    //                var reachUp = Vector3.Dot(lastHit.point - arm.position, wallUp);
+    //                upGoingDistance = Mathf.Max(0f, reachUp * upGoingDistanceDivider);
+    //            }
+    //            else
+    //            {
+    //                upGoingDistance = 0f;
+    //            }
+
+    //            // 위치 이동 보간
+    //            float duration = Mathf.Max(wallClimbDuration, 0.01f);
+    //            float counter = 0f;
+    //            while (counter < duration && stateMachine == StateMachine.Wall)
+    //            {
+    //                float dt = Time.deltaTime;
+    //                counter += dt;
+
+    //                // 캐릭터 위치 이동
+    //                transform.position += wallUp * (upGoingDistance * (dt / duration));
+
+    //                // 이동 중 벽면과의 거리 실시간 보정 (몸체 로테이팅 법선은 손발 평균 _surfaceNormal 유지)
+    //                if (Physics.Raycast(transform.position, -_surfaceNormal, out var moveHit,
+    //                        rayMaxDistance,
+    //                        wallLayerMask))
+    //                {
+    //                    var currentDistanceToWall = Vector3.Dot(transform.position - moveHit.point, _surfaceNormal);
+    //                    var distanceError = wallDistance - currentDistanceToWall;
+    //                    transform.position += _surfaceNormal * distanceError;
+    //                }
+
+    //                return;
+    //            }
+
+    //            _isRightTurn = !_isRightTurn;
+    //        }
+    //    }
+    //    finally
+    //    {
+    //        _wallClimbCoroutine = null;
+    //    }
+    //}
     private IEnumerator WallClimbCoroutine()
     {
         try
@@ -872,56 +1251,56 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
 
     // 현재 보간된 IK 위치를 기억할 변수 추가
-    private Vector3 _currentRightHandPos;
-    private Vector3 _currentLeftHandPos;
-    private Vector3 _currentRightFootPos;
-    private Vector3 _currentLeftFootPos;
+    public Vector3 _currentRightHandPos ;
+    public Vector3 _currentLeftHandPos ;
+    public Vector3 _currentRightFootPos ;
+    public Vector3 _currentLeftFootPos ;
 
-    private void OnAnimatorIK(int layerIndex)
-    {
-        Debug.Log("IK 호출");
+    //private void OnAnimatorIK(int layerIndex)
+    //{
+    //    Debug.Log("IK 호출");
 
-        if (animator == null) return;
-        if (layerIndex != 0) return; // 베이스 레이어에서만 실행 (다중 레이어 중복 호출 방지)
+    //    if (animator == null) return;
+    //    if (layerIndex != 0) return; // 베이스 레이어에서만 실행 (다중 레이어 중복 호출 방지)
 
-        float currentHandWeight = (stateMachine == StateMachine.Wall) ? handIKWeight : 0f;
-        float currentFootWeight = (stateMachine == StateMachine.Wall) ? footIKWeight : 0f;
+    //    float currentHandWeight = (stateMachine == StateMachine.Wall) ? handIKWeight : 0f;
+    //    float currentFootWeight = (stateMachine == StateMachine.Wall) ? footIKWeight : 0f;
 
-        // 목표 위치가 아직 잡히지 않은 경우(Vector3.zero) 애니메이션 기본 위치로 초기화
-        if (_currentRightHandPos == Vector3.zero) _currentRightHandPos = animator.GetIKPosition(AvatarIKGoal.RightHand);
-        if (_currentLeftHandPos == Vector3.zero) _currentLeftHandPos = animator.GetIKPosition(AvatarIKGoal.LeftHand);
-        if (_currentRightFootPos == Vector3.zero) _currentRightFootPos = animator.GetIKPosition(AvatarIKGoal.RightFoot);
-        if (_currentLeftFootPos == Vector3.zero) _currentLeftFootPos = animator.GetIKPosition(AvatarIKGoal.LeftFoot);
+    //    // 목표 위치가 아직 잡히지 않은 경우(Vector3.zero) 애니메이션 기본 위치로 초기화
+    //    if (_currentRightHandPos == Vector3.zero) _currentRightHandPos = animator.GetIKPosition(AvatarIKGoal.RightHand);
+    //    if (_currentLeftHandPos == Vector3.zero) _currentLeftHandPos = animator.GetIKPosition(AvatarIKGoal.LeftHand);
+    //    if (_currentRightFootPos == Vector3.zero) _currentRightFootPos = animator.GetIKPosition(AvatarIKGoal.RightFoot);
+    //    if (_currentLeftFootPos == Vector3.zero) _currentLeftFootPos = animator.GetIKPosition(AvatarIKGoal.LeftFoot);
 
-        // --- 오른손 ---
-        IKSet(AvatarIKGoal.RightHand, currentHandWeight, _rightHandPos, ref _currentRightHandPos);
+    //    // --- 오른손 ---
+    //    IKSet(AvatarIKGoal.RightHand, currentHandWeight, _rightHandPos, ref _currentRightHandPos);
 
-        // --- 왼손 ---
-        IKSet(AvatarIKGoal.LeftHand, currentHandWeight, _leftHandPos, ref _currentLeftHandPos);
+    //    // --- 왼손 ---
+    //    IKSet(AvatarIKGoal.LeftHand, currentHandWeight, _leftHandPos, ref _currentLeftHandPos);
 
-        // --- 오른발 ---
-        IKSet(AvatarIKGoal.RightFoot, currentFootWeight, _rightFootPos, ref _currentRightFootPos);
+    //    // --- 오른발 ---
+    //    IKSet(AvatarIKGoal.RightFoot, currentFootWeight, _rightFootPos, ref _currentRightFootPos);
 
-        // --- 왼발 ---
-        IKSet(AvatarIKGoal.LeftFoot, currentFootWeight, _leftFootPos, ref _currentLeftFootPos);
-    }
+    //    // --- 왼발 ---
+    //    IKSet(AvatarIKGoal.LeftFoot, currentFootWeight, _leftFootPos, ref _currentLeftFootPos);
+    //}
 
-    private void IKSet(AvatarIKGoal goal, float weight, Vector3 targetPos, ref Vector3 currentSmoothedPos)
-    {
-        animator.SetIKPositionWeight(goal, weight);
+    //private void IKSet(AvatarIKGoal goal, float weight, Vector3 targetPos, ref Vector3 currentSmoothedPos)
+    //{
+    //    animator.SetIKPositionWeight(goal, weight);
 
-        if (weight > 0.001f && targetPos != Vector3.zero)
-        {
-            // 이전 프레임의 보간 위치에서 목표 위치로 서서히 이동
-            currentSmoothedPos = Vector3.Lerp(currentSmoothedPos, targetPos, tweenConst);
-            animator.SetIKPosition(goal, currentSmoothedPos);
-        }
-        else
-        {
-            // IK가 꺼져있을 때는 기본 애니메이션 위치 동기화
-            currentSmoothedPos = animator.GetIKPosition(goal);
-        }
-    }
+    //    if (weight > 0.001f && targetPos != Vector3.zero)
+    //    {
+    //        // 이전 프레임의 보간 위치에서 목표 위치로 서서히 이동
+    //        currentSmoothedPos = Vector3.Lerp(currentSmoothedPos, targetPos, tweenConst);
+    //        animator.SetIKPosition(goal, currentSmoothedPos);
+    //    }
+    //    else
+    //    {
+    //        // IK가 꺼져있을 때는 기본 애니메이션 위치 동기화
+    //        currentSmoothedPos = animator.GetIKPosition(goal);
+    //    }
+    //}
 
 
     public void OnLook(InputAction.CallbackContext context)

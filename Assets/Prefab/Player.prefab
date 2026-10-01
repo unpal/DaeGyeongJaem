@@ -464,8 +464,20 @@ MonoBehaviour:
   scrollSensitivity: 0.01
   minDistance: -10
   maxDistance: 0
+  _rightHandPos: {x: 0, y: 0, z: 0}
+  _leftHandPos: {x: 0, y: 0, z: 0}
+  _rightFootPos: {x: 0, y: 0, z: 0}
+  _leftFootPos: {x: 0, y: 0, z: 0}
+  _rightHandNormal: {x: 0, y: 0, z: 0}
+  _leftHandNormal: {x: 0, y: 0, z: 0}
+  _rightFootNormal: {x: 0, y: 0, z: 0}
+  _leftFootNormal: {x: 0, y: 0, z: 0}
   handIKWeight: 1
   footIKWeight: 1
+  _currentRightHandPos: {x: 0, y: 0, z: 0}
+  _currentLeftHandPos: {x: 0, y: 0, z: 0}
+  _currentRightFootPos: {x: 0, y: 0, z: 0}
+  _currentLeftFootPos: {x: 0, y: 0, z: 0}
 --- !u!136 &6244299301995804234
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1419,6 +1431,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 196e6da9b2552915fbc5a5a1f4244a36, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8545645759557446200}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 196e6da9b2552915fbc5a5a1f4244a36, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3007960197300965436}
   m_SourcePrefab: {fileID: 100100000, guid: 196e6da9b2552915fbc5a5a1f4244a36, type: 3}
 --- !u!95 &4127296217243919022 stripped
 Animator:
@@ -1463,6 +1478,20 @@ MonoBehaviour:
   StateHashes: 000000000e78689c8c37241920e23b685928a8ce2b1a167c79406955
   TriggerHashes: 00000000
   TotalWords: 1
+--- !u!114 &3007960197300965436
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7272440879094080110}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9e8e034ec059fa4fae0788971e88d24, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Player: {fileID: -1305348442644921440}
+  animator: {fileID: 4127296217243919022}
 --- !u!4 &7615378978732822255 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -9114496787053588016, guid: 196e6da9b2552915fbc5a5a1f4244a36, type: 3}
