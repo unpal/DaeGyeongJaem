@@ -1,3 +1,4 @@
+using Script.sound;
 using UnityEngine;
 
 /// <summary>
@@ -60,13 +61,18 @@ public class SoundEventManager : MonoBehaviour
 
     /// <summary>
     /// 사운드 이벤트를 발생시킵니다.
+    /// PlayerMic을 위한 메소드 ! TriggerSound(Vector3, VpxVolume)을 사용해 주세요
     /// </summary>
     /// <param name="position">사운드가 발생한 위치</param>
     /// <param name="volume">사운드의 크기</param>
     public static void TriggerSound(Vector3 position, float volume)
     {
-        // 구독자가 있을 경우에만 이벤트를 호출합니다.
-        Debug.Log($"[{position}] 에서 ({volume})만큼의 사운드 발생");
         OnSoundTriggered?.Invoke(position, volume);
+    }
+    
+    
+    public static void TriggerSound(Vector3 position, VpxVolume volume)
+    {
+        OnSoundTriggered?.Invoke(position, (float) volume);
     }
 }

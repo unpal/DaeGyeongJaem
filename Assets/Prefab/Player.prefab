@@ -49,10 +49,10 @@ GameObject:
   - component: {fileID: 5997651382988697563}
   - component: {fileID: 4412345678901234567}
   - component: {fileID: -6459193691174752318}
-  - component: {fileID: 647982741412882925}
   - component: {fileID: -8482163007196616827}
   - component: {fileID: 8669376911906878677}
   - component: {fileID: -7234672658272878036}
+  - component: {fileID: 1329528272051542437}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -166,8 +166,6 @@ MonoBehaviour:
   wallLayer:
     serializedVersion: 2
     m_Bits: 64
-  footSound: {fileID: 8300000, guid: 67c180cea029b1a0f823e5c8eec0f18f, type: 3}
-  footSoundRange: 5
 --- !u!143 &1928040249987131803
 CharacterController:
   m_ObjectHideFlags: 0
@@ -250,16 +248,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ab7bf48dcd46d240a88904eed297b31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  periodicInterval: 30
-  periodicRadius: 20
-  whistleRadius: 25
-  walkRadius: 2
-  runRadius: 6
-  jumpRadius: 5
-  landRadius: 8
-  climbRadius: 4
-  crouchMultiplier: 0.3
-  _audioSource: {fileID: 647982741412882925}
+  countSources: 10
+  whistleClip: {fileID: 8300000, guid: 0118350a0c5940154b301c45af0538f8, type: 3}
+  walkClip: {fileID: 8300000, guid: 67c180cea029b1a0f823e5c8eec0f18f, type: 3}
+  runClip: {fileID: 8300000, guid: 67c180cea029b1a0f823e5c8eec0f18f, type: 3}
+  jumpClip: {fileID: 0}
+  landClip: {fileID: 0}
+  climbClip: {fileID: 0}
 --- !u!114 &5997651382988697563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -318,102 +313,6 @@ MonoBehaviour:
     _value: 0
   _HasEscaped:
     _value: 0
---- !u!82 &647982741412882925
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 80510252676572901}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 8300000, guid: 0118350a0c5940154b301c45af0538f8, type: 3}
-  m_PlayOnAwake: 1
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 40
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
 --- !u!114 &-8482163007196616827
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -545,6 +444,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1329528272051542437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49c2ac45e60446b898596a0866fe73f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minPeriodicInterval: 30
+  maxPeriodicInterval: 40
+  whistleVolume: 25
 --- !u!1 &1178018697821101391
 GameObject:
   m_ObjectHideFlags: 0

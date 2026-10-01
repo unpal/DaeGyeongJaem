@@ -42,7 +42,7 @@ public class PlayerRoundLifecycle : MonoBehaviour
         condition?.ResetForNextRound();
         playerMove?.ResetForNextRound();
         fallDamage?.ResetForNextRound();
-        playerNoise?.RestartPeriodicNoise();
+        // playerNoise?.RestartPeriodicNoise();
 
         if (controller != null)
             controller.Teleport(spawnPosition, spawnRotation);

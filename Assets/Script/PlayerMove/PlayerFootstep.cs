@@ -3,17 +3,14 @@ using UnityEngine;
 public class PlayerFootstep
 {
     private readonly PlayerAnimation animation;
-    private readonly float soundRange;
 
     private bool firstStep;
     private bool secondStep;
 
     public PlayerFootstep(
-        PlayerAnimation animation,
-        float soundRange)
+        PlayerAnimation animation)
     {
         this.animation = animation;
-        this.soundRange = soundRange;
     }
 
     public bool Update(
@@ -61,9 +58,6 @@ public class PlayerFootstep
 
         return false;
     }
-
-    public float SoundRange =>
-        soundRange;
 
     public void Reset()
     {
