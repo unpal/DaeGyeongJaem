@@ -44,7 +44,7 @@ public class PlayerStealth : MonoBehaviour
 
         move.Speed = originalSpeed * crouchSpeedMultiplier;
 
-        noise.SetCrouching(true);
+        // noise.SetCrouching(true);
 
         Debug.Log("은신 시작");
         //transform.localScale = new Vector3(1f, 0.7f, 1f); 하거나
@@ -60,7 +60,7 @@ public class PlayerStealth : MonoBehaviour
 
         move.Speed = originalSpeed;
 
-        noise.SetCrouching(false);
+        // noise.SetCrouching(false);
 
         Debug.Log("은신 종료");
     }

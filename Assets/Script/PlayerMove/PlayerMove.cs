@@ -1,5 +1,7 @@
 using Cinemachine;
 using Fusion;
+using Script.PlayerMove;
+using Script.sound;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -34,9 +36,9 @@ public class PlayerMove : NetworkBehaviour
     [SerializeField] private Transform wallCaster;
     [SerializeField] private LayerMask wallLayer;
 
-    [Header("Sound")]
-    [SerializeField] private AudioClip footSound;
-    [SerializeField] private float footSoundRange = 5f;
+    // [Header("Sound")]
+    // [SerializeField] private AudioClip footSound;
+    // [SerializeField] private float footSoundRange = 5f;
 
     private NetworkCharacterController controller;
     private PlayerCondition condition;
@@ -50,6 +52,7 @@ public class PlayerMove : NetworkBehaviour
     private PlayerClimbing climbing;
     private PlayerAnimation animationController;
     private PlayerFootstep footstep;
+    private PlayerWhistle whistle;
 
     private bool jumpWasPressed;
 
@@ -72,6 +75,9 @@ public class PlayerMove : NetworkBehaviour
 
         fallDamage =
             GetComponent<FallDamage>();
+        
+        whistle =
+            GetComponent<PlayerWhistle>();
 
         bool isMine =
             Object.HasInputAuthority;
@@ -112,8 +118,7 @@ public class PlayerMove : NetworkBehaviour
 
         footstep =
             new PlayerFootstep(
-                animationController,
-                footSoundRange);
+                animationController);
 
         // Local Player 설정
 
@@ -143,9 +148,9 @@ public class PlayerMove : NetworkBehaviour
         cameraController.UpdateLook(
             input.Look);
 
-        if (input.WhistlePressed)
+        if (input.WhistlePressed && gameState.IsInPlayground)
         {
-            noise.Whistle();
+            whistle.Whistle();
         }
     }
 
@@ -251,12 +256,13 @@ public class PlayerMove : NetworkBehaviour
         int FootStepNumber = footstep.Update(transform.position,isClimbing,canSprint);
         if (FootStepNumber == 1)
         {
-            Rpc_PlayFootstep(
-                transform.position);
+            // Rpc_PlayFootstep(
+            //     transform.position);
+            noise.Play(Vpx.Walk);
 
             SoundEventManager.TriggerSound(
                 transform.position,
-                footstep.SoundRange);
+                VpxVolume.Walk);
         }
         else if(FootStepNumber == 2)
         {
@@ -283,20 +289,20 @@ public class PlayerMove : NetworkBehaviour
                 recoverRate * deltaTime);
         }
     }
-
-    [Rpc(
-        RpcSources.StateAuthority,
-        RpcTargets.All)]
-    private void Rpc_PlayFootstep(
-        Vector3 position)
-    {
-        if (footSound == null)
-            return;
-
-        AudioSource.PlayClipAtPoint(
-            footSound,
-            position);
-    }
+    //
+    // [Rpc(
+    //     RpcSources.StateAuthority,
+    //     RpcTargets.All)]
+    // private void Rpc_PlayFootstep(
+    //     Vector3 position)
+    // {
+    //     if (footSound == null)
+    //         return;
+    //
+    //     AudioSource.PlayClipAtPoint(
+    //         footSound,
+    //         position);
+    // }
 
     public void ResetForNextRound()
     {
