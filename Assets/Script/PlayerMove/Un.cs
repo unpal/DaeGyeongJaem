@@ -157,6 +157,13 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                 cam.transform.localRotation = Quaternion.identity;
             }
         }
+        else
+        {
+            if (cam != null)
+            {
+                cam.gameObject.SetActive(false);
+            }
+        }
 
 
         TryGetComponent(out _rb);
