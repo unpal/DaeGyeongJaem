@@ -117,7 +117,7 @@ public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnInput(NetworkRunner runner, NetworkInput input)
     {
-        PlayerMove[] players = FindObjectsByType<PlayerMove>(
+        Un[] players = FindObjectsByType<Un>(
             FindObjectsSortMode.None);
 
         foreach (var player in players)

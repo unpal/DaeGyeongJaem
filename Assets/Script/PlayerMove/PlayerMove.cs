@@ -16,6 +16,7 @@ public class PlayerMove : NetworkBehaviour
         set => speed = value;
     }
     [SerializeField] private float runSpeed = 8f;
+    [SerializeField] private float ClimbForceTime = 0.05f;
 
     [Header("Sensitivity")]
     [SerializeField] private float sensitivity = 0.1f;
@@ -108,7 +109,8 @@ public class PlayerMove : NetworkBehaviour
                 fallDamage,
                 wallCaster,
                 wallLayer,
-                climbDrain);
+                climbDrain,
+                ClimbForceTime);
 
         animationController =
             new PlayerAnimation(
@@ -207,6 +209,8 @@ public class PlayerMove : NetworkBehaviour
         bool isClimbing =
             climbing.UpdateState(data);
 
+        climbing.UpdateForce(deltaTime);
+
         // 이동
 
         Vector3 move;
@@ -249,11 +253,8 @@ public class PlayerMove : NetworkBehaviour
             canSprint);
 
         // 발소리
-
-        if (footstep.Update(
-            transform.position,
-            isClimbing,
-            canSprint))
+        int FootStepNumber = footstep.Update(transform.position,isClimbing,canSprint);
+        if (FootStepNumber == 1)
         {
             // Rpc_PlayFootstep(
             //     transform.position);
@@ -263,13 +264,21 @@ public class PlayerMove : NetworkBehaviour
                 transform.position,
                 VpxVolume.Walk);
         }
+        else if(FootStepNumber == 2)
+        {
+            climbing.SetIsForce(true);
+        }
+        else
+        {
 
-        // 스태미나 회복
+        }
 
-        bool tryingToSprint =
-            data.Buttons.IsSet(
-                (int)PlayerButtons.Sprint) &&
-            data.Move.sqrMagnitude > 0.01f;
+            // 스태미나 회복
+
+            bool tryingToSprint =
+                data.Buttons.IsSet(
+                    (int)PlayerButtons.Sprint) &&
+                data.Move.sqrMagnitude > 0.01f;
 
         if (!canSprint &&
             !tryingToSprint &&
@@ -318,7 +327,8 @@ public class PlayerMove : NetworkBehaviour
 
         climbing.Reset();
         animationController.Reset();
-        footstep.Reset();
+        footstep.ResetStep();
+        footstep.ResetForce();
         cameraController.Reset();
     }
 

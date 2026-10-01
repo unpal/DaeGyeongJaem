@@ -49,7 +49,7 @@ namespace Fusion {
     public float rotationSpeed = 15.0f;
     public bool IsClimbing;
     public bool IsDash;
-    public float ClimbingSpeed = 1.0f;
+    public float ClimbingSpeed = 2.0f;
     public float edgePushTime = 0.2f;
     public float edgePushTimer;
     public float edgePushForce = 5f;
@@ -156,7 +156,7 @@ namespace Fusion {
        return found;
    }
 
-      public void Move(Vector3 direction) {
+      public void Move(Vector3 direction, bool IsForce = false) {
       var deltaTime    = Runner.DeltaTime;
       var previousPos  = transform.position;
       var moveVelocity = Data.Velocity;
@@ -187,8 +187,9 @@ namespace Fusion {
 
             if (direction == default) {
         horizontalVel = Vector3.Lerp(horizontalVel, default, braking * deltaTime);
-      } else {
-        horizontalVel      = Vector3.ClampMagnitude(horizontalVel + direction * acceleration * deltaTime, (IsClimbing ? ClimbingSpeed : maxSpeed));
+      } else 
+      {
+        horizontalVel      = Vector3.ClampMagnitude(horizontalVel + direction * acceleration * deltaTime, (IsClimbing ? (IsForce ? ClimbingSpeed : ClimbingSpeed * 0.2f) : maxSpeed));
         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), rotationSpeed * Runner.DeltaTime);
       }
 
@@ -202,15 +203,15 @@ namespace Fusion {
             bool isMove = false;
             bool isRaycast = false;
         Vector3 tempVec = transform.up * mantleUpWeight + transform.forward * mantleBackWeight;
-            isRaycast = Physics.Raycast(HeadLayCasterTrans.position, tempVec, out hit, 0.5f, HeadRayLayer);
+            isRaycast = Physics.Raycast(HeadLayCasterTrans.position, tempVec, out hit, 2f, HeadRayLayer);
                 
-      if (Physics.Raycast(HeadLayCasterTrans.position, transform.up, out hit, 0.5f, HeadRayLayer))
+      if (isRaycast)
       {
                 
           if (IsClimbing && horizontalVel.y > 0)
           {
             Vector3 move = hit.transform.up * mantleUpWeight - hit.transform.forward * mantleBackWeight;
-            horizontalVel = Vector3.ClampMagnitude(move * acceleration * deltaTime, (IsClimbing ? ClimbingSpeed : maxSpeed));
+            horizontalVel = Vector3.ClampMagnitude(move * acceleration * deltaTime, (IsClimbing ? (IsForce ? ClimbingSpeed : ClimbingSpeed * 0.2f) : maxSpeed));
             move.Normalize();
             _controller.Move(move * deltaTime);
             isMove = true;
