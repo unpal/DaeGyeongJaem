@@ -9,6 +9,7 @@ public class PlayerRoundLifecycle : MonoBehaviour
     private PlayerGameState gameState;
     private PlayerCondition condition;
     private PlayerMove playerMove;
+    private Un movement;
     private FallDamage fallDamage;
     private PlayerNoise playerNoise;
     private NetworkCharacterController controller;
@@ -20,6 +21,7 @@ public class PlayerRoundLifecycle : MonoBehaviour
         gameState = GetComponent<PlayerGameState>();
         condition = GetComponent<PlayerCondition>();
         playerMove = GetComponent<PlayerMove>();
+        movement = GetComponent<Un>();
         fallDamage = GetComponent<FallDamage>();
         playerNoise = GetComponent<PlayerNoise>();
         controller = GetComponent<NetworkCharacterController>();
@@ -41,6 +43,7 @@ public class PlayerRoundLifecycle : MonoBehaviour
         gameState.ResetRoundResult();
         condition?.ResetForNextRound();
         playerMove?.ResetForNextRound();
+        movement?.ResetForNextRound();
         fallDamage?.ResetForNextRound();
         // playerNoise?.RestartPeriodicNoise();
 

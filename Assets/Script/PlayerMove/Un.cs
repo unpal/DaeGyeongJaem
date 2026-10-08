@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(PlayerCondition))]
 public class Un : NetworkBehaviour, RawInput.IPlayerActions
 {
     public enum StateMachine
@@ -21,6 +22,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     private RawInput _rawInput;
     private RawInput.PlayerActions _playerActions;
+    private InputAction _sprintAction;
+    private PlayerCondition _condition;
+    private PlayerGameState _gameState;
+    [Networked] private NetworkBool JumpWasPressed { get; set; }
 
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 5f;
@@ -30,6 +35,13 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     [SerializeField] private LayerMask groundLayerMask = ~0;
     [SerializeField] private float groundCheckDistance = 0.2f;
 
+    [Header("Stamina")]
+    [SerializeField, Min(0f)] private float runSpeed = 8f;
+    [SerializeField, Min(0f)] private float sprintDrain = 15f;
+    [SerializeField, Min(0f)] private float jumpCost = 10f;
+    [SerializeField, Min(0f)] private float climbDrain = 20f;
+    [SerializeField, Min(0f)] private float recoverRate = 10f;
+
     [Header("Climb Shared Settings")]
     [SerializeField]
     private Animator animator;
@@ -37,13 +49,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private Vector2 _moveInput;
     private bool JumpPressed;
     private bool AttackPressed;
-    private bool SprintPressed;
     Vector2 mouseDelta;
     private Vector3 _surfaceNormal = Vector3.up;
     private bool _isClicking = false;
     private float _verticalVelocity;
     private bool _isGrounded;
-    private float _jumpBufferTimer;
     private Coroutine _wallCheckCoroutine;
     private Coroutine _wallClimbCoroutine;
 
@@ -116,12 +126,17 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     public override void Spawned()
     {
+        _condition = GetComponent<PlayerCondition>();
+        _gameState = GetComponent<PlayerGameState>();
         if(Object.HasInputAuthority)
         {
             _rawInput = new RawInput();
             _playerActions = _rawInput.Player;
             _playerActions.Enable();
             _playerActions.AddCallbacks(this);
+            _sprintAction = new InputAction("Sprint", InputActionType.Button, "<Keyboard>/leftShift");
+            _sprintAction.AddBinding("<Gamepad>/leftStickPress");
+            _sprintAction.Enable();
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
@@ -199,12 +214,15 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     private void OnDestroy()
     {
-        _rawInput.Dispose();
+        _sprintAction?.Dispose();
+        _rawInput?.Dispose();
     }
 
     void OnEnable()
     {
-
+        if (_rawInput != null)
+            _playerActions.Enable();
+        _sprintAction?.Enable();
     }
     public NetworkInputData GetNetworkInput()
     {
@@ -223,13 +241,18 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
         data.Buttons.Set(
             (int)PlayerButtons.Sprint,
-            SprintPressed);
+            _sprintAction != null && _sprintAction.IsPressed());
 
         return data;
     }
     void OnDisable()
     {
-        _playerActions.Disable();
+        if (_rawInput != null)
+            _playerActions.Disable();
+        _sprintAction?.Disable();
+        _moveInput = Vector2.zero;
+        JumpPressed = false;
+        AttackPressed = false;
         if (_wallCheckCoroutine != null)
         {
             StopCoroutine(_wallCheckCoroutine);
@@ -245,6 +268,14 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     public override void FixedUpdateNetwork()
     {
+        if (_gameState == null || !_gameState.IsInPlayground || _condition.IsGameOver)
+        {
+            if (stateMachine == StateMachine.Wall)
+                TransitionToFloor();
+            _rb.velocity = Vector3.zero;
+            return;
+        }
+
         if (!GetInput(out NetworkInputData data))
         {
             return;
@@ -263,21 +294,73 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             case StateMachine.Floor:
                 FloorMove(data);
 
-                if (data.Buttons.IsSet(PlayerButtons.Attack))
+                if (data.Buttons.IsSet(PlayerButtons.Attack) && CanSpendStamina(climbDrain * Runner.DeltaTime))
                     WallCheck();
 
                 break;
             case StateMachine.Wall:
 
-                WallClimb(data);
-
-                if (!data.Buttons.IsSet(PlayerButtons.Attack))
+                if (!data.Buttons.IsSet(PlayerButtons.Attack) ||
+                    !SpendStamina(climbDrain * Runner.DeltaTime))
+                {
                     TransitionToFloor();
+                }
+                else
+                {
+                    WallClimb(data);
+                    if (climbDrain > 0f && _condition.CurrentStamina <= 0f && stateMachine == StateMachine.Wall)
+                        TransitionToFloor();
+                }
 
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
+        JumpWasPressed = data.Buttons.IsSet(PlayerButtons.Jump);
+    }
+
+    private bool CanSpendStamina(float amount)
+    {
+        return amount == 0f || _condition.CanUseStamina(amount);
+    }
+
+    private bool SpendStamina(float amount)
+    {
+        if (!CanSpendStamina(amount))
+            return false;
+
+        if (amount == 0f)
+            return true;
+
+        return Object.HasStateAuthority
+            ? _condition.TryUseStamina(amount)
+            : true;
+    }
+
+    public void ResetForNextRound()
+    {
+        if (Object != null && Object.HasStateAuthority)
+            RpcResetMovement();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcResetMovement()
+    {
+        if (_rb == null)
+            return;
+
+        TransitionToFloor();
+        _rb.velocity = Vector3.zero;
+        _rb.angularVelocity = Vector3.zero;
+        _verticalVelocity = 0f;
+        _isGrounded = false;
+        _climbInitialized = false;
+        _climbStepActive = false;
+        _climbTimer = 0f;
+        _climbUpGoingDistance = 0f;
+        _isRightTurn = true;
+        if (Object.HasStateAuthority || Object.HasInputAuthority)
+            JumpWasPressed = false;
     }
 
     /// <summary>
@@ -334,21 +417,18 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     private void FloorMove(NetworkInputData data)
     {
+        float deltaTime = Runner.DeltaTime;
         float checkDist = _collider != null ? _collider.bounds.extents.y + 0.1f : groundCheckDistance;
         _isGrounded = Physics.Raycast(transform.position, Vector3.down, checkDist, groundLayerMask);
-
-        if (_jumpBufferTimer > 0f)
-        {
-            _jumpBufferTimer -= Time.fixedDeltaTime;
-        }
+        bool jumped = false;
 
         if (_isGrounded)
         {
-            if (_jumpBufferTimer > 0f)
+            if (data.Buttons.IsSet(PlayerButtons.Jump) && !JumpWasPressed && SpendStamina(jumpCost))
             {
                 _verticalVelocity = jumpForce;
-                _jumpBufferTimer = 0f;
                 _isGrounded = false;
+                jumped = true;
             }
             else if (_verticalVelocity < 0f)
             {
@@ -357,9 +437,15 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         }
         else
         {
-            _verticalVelocity -= gravity * Time.fixedDeltaTime;
+            _verticalVelocity -= gravity * deltaTime;
         }
-        var move = (transform.right * data.Move.x + transform.forward * data.Move.y) * moveSpeed;
+        bool tryingToSprint = data.Buttons.IsSet(PlayerButtons.Sprint) && data.Move.sqrMagnitude > 0.01f;
+        bool sprinting = tryingToSprint && _condition.CanSprint && SpendStamina(sprintDrain * deltaTime);
+        Vector2 moveInput = Vector2.ClampMagnitude(data.Move, 1f);
+        var move = (transform.right * moveInput.x + transform.forward * moveInput.y) * (sprinting ? runSpeed : moveSpeed);
+
+        if (_isGrounded && !jumped && !tryingToSprint && !data.Buttons.IsSet(PlayerButtons.Attack))
+            _condition.RecoverStamina(recoverRate * deltaTime);
 
 
         if (move.sqrMagnitude > 0)
