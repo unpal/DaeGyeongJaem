@@ -1052,10 +1052,10 @@
     "m_Guid": {
         "m_GuidSerialized": "cb4d1fcd-fd43-4518-9b4d-220efe2c8186"
     },
-    "m_Name": "Curavture",
+    "m_Name": "Amount",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Curavture",
-    "m_DefaultReferenceName": "_Curavture",
+    "m_RefNameGeneratedByDisplayName": "Amount",
+    "m_DefaultReferenceName": "_Amount",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,
@@ -1818,7 +1818,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "9bb6101985494bef89dad1dc4415ed1b",
     "m_Id": 0,
-    "m_DisplayName": "Curavture",
+    "m_DisplayName": "Amount",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
