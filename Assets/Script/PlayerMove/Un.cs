@@ -11,7 +11,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     public enum StateMachine
     {
         Floor, // 0~45도: 평지/완만한 경사 (점프/중력 적용)
-        Wall // 45~180도: 수직벽/오버행/천장/기둥 (등반)
+        Wall, // 45~180도: 수직벽/오버행/천장/기둥 (등반)
+        ToWall, // 벽으로 붙기위해 이동중인 상태(등반 하기전 잠깐동안)
+        ToFloor
     }
 
     private Rigidbody _rb;
@@ -113,6 +115,14 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private bool _climbInitialized = false;
     private float _climbTimer = 0f;
     private float _climbUpGoingDistance = 0f;
+
+    [SerializeField]
+    private float _transTimeCheck = 0;
+    [SerializeField]
+    private float _transTime = 0.1f;
+
+    private Vector3 _hitPoint = Vector3.zero;
+    private Vector3 _hitNormal = Vector3.zero;  
 
     public override void Spawned()
     {
@@ -275,6 +285,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                     TransitionToFloor();
 
                 break;
+
+            case StateMachine.ToWall:
+                // 벽으로 이동할 때 너무 한번에 이동해서 선형 보간으로 변경함.
+                TransitionToWall(_hitPoint,_hitNormal);
+                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -359,9 +374,37 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         {
             _verticalVelocity -= gravity * Time.fixedDeltaTime;
         }
-        var move = (transform.right * data.Move.x + transform.forward * data.Move.y) * moveSpeed;
+
+        //카메라를 LateUpdate에서 바꿔주기에 Networktansfrom에서 컴포넌트 내에 변경이 있을 경우 해당 컴포넌트의 값이 LateUpdate에서 변경된 값이 적용되지 않는다.
 
 
+        // 내 캐릭터가 보는 위치(y축 회전 값)
+        Quaternion yawRotation =
+            Quaternion.Euler(0f, _yaw, 0f);
+
+
+        // y 축 회전값을 통한 내가 보는 곳에 대한 앞, 옆 찾기
+        Vector3 forward =
+            yawRotation * Vector3.forward;
+
+        Vector3 right =
+            yawRotation * Vector3.right;
+
+        // 찾은 앞, 옆을 통해 이동할 위치를 측정한다.
+        Vector3 moveDirection =
+            right * data.Move.x +
+            forward * data.Move.y;
+
+
+        // 대각선에 대한 보값을 제거한다.
+        if (moveDirection.sqrMagnitude > 1f)
+            moveDirection.Normalize();
+
+        // 마지막으로 이동할 속도를 곱한다.
+        var move = moveDirection * moveSpeed;
+
+        
+        // 움직일 때 모션이 작동하도록 한다.
         if (move.sqrMagnitude > 0)
         {
             animator.SetBool("Running", true);
@@ -436,16 +479,27 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         Debug.DrawRay(ray.origin, ray.direction * rayMaxDistance, Color.red);
         if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
         {
-
-            TransitionToWall(transHit.point, transHit.normal);
+            _transTimeCheck = _transTime;
+            stateMachine = StateMachine.ToWall;
+            _hitPoint = transHit.point;
+            _hitNormal = transHit.normal;
+            //TransitionToWall(transHit.point, transHit.normal);
 
         }
     }
 
     private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
     {
+        // 땅에서 벽으로 갈 때 _transTime 만큼의 시간을 소비해서 선형 이동을 하게 설정
+        _transTimeCheck -= Runner.DeltaTime;
+
+        if ((_transTimeCheck < 0))
+        {
+            // _transTime 만큼의 시간이 끝나면 StateMachine 변경
+            stateMachine = StateMachine.Wall;
+        }
         _surfaceNormal = hitNormal;
-        stateMachine = StateMachine.Wall;
+        //stateMachine = StateMachine.Wall;
 
         // 벽 상태 진입 시 물리 속도 초기화 (잔여 속도로 밀려나는 현상 방지)
         _rb.velocity = Vector3.zero;
@@ -460,8 +514,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         {
             wallUp = Vector3.up;
         }
+        Vector3 velo = Vector3.zero;
 
-        transform.position = hitPoint + hitNormal * wallDistance;
+        transform.position = Vector3.SmoothDamp(transform.position,hitPoint + hitNormal * wallDistance,ref velo, _transTime);
         _smoothedWallRot = Quaternion.LookRotation(-hitNormal, wallUp);
         transform.rotation = _smoothedWallRot;
 
