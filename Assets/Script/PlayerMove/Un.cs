@@ -122,7 +122,17 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private float _transTime = 0.1f;
 
     private Vector3 _hitPoint = Vector3.zero;
-    private Vector3 _hitNormal = Vector3.zero;  
+    private Vector3 _hitNormal = Vector3.zero;
+    [SerializeField]
+    private float _forceTime = 0.1f;
+    [SerializeField]
+    private float _forceTimeCheck = 0;
+
+    private Vector3 _HitPo;
+    private Vector3 _HitNo;
+
+
+    
 
     public override void Spawned()
     {
@@ -275,7 +285,14 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
                 if (data.Buttons.IsSet(PlayerButtons.Attack))
                     WallCheck();
-
+                var rayDirTransform = headTransform != null ? headTransform : transform;
+                var ray = new Ray
+                {
+                    origin = transform.position,
+                    direction = rayDirTransform.forward + -rayDirTransform.up
+                };
+                Vector3 tempvec = Vector3.zero;
+                Debug.DrawRay(ray.origin, ray.direction);
                 break;
             case StateMachine.Wall:
 
@@ -289,6 +306,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             case StateMachine.ToWall:
                 // 벽으로 이동할 때 너무 한번에 이동해서 선형 보간으로 변경함.
                 TransitionToWall(_hitPoint,_hitNormal);
+                break;
+
+            case StateMachine.ToFloor:
+
+                TransitionToFloor(true);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -527,7 +549,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _climbUpGoingDistance = 0f;
     }
 
-    private void TransitionToFloor()
+    private void TransitionToFloor(bool isForce = false)
     {
         // 벽에서 지상으로 복귀 시 현재 카메라인 월드 수평각(Yaw)을 유지하여 시점 점프 방지
         Vector3 lookForward = camPivot != null ? camPivot.forward : transform.forward;
@@ -536,17 +558,45 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         {
             _yaw = Quaternion.LookRotation(floorForward, Vector3.up).eulerAngles.y;
         }
-
-        _rb.isKinematic = false;
-        stateMachine = StateMachine.Floor;
-        if (_wallClimbCoroutine != null)
+        _forceTimeCheck -= Runner.DeltaTime;
+        if (_forceTimeCheck < 0f)
         {
-            StopCoroutine(_wallClimbCoroutine);
-            _wallClimbCoroutine = null;
+            _forceTimeCheck = 0;
+            isForce = false;
         }
+        _rb.isKinematic = false;
+        if (!isForce)
+        {
+            stateMachine = StateMachine.Floor;
+            //if (_wallClimbCoroutine != null)
+            //{
+            //    StopCoroutine(_wallClimbCoroutine);
+            //    _wallClimbCoroutine = null;
+            //}
 
-        transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
-        _smoothedWallRot = transform.rotation;
+            transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
+            _smoothedWallRot = transform.rotation;
+        }
+        else
+        {
+            stateMachine = StateMachine.ToFloor;
+            var rayDirTransform = headTransform != null ? headTransform : transform;
+            var ray = new Ray
+            {
+                origin = transform.position,
+                direction = rayDirTransform.forward + -rayDirTransform.up
+            };
+            Vector3 tempvec = Vector3.zero;
+            Debug.DrawRay(ray.origin, ray.direction);
+            //if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
+            //{
+            //    transform.position = Vector3.SmoothDamp(transform.position, transHit.point, ref tempvec, _transTime);
+            //}
+            //else
+            //{
+
+            //}
+        }
     }
 
     private IEnumerator WallCheckCoroutine()
@@ -830,9 +880,17 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
             if (anyHit)
             {
+                Vector3 DistanceToHitAndArm = lastHit.point - arm.position;
+
+                if(DistanceToHitAndArm.y < 0.2f)
+                {
+                    TransitionToFloor(true);
+                    _forceTimeCheck = _forceTime;
+                    return;
+                }
                 float reachUp =
                     Vector3.Dot(
-                        lastHit.point - arm.position,
+                        DistanceToHitAndArm,
                         wallUp
                     );
 
@@ -844,7 +902,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             }
             else
             {
-                _climbUpGoingDistance = 0f;
+                TransitionToFloor(true);
+                _forceTimeCheck = _forceTime;
+                return;
+                //_climbUpGoingDistance = 0f;
             }
 
             // =====================================================
@@ -926,7 +987,6 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
             _climbTimer += stepDeltaTime;
         }
-
         // =========================================================
         // 4. 현재 climbing step 완료
         // =========================================================
