@@ -129,6 +129,22 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     [SerializeField]
     private float _forceTimeCheck = 0;
 
+    [Header("Wall Edge / Mantle")]
+    [SerializeField] private float mantleDuration = 0.55f;
+    [SerializeField] private float mantleForwardOffset = 0.35f;
+    [SerializeField] private float mantleRayUp = 1.5f;
+    [SerializeField] private float mantleRayDistance = 4f;
+    [SerializeField] private float mantleHeightTolerance = 0.1f;
+
+    private float _mantleElapsed;
+    private Vector3 _mantleStartPosition;
+    private Vector3 _mantleTargetPosition;
+    private Quaternion _mantleStartBodyRotation;
+    private Quaternion _mantleTargetBodyRotation;
+    private Quaternion _mantleStartCameraRotation;
+    private Quaternion _mantleTargetCameraRotation;
+    private float _mantleTargetYaw;
+
     private Vector3 _HitPo;
     private Vector3 _HitNo;
 
@@ -271,53 +287,43 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     public override void FixedUpdateNetwork()
     {
         if (!GetInput(out NetworkInputData data))
-        {
             return;
-        }
-
-
-
-
-        //if (stateMachine == StateMachine.Wall)
-        //{
-        //    TransitionToFloor();
-        //}
 
         switch (stateMachine)
         {
             case StateMachine.Floor:
-                {
-                    FloorMove(data);
+            {
+                FloorMove(data);
 
-                    if (data.Buttons.IsSet(PlayerButtons.Attack))
-                        WallCheck();
+                if (data.Buttons.IsSet(PlayerButtons.Attack))
+                    WallCheck();
 
-                }
                 break;
+            }
+
             case StateMachine.Wall:
+            {
+                WallClimb(data);
+
+                // WallClimb 안에서 ToFloor로 전환했다면 이 틱에
+                // 일반 벽타기 해제 로직이 상태를 덮어쓰지 않게 한다.
+                if (stateMachine == StateMachine.Wall &&
+                    !data.Buttons.IsSet(PlayerButtons.Attack))
                 {
-                    WallClimb(data);
-
-                    if (!data.Buttons.IsSet(PlayerButtons.Attack))
-                        TransitionToFloor();
-
+                    TransitionToFloor();
                 }
+
                 break;
+            }
 
             case StateMachine.ToWall:
-                {
-                    // 벽으로 이동할 때 너무 한번에 이동해서 선형 보간으로 변경함.
-                    TransitionToWall(_hitPoint, _hitNormal);
-
-                }
+                TransitionToWall(_hitPoint, _hitNormal);
                 break;
 
             case StateMachine.ToFloor:
-                {
-                    TransitionToFloor(true);
-
-                }
+                UpdateMantleToFloor();
                 break;
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -328,39 +334,53 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     /// </summary>
     private void LateUpdate()
     {
-        if (!Object.HasInputAuthority)
+        if (Object == null || !Object.HasInputAuthority)
             return;
 
         if (camPivot == null)
             return;
 
-        // 1. 카메라 피벗 위치 동기화 (머리 뼈 기준)
         camPivot.position = GetCameraPivotPosition();
 
-        // 2. 상태에 따른 몸체 및 카메라 회전 동기화
-        if (stateMachine != StateMachine.Wall && stateMachine != StateMachine.ToWall)
+        // 모서리 전환 중에는 _surfaceNormal을 이용해 벽 회전을 다시 계산하지 않는다.
+        // 전환 시작 시 저장한 회전값을 기준으로 몸체와 카메라를 함께 보간한다.
+        if (stateMachine == StateMachine.ToFloor)
+        {
+            float duration = Mathf.Max(mantleDuration, 0.01f);
+            float t = Mathf.Clamp01(_mantleElapsed / duration);
+            float smoothT = t * t * (3f - 2f * t);
+
+            transform.rotation = Quaternion.Slerp(
+                _mantleStartBodyRotation,
+                _mantleTargetBodyRotation,
+                smoothT);
+
+            camPivot.rotation = Quaternion.Slerp(
+                _mantleStartCameraRotation,
+                _mantleTargetCameraRotation,
+                smoothT);
+
+            return;
+        }
+
+        if (stateMachine == StateMachine.Floor)
         {
             transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
             camPivot.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+            return;
         }
-        else // Wall
-        {
-            // 벽면을 따라 위로 향하는 Up 벡터 계산 (경사벽/오버행 등 대응)
-            Vector3 wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
-            if (wallUp.sqrMagnitude < 0.001f)
-            {
-                wallUp = transform.up;
-            }
 
-            Quaternion targetWallBaseRot = Quaternion.LookRotation(-_surfaceNormal, wallUp);
+        // Wall / ToWall: 벽의 Up 방향을 기준으로 회전한다.
+        Vector3 wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
+        if (wallUp.sqrMagnitude < 0.001f)
+            wallUp = transform.up;
 
-            // 벽면 회전 트위닝 (프레임 독립적 Slerp 보간으로 두둑거림 방지)
-            float t = 1f - Mathf.Exp(-wallRotationTweenSpeed * Time.deltaTime);
-            _smoothedWallRot = Quaternion.Slerp(_smoothedWallRot, targetWallBaseRot, t);
+        Quaternion targetWallBaseRot = Quaternion.LookRotation(-_surfaceNormal, wallUp);
+        float blend = 1f - Mathf.Exp(-wallRotationTweenSpeed * Time.deltaTime);
+        _smoothedWallRot = Quaternion.Slerp(_smoothedWallRot, targetWallBaseRot, blend);
 
-            transform.rotation = _smoothedWallRot;
-            camPivot.rotation = _smoothedWallRot * Quaternion.Euler(_pitch, _yaw, 0f);
-        }
+        transform.rotation = _smoothedWallRot;
+        camPivot.rotation = _smoothedWallRot * Quaternion.Euler(_pitch, _yaw, 0f);
     }
 
     private Vector3 GetCameraPivotPosition()
@@ -557,60 +577,143 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     private void TransitionToFloor(bool isForce = false)
     {
-        // 벽에서 지상으로 복귀 시 현재 카메라인 월드 수평각(Yaw)을 유지하여 시점 점프 방지
-        Vector3 lookForward = camPivot != null ? camPivot.forward : transform.forward;
-        Vector3 floorForward = Vector3.ProjectOnPlane(lookForward, Vector3.up).normalized;
-        if (floorForward.sqrMagnitude > 0.001f)
+        if (isForce)
         {
-            _yaw = Quaternion.LookRotation(floorForward, Vector3.up).eulerAngles.y;
-        }
-        _forceTimeCheck -= Runner.DeltaTime;
-        if (_forceTimeCheck < 0f)
-        {
-            _forceTimeCheck = 0;
-            isForce = false;
-        }
-        _rb.isKinematic = false;
-        if (!isForce)
-        {
-            stateMachine = StateMachine.Floor;
-            //if (_wallClimbCoroutine != null)
-            //{
-            //    StopCoroutine(_wallClimbCoroutine);
-            //    _wallClimbCoroutine = null;
-            //}
+            // 전환 중 매 Tick 다시 시작하지 않도록 한다.
+            if (stateMachine == StateMachine.ToFloor)
+                return;
 
-            transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
-            _smoothedWallRot = transform.rotation;
-
-        }
-        else
-        {
-            stateMachine = StateMachine.ToFloor;
-            var rayDirTransform = headTransform != null ? headTransform : transform;
-            var ray = new Ray
+            if (TryGetMantleTarget(out Vector3 targetPosition, out Quaternion targetRotation))
             {
-                origin = transform.position,
-                direction = rayDirTransform.forward + -rayDirTransform.up
-            };
-            Vector3 tempvec = Vector3.up;
-            Debug.DrawRay(ray.origin, ray.direction);
-            if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
-            {//asd
-                RayCastObj = transHit.transform.gameObject;
-                transform.position = Vector3.SmoothDamp(transform.position, transHit.point + transHit.normal, ref tempvec, _transTime);
+                BeginMantleToFloor(targetPosition, targetRotation);
             }
             else
             {
-                Vector3 tempVec = (transform.forward + transform.up) * upGoingDistanceDivider * 2;
-                Debug.Log(tempVec);
-                _rb.velocity = tempVec;
+                // 위쪽에 올라갈 수 있는 평지를 찾지 못했다면 벽타기만 종료한다.
+                SetFloorYawFromCamera();
+                FinishTransitionToFloor();
             }
+
+            return;
         }
 
+        SetFloorYawFromCamera();
+        FinishTransitionToFloor();
+    }
 
+    private void SetFloorYawFromCamera()
+    {
+        Vector3 lookForward = camPivot != null ? camPivot.forward : transform.forward;
+        Vector3 floorForward = Vector3.ProjectOnPlane(lookForward, Vector3.up).normalized;
 
+        if (floorForward.sqrMagnitude > 0.001f)
+            _mantleTargetYaw = Quaternion.LookRotation(floorForward, Vector3.up).eulerAngles.y;
+        else
+            _mantleTargetYaw = transform.eulerAngles.y;
+    }
 
+    private bool TryGetMantleTarget(out Vector3 targetPosition, out Quaternion targetRotation)
+    {
+        targetPosition = transform.position;
+        targetRotation = transform.rotation;
+
+        // 벽타기 중 transform.forward는 벽을 향하므로, 그 방향으로 벽 끝 너머를 탐색한다.
+        Vector3 forward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+        if (forward.sqrMagnitude < 0.001f)
+            forward = Vector3.ProjectOnPlane(-_surfaceNormal, Vector3.up).normalized;
+
+        if (forward.sqrMagnitude < 0.001f)
+            return false;
+
+        Vector3 rayOrigin = transform.position
+            + forward * (wallDistance + mantleForwardOffset)
+            + Vector3.up * mantleRayUp;
+
+        Debug.DrawRay(rayOrigin, Vector3.down * mantleRayDistance, Color.yellow);
+
+        // 위쪽 평지 탐색은 groundLayerMask를 사용한다.
+        if (!Physics.Raycast(
+            rayOrigin, Vector3.down, out RaycastHit topHit,
+            mantleRayDistance, groundLayerMask, QueryTriggerInteraction.Ignore))
+        {
+            return false;
+        }
+
+        // 수직 벽이나 천장은 평지로 취급하지 않는다.
+        if (Vector3.Angle(topHit.normal, Vector3.up) > 30f)
+            return false;
+
+        float halfHeight = _collider != null ? _collider.bounds.extents.y : 0.9f;
+        targetPosition = topHit.point
+            + Vector3.up * (halfHeight + mantleHeightTolerance)
+            + forward * mantleForwardOffset;
+
+        targetRotation = Quaternion.LookRotation(forward, Vector3.up);
+        return true;
+    }
+
+    private void BeginMantleToFloor(Vector3 targetPosition, Quaternion targetRotation)
+    {
+        stateMachine = StateMachine.ToFloor;
+        _mantleElapsed = 0f;
+
+        _mantleStartPosition = transform.position;
+        _mantleTargetPosition = targetPosition;
+        _mantleStartBodyRotation = transform.rotation;
+        _mantleTargetBodyRotation = targetRotation;
+
+        Vector3 cameraForward = camPivot != null ? camPivot.forward : transform.forward;
+        Vector3 flatCameraForward = Vector3.ProjectOnPlane(cameraForward, Vector3.up).normalized;
+        if (flatCameraForward.sqrMagnitude < 0.001f)
+            flatCameraForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
+
+        if (flatCameraForward.sqrMagnitude > 0.001f)
+            _mantleTargetYaw = Quaternion.LookRotation(flatCameraForward, Vector3.up).eulerAngles.y;
+        else
+            _mantleTargetYaw = targetRotation.eulerAngles.y;
+
+        _mantleStartCameraRotation = camPivot != null ? camPivot.rotation : transform.rotation;
+        _mantleTargetCameraRotation = Quaternion.Euler(_pitch, _mantleTargetYaw, 0f);
+
+        _rb.velocity = Vector3.zero;
+        _rb.isKinematic = true;
+        _verticalVelocity = 0f;
+        _climbInitialized = false;
+        _climbStepActive = false;
+        _climbTimer = 0f;
+    }
+
+    private void UpdateMantleToFloor()
+    {
+        _mantleElapsed += Runner.DeltaTime;
+
+        float duration = Mathf.Max(mantleDuration, 0.01f);
+        float t = Mathf.Clamp01(_mantleElapsed / duration);
+        float smoothT = t * t * (3f - 2f * t);
+
+        transform.position = Vector3.Lerp(_mantleStartPosition, _mantleTargetPosition, smoothT);
+
+        if (t >= 1f)
+        {
+            transform.position = _mantleTargetPosition;
+            FinishTransitionToFloor();
+        }
+    }
+
+    private void FinishTransitionToFloor()
+    {
+        stateMachine = StateMachine.Floor;
+        _rb.isKinematic = false;
+        _rb.velocity = Vector3.zero;
+        _verticalVelocity = 0f;
+
+        _yaw = _mantleTargetYaw;
+        transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
+        _smoothedWallRot = transform.rotation;
+
+        _climbInitialized = false;
+        _climbStepActive = false;
+        _climbTimer = 0f;
     }
 
     private IEnumerator WallCheckCoroutine()
@@ -641,27 +744,31 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         }
     }
 
-    private Vector3 SimpleRaycast(Vector3 origin, Vector3 direction, float rayMaxDistance, out Vector3 hitNormal)
+    private Vector3 SimpleRaycast(
+       Vector3 origin,
+       Vector3 direction,
+       float rayMaxDistance,
+       out Vector3 hitNormal)
     {
-        var ray = new Ray
-        {
-            origin = origin,
-            direction = direction
-        };
-        if (Physics.Raycast(ray, out var hit, rayMaxDistance, wallLayerMask))
+        if (Physics.Raycast(
+            origin,
+            direction,
+            out RaycastHit hit,
+            rayMaxDistance,
+            wallLayerMask,
+            QueryTriggerInteraction.Ignore))
         {
             hitNormal = hit.normal;
             return hit.point;
         }
-        else
-        {
-            hitNormal = _surfaceNormal;
-            return origin + direction * rayMaxDistance;
-        }
+        //
+        // 벽을 찾지 못했다면 가짜 위치를 만들지 않는다.
+        hitNormal = Vector3.zero;
+        return Vector3.zero;
     }
 
-   // Fusion 에서는 yieid return 을 사용할 수 없음
-   // 그렇기에 Coroutine을 제거하고 일반 함수로 변경해 벽을 타게 변경함
+    // Fusion 에서는 yieid return 을 사용할 수 없음
+    // 그렇기에 Coroutine을 제거하고 일반 함수로 변경해 벽을 타게 변경함
     private void WallClimb(NetworkInputData data)
     {
 
@@ -861,7 +968,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
             if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
             {
-                TransitionToFloor();
+                TransitionToFloor(true);
                 return;
             }
 
@@ -899,7 +1006,6 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                 if(DistanceToHitAndArm.y < 0.2f)
                 {
                     TransitionToFloor(true);
-                    _forceTimeCheck = _forceTime;
                     return;
                 }
                 float reachUp =
@@ -917,7 +1023,6 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             else
             {
                 TransitionToFloor(true);
-                _forceTimeCheck = _forceTime;
                 return;
                 //_climbUpGoingDistance = 0f;
             }

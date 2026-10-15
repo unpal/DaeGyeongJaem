@@ -439,6 +439,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   groundCheckDistance: 0.2
   animator: {fileID: 4127296217243919022}
+  _surfaceNormal: {x: 0, y: 1, z: 0}
   cam: {fileID: 200119594496257742}
   headTransform: {fileID: 7477909526192679551}
   camPivot: {fileID: 3231059068926471677}
@@ -475,6 +476,12 @@ MonoBehaviour:
   _transTime: 0.1
   _forceTime: 1
   _forceTimeCheck: 0
+  mantleDuration: 0.55
+  mantleForwardOffset: 0.35
+  mantleRayUp: 1.5
+  mantleRayDistance: 4
+  mantleHeightTolerance: 0.1
+  RayCastObj: {fileID: 0}
   _currentRightHandPos: {x: 0, y: 0, z: 0}
   _currentLeftHandPos: {x: 0, y: 0, z: 0}
   _currentRightFootPos: {x: 0, y: 0, z: 0}
@@ -1493,6 +1500,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Player: {fileID: -1305348442644921440}
   animator: {fileID: 4127296217243919022}
+  surfaceOffset: 0.025
+  smoothingSpeed: 12
+  elbowHintWeight: 0.6
+  elbowOutwardDistance: 0.4
+  elbowBackDistance: 0.1
+  alignHandRotation: 1
 --- !u!4 &7615378978732822255 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -9114496787053588016, guid: 196e6da9b2552915fbc5a5a1f4244a36, type: 3}
