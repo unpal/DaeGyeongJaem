@@ -121,16 +121,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ab7bf48dcd46d240a88904eed297b31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  periodicInterval: 30
-  periodicRadius: 20
-  whistleRadius: 25
-  walkRadius: 2
-  runRadius: 6
-  jumpRadius: 5
-  landRadius: 8
-  climbRadius: 4
-  crouchMultiplier: 0.3
-  _audioSource: {fileID: 647982741412882925}
+  countSources: 2
+  whistleClip: {fileID: 0}
+  walkClip: {fileID: 0}
+  runClip: {fileID: 0}
+  jumpClip: {fileID: 0}
+  landClip: {fileID: 0}
+  climbClip: {fileID: 0}
 --- !u!114 &5997651382988697563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -474,6 +471,10 @@ MonoBehaviour:
   _leftFootNormal: {x: 0, y: 0, z: 0}
   handIKWeight: 1
   footIKWeight: 1
+  _transTimeCheck: 0
+  _transTime: 0.1
+  _forceTime: 1
+  _forceTimeCheck: 0
   _currentRightHandPos: {x: 0, y: 0, z: 0}
   _currentLeftHandPos: {x: 0, y: 0, z: 0}
   _currentRightFootPos: {x: 0, y: 0, z: 0}

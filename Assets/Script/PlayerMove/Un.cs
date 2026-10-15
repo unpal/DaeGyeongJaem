@@ -41,6 +41,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private bool AttackPressed;
     private bool SprintPressed;
     Vector2 mouseDelta;
+    [SerializeField]
     private Vector3 _surfaceNormal = Vector3.up;
     private bool _isClicking = false;
     private float _verticalVelocity;
@@ -131,8 +132,12 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private Vector3 _HitPo;
     private Vector3 _HitNo;
 
+    private Vector3 _TransHitPo;
+    private Vector3 _TransHitNo;
 
-    
+    [SerializeField]
+    private GameObject RayCastObj;
+
 
     public override void Spawned()
     {
@@ -281,36 +286,37 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         switch (stateMachine)
         {
             case StateMachine.Floor:
-                FloorMove(data);
-
-                if (data.Buttons.IsSet(PlayerButtons.Attack))
-                    WallCheck();
-                var rayDirTransform = headTransform != null ? headTransform : transform;
-                var ray = new Ray
                 {
-                    origin = transform.position,
-                    direction = rayDirTransform.forward + -rayDirTransform.up
-                };
-                Vector3 tempvec = Vector3.zero;
-                Debug.DrawRay(ray.origin, ray.direction);
+                    FloorMove(data);
+
+                    if (data.Buttons.IsSet(PlayerButtons.Attack))
+                        WallCheck();
+
+                }
                 break;
             case StateMachine.Wall:
+                {
+                    WallClimb(data);
 
-                WallClimb(data);
+                    if (!data.Buttons.IsSet(PlayerButtons.Attack))
+                        TransitionToFloor();
 
-                if (!data.Buttons.IsSet(PlayerButtons.Attack))
-                    TransitionToFloor();
-
+                }
                 break;
 
             case StateMachine.ToWall:
-                // 벽으로 이동할 때 너무 한번에 이동해서 선형 보간으로 변경함.
-                TransitionToWall(_hitPoint,_hitNormal);
+                {
+                    // 벽으로 이동할 때 너무 한번에 이동해서 선형 보간으로 변경함.
+                    TransitionToWall(_hitPoint, _hitNormal);
+
+                }
                 break;
 
             case StateMachine.ToFloor:
+                {
+                    TransitionToFloor(true);
 
-                TransitionToFloor(true);
+                }
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -332,7 +338,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         camPivot.position = GetCameraPivotPosition();
 
         // 2. 상태에 따른 몸체 및 카메라 회전 동기화
-        if (stateMachine == StateMachine.Floor)
+        if (stateMachine != StateMachine.Wall && stateMachine != StateMachine.ToWall)
         {
             transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
             camPivot.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
@@ -526,7 +532,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         // 벽 상태 진입 시 물리 속도 초기화 (잔여 속도로 밀려나는 현상 방지)
         _rb.velocity = Vector3.zero;
         _verticalVelocity = 0f;
-        _rb.isKinematic = true;
+        //_rb.isKinematic = true;
 
         // 벽에 붙을 때 벽 기준 상대 Yaw를 0(정면)으로 초기화
         _yaw = 0f;
@@ -576,6 +582,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
             transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
             _smoothedWallRot = transform.rotation;
+
         }
         else
         {
@@ -586,17 +593,24 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                 origin = transform.position,
                 direction = rayDirTransform.forward + -rayDirTransform.up
             };
-            Vector3 tempvec = Vector3.zero;
+            Vector3 tempvec = Vector3.up;
             Debug.DrawRay(ray.origin, ray.direction);
-            //if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
-            //{
-            //    transform.position = Vector3.SmoothDamp(transform.position, transHit.point, ref tempvec, _transTime);
-            //}
-            //else
-            //{
-
-            //}
+            if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
+            {//asd
+                RayCastObj = transHit.transform.gameObject;
+                transform.position = Vector3.SmoothDamp(transform.position, transHit.point + transHit.normal, ref tempvec, _transTime);
+            }
+            else
+            {
+                Vector3 tempVec = (transform.forward + transform.up) * upGoingDistanceDivider * 2;
+                Debug.Log(tempVec);
+                _rb.velocity = tempVec;
+            }
         }
+
+
+
+
     }
 
     private IEnumerator WallCheckCoroutine()
