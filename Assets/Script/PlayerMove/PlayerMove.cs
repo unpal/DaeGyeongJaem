@@ -116,9 +116,9 @@ public class PlayerMove : NetworkBehaviour
             new PlayerAnimation(
                 animator);
 
-        footstep =
-            new PlayerFootstep(
-                animationController);
+        //footstep =
+        //    new PlayerFootstep(
+        //        animationController);
 
         // Local Player 설정
 
