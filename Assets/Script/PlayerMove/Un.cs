@@ -529,8 +529,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         // 마지막으로 이동할 속도를 곱한다.
         bool tryingToSprint = data.Buttons.IsSet(PlayerButtons.Sprint) && data.Move.sqrMagnitude > 0.01f;
         bool sprinting = tryingToSprint && _condition.CanSprint && SpendStamina(sprintDrain * deltaTime);
-        Vector2 moveInput = Vector2.ClampMagnitude(moveDirection, 1f);
-        var move = (transform.right * moveInput.x + transform.forward * moveInput.y) * (sprinting ? runSpeed : moveSpeed);
+        Vector3 moveInput = Vector3.ClampMagnitude(moveDirection, 1f);
+        var move = moveInput * (sprinting ? runSpeed : moveSpeed);
 
         if (_isGrounded && !jumped && !tryingToSprint && !data.Buttons.IsSet(PlayerButtons.Attack))
             _condition.RecoverStamina(recoverRate * deltaTime);
@@ -1053,7 +1053,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             // 2-5. 벽 각도 확인
             // =====================================================
 
-            if (Vector3.Angle((Vector3.up * data.Move.y + Vector3.right * data.Move.x) , _surfaceNormal) < 23f)
+            if (Vector3.Angle((transform.up * data.Move.y + transform.right * data.Move.x) , _surfaceNormal) < 23f)
             {
                 TransitionToFloor(true);
                 return;
@@ -1063,9 +1063,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             // 2-6. Wall Move 계산
             // =====================================================
 
+
+
             Vector3 wallMove =
                 Vector3.ProjectOnPlane(
-                    (Vector3.up * data.Move.y + Vector3.right * data.Move.x),
+                    (transform.up * data.Move.y + transform.right * data.Move.x),
                     _surfaceNormal
                 ).normalized;
 
@@ -1090,11 +1092,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             {
                 Vector3 DistanceToHitAndArm = lastHit.point - arm.position;
 
-                if(DistanceToHitAndArm.y < 0.2f)
-                {
-                    TransitionToFloor(true);
-                    return;
-                }
+                //if(DistanceToHitAndArm.y < 0.2f)
+                //{
+                //    TransitionToFloor(true);
+                //    return;
+                //}
                 float reachMove =
                     Vector3.Dot(
                         DistanceToHitAndArm,
@@ -1141,7 +1143,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             // 현재 벽 기준의 위쪽 방향
             Vector3 WallMove =
                 Vector3.ProjectOnPlane(
-                    (Vector3.up * data.Move.y + Vector3.right * data.Move.x),
+                    (transform.up * data.Move.y + transform.right * data.Move.x),
                     _surfaceNormal
                 ).normalized;
 
