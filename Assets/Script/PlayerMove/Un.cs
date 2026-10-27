@@ -529,7 +529,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         // 마지막으로 이동할 속도를 곱한다.
         bool tryingToSprint = data.Buttons.IsSet(PlayerButtons.Sprint) && data.Move.sqrMagnitude > 0.01f;
         bool sprinting = tryingToSprint && _condition.CanSprint && SpendStamina(sprintDrain * deltaTime);
-        Vector2 moveInput = Vector2.ClampMagnitude(data.Move, 1f);
+        Vector2 moveInput = Vector2.ClampMagnitude(moveDirection, 1f);
         var move = (transform.right * moveInput.x + transform.forward * moveInput.y) * (sprinting ? runSpeed : moveSpeed);
 
         if (_isGrounded && !jumped && !tryingToSprint && !data.Buttons.IsSet(PlayerButtons.Attack))
@@ -895,7 +895,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             _climbStepActive = false;
             _climbTimer = 0f;
         }
-
+        if(data.Move.sqrMagnitude <= 0 )
+        {
+            return;
+        }
         // 2. 현재 climbing step이 끝났다면 다음 손/발 동작을 계산한다.
 
         if (!_climbStepActive)
@@ -921,12 +924,11 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             // =====================================================
             // 2-1. 팔 Raycast
             // =====================================================
-
             var armLowerBound =
-                (transform.forward - transform.up).normalized;
+                (transform.forward - (transform.up * data.Move.y + transform.right * data.Move.x)).normalized;
 
             var armUpperBound =
-                transform.up;
+                transform.up * data.Move.y + transform.right * data.Move.x;
 
             RaycastHit lastHit = default;
             bool anyHit = false;
@@ -1051,25 +1053,25 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             // 2-5. 벽 각도 확인
             // =====================================================
 
-            if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
+            if (Vector3.Angle((Vector3.up * data.Move.y + Vector3.right * data.Move.x) , _surfaceNormal) < 23f)
             {
                 TransitionToFloor(true);
                 return;
             }
 
             // =====================================================
-            // 2-6. Wall Up 계산
+            // 2-6. Wall Move 계산
             // =====================================================
 
-            Vector3 wallUp =
+            Vector3 wallMove =
                 Vector3.ProjectOnPlane(
-                    Vector3.up,
+                    (Vector3.up * data.Move.y + Vector3.right * data.Move.x),
                     _surfaceNormal
                 ).normalized;
 
-            if (wallUp.sqrMagnitude < 0.001f)
+            if (wallMove.sqrMagnitude < 0.001f)
             {
-                wallUp = transform.up;
+                wallMove = transform.up;
             }
 
             // =====================================================
@@ -1093,16 +1095,16 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                     TransitionToFloor(true);
                     return;
                 }
-                float reachUp =
+                float reachMove =
                     Vector3.Dot(
                         DistanceToHitAndArm,
-                        wallUp
+                        wallMove
                     );
 
                 _climbUpGoingDistance =
                     Mathf.Max(
                         0f,
-                        reachUp * upGoingDistanceDivider
+                        reachMove * upGoingDistanceDivider
                     );
             }
             else
@@ -1137,15 +1139,15 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         if (stepDeltaTime > 0f)
         {
             // 현재 벽 기준의 위쪽 방향
-            Vector3 wallUp =
+            Vector3 WallMove =
                 Vector3.ProjectOnPlane(
-                    Vector3.up,
+                    (Vector3.up * data.Move.y + Vector3.right * data.Move.x),
                     _surfaceNormal
                 ).normalized;
 
-            if (wallUp.sqrMagnitude < 0.001f)
+            if (WallMove.sqrMagnitude < 0.001f)
             {
-                wallUp = transform.up;
+                WallMove = transform.up;
             }
 
             // =====================================================
@@ -1158,7 +1160,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             // =====================================================
 
             transform.position +=
-                wallUp *
+                WallMove *
                 (
                     _climbUpGoingDistance *
                     (stepDeltaTime / duration)
