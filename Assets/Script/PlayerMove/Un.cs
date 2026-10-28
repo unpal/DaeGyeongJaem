@@ -729,43 +729,96 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
             _mantleTargetYaw = transform.eulerAngles.y;
     }
 
-    private bool TryGetMantleTarget(out Vector3 targetPosition, out Quaternion targetRotation)
+    private bool TryGetMantleTarget(
+        out Vector3 targetPosition,
+        out Quaternion targetRotation)
     {
         targetPosition = transform.position;
         targetRotation = transform.rotation;
 
-        // 벽타기 중 transform.forward는 벽을 향하므로, 그 방향으로 벽 끝 너머를 탐색한다.
-        Vector3 forward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
-        if (forward.sqrMagnitude < 0.001f)
-            forward = Vector3.ProjectOnPlane(-_surfaceNormal, Vector3.up).normalized;
+        // 캐릭터가 바라보는 방향을 수평면에 투영
+        Vector3 forward = Vector3.ProjectOnPlane(
+            transform.forward,
+            Vector3.up
+        ).normalized;
 
         if (forward.sqrMagnitude < 0.001f)
-            return false;
-
-        Vector3 rayOrigin = transform.position
-            + forward * (wallDistance + mantleForwardOffset)
-            + Vector3.up * mantleRayUp;
-
-        Debug.DrawRay(rayOrigin, Vector3.down * mantleRayDistance, Color.yellow);
-
-        // 위쪽 평지 탐색은 groundLayerMask를 사용한다.
-        if (!Physics.Raycast(
-            rayOrigin, Vector3.down, out RaycastHit topHit,
-            mantleRayDistance, groundLayerMask, QueryTriggerInteraction.Ignore))
         {
+            Debug.LogWarning("[Mantle] 전방 방향을 계산할 수 없음");
             return false;
         }
 
-        // 수직 벽이나 천장은 평지로 취급하지 않는다.
-        if (Vector3.Angle(topHit.normal, Vector3.up) > 30f)
-            return false;
+        // 벽 너머의 발판을 탐색할 위치
+        Vector3 rayOrigin =
+            transform.position
+            + forward * (wallDistance + mantleForwardOffset)
+            + Vector3.up * mantleRayUp;
 
-        float halfHeight = _collider != null ? _collider.bounds.extents.y : 0.9f;
-        targetPosition = topHit.point
+        Debug.DrawRay(
+            rayOrigin,
+            Vector3.down * mantleRayDistance,
+            Color.yellow,
+            2f
+        );
+
+        // 위쪽 발판 탐색
+        if (!Physics.Raycast(
+            rayOrigin,
+            Vector3.down,
+            out RaycastHit topHit,
+            mantleRayDistance,
+            groundLayerMask,
+            QueryTriggerInteraction.Ignore))
+        {
+            Debug.LogWarning(
+                $"[Mantle] 발판을 찾지 못함. " +
+                $"groundLayerMask={groundLayerMask.value}, " +
+                $"레이 시작 위치={rayOrigin}");
+
+            return false;
+        }
+
+        // 지나치게 가파른 면은 발판으로 취급하지 않음
+        if (Vector3.Angle(topHit.normal, Vector3.up) > 30f)
+        {
+            Debug.LogWarning(
+                $"[Mantle] 발판 경사가 너무 가파름: " +
+                $"{Vector3.Angle(topHit.normal, Vector3.up):F1}도");
+
+            return false;
+        }
+
+        // 현재 캐릭터 위치보다 너무 낮거나 높은 발판은 제외
+        float heightDifference = topHit.point.y - transform.position.y;
+
+        if (heightDifference < 0.25f || heightDifference > 2.0f)
+        {
+            Debug.LogWarning(
+                $"[Mantle] 발판 높이가 허용 범위를 벗어남: " +
+                $"{heightDifference:F2}m");
+
+            return false;
+        }
+
+        // 콜라이더의 절반 높이를 이용해 목표 위치 계산
+        float halfHeight = _collider != null
+            ? _collider.bounds.extents.y
+            : 0.9f;
+
+        targetPosition =
+            topHit.point
             + Vector3.up * (halfHeight + mantleHeightTolerance)
             + forward * mantleForwardOffset;
 
-        targetRotation = Quaternion.LookRotation(forward, Vector3.up);
+        targetRotation = Quaternion.LookRotation(
+            forward,
+            Vector3.up
+        );
+
+        Debug.Log(
+            $"[Mantle] 발판 발견! 높이 차이={heightDifference:F2}m, " +
+            $"목표 위치={targetPosition}");
+
         return true;
     }
 
@@ -888,11 +941,25 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
     // 그렇기에 Coroutine을 제거하고 일반 함수로 변경해 벽을 타게 변경함
     private void WallClimb(NetworkInputData data)
     {
-
         float dt = Runner.DeltaTime;
 
-        // 1. 벽 진입 직후 한 번만 손/발 초기화
+        // 위쪽으로 이동 중이고, 올라갈 수 있는 발판이 감지되면 맨틀링 시작
+        if (data.Move.y > 0.1f)
+        {
+            if (TryGetMantleTarget(
+                out Vector3 targetPosition,
+                out Quaternion targetRotation))
+            {
+                Debug.Log(
+                    $"[Mantle] 시작! 현재 위치: {transform.position}, " +
+                    $"목표 위치: {targetPosition}");
 
+                BeginMantleToFloor(targetPosition, targetRotation);
+                return;
+            }
+        }
+
+        // 벽 진입 직후 한 번만 손/발 초기화
         if (!_climbInitialized)
         {
             _rightHandPos = SimpleRaycast(
