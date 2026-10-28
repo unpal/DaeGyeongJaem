@@ -32,6 +32,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 5f;
     [SerializeField] private float rayMaxDistance = 5f;
+    [SerializeField] private float handRayMaxDistance = 1f;
     [SerializeField] private float gravity = 9.81f;
     [SerializeField] private LayerMask wallLayerMask = ~0;
     [SerializeField] private LayerMask groundLayerMask = ~0;
@@ -163,6 +164,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     [SerializeField]
     private GameObject RayCastObj;
+
+    private Vector3 _toWallStartPosition;
+    private Vector3 _toWallTargetPosition;
+    private float _toWallElapsed;
 
 
     public override void Spawned()
@@ -312,7 +317,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         if (_gameState == null || !_gameState.IsInPlayground || _condition.IsGameOver)
         {
             if (stateMachine == StateMachine.Wall)
+            {
+                Debug.Log("315줄");
                 TransitionToFloor();
+            }
             _rb.velocity = Vector3.zero;
             return;
         }
@@ -327,7 +335,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                 FloorMove(data);
 
                 if (data.Buttons.IsSet(PlayerButtons.Attack) && CanSpendStamina(climbDrain * Runner.DeltaTime))
-                    WallCheck();
+                    WallCheck(data);
 
                 break;
             }
@@ -341,13 +349,15 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                     !data.Buttons.IsSet(PlayerButtons.Attack) ||
                     !SpendStamina(climbDrain * Runner.DeltaTime))
                 {
-                    TransitionToFloor();
+                        TransitionToFloor();
                 }
                     else
                     {
                         WallClimb(data);
                         if (climbDrain > 0f && _condition.CurrentStamina <= 0f && stateMachine == StateMachine.Wall)
+                        {
                             TransitionToFloor();
+                        }
                     }
                     break;
             }
@@ -395,7 +405,6 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     {
         if (_rb == null)
             return;
-
         TransitionToFloor();
         _rb.velocity = Vector3.zero;
         _rb.angularVelocity = Vector3.zero;
@@ -451,17 +460,17 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             return;
         }
 
-        // Wall / ToWall: 벽의 Up 방향을 기준으로 회전한다.
-        Vector3 wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
-        if (wallUp.sqrMagnitude < 0.001f)
-            wallUp = transform.up;
+        //// Wall / ToWall: 벽의 Up 방향을 기준으로 회전한다.
+        //Vector3 wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
+        //if (wallUp.sqrMagnitude < 0.001f)
+        //    wallUp = transform.up;
 
-        Quaternion targetWallBaseRot = Quaternion.LookRotation(-_surfaceNormal, wallUp);
-        float blend = 1f - Mathf.Exp(-wallRotationTweenSpeed * Time.deltaTime);
-        _smoothedWallRot = Quaternion.Slerp(_smoothedWallRot, targetWallBaseRot, blend);
+        //Quaternion targetWallBaseRot = Quaternion.LookRotation(-_surfaceNormal, wallUp);
+        //float blend = 1f - Mathf.Exp(-wallRotationTweenSpeed * Time.deltaTime);
+        //_smoothedWallRot = Quaternion.Slerp(_smoothedWallRot, targetWallBaseRot, blend);
 
-        transform.rotation = _smoothedWallRot;
-        camPivot.rotation = _smoothedWallRot * Quaternion.Euler(_pitch, _yaw, 0f);
+        //transform.rotation = _smoothedWallRot;
+        //camPivot.rotation = _smoothedWallRot * Quaternion.Euler(_pitch, _yaw, 0f);
     }
 
     private Vector3 GetCameraPivotPosition()
@@ -597,68 +606,91 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         }
     }
 
-    private void WallCheck()
+    private void WallCheck(NetworkInputData data)
     {
+
+        // 내 캐릭터가 보는 위치(y축 회전 값)
+        Quaternion yawRotation =
+            Quaternion.Euler(0f, _yaw, 0f);
+
+
+        // y 축 회전값을 통한 내가 보는 곳에 대한 앞 찾기
+        Vector3 forward =
+            yawRotation * Vector3.forward;
 
         var rayDirTransform = headTransform != null ? headTransform : transform;
         var ray = new Ray
         {
             origin = transform.position,
-            direction = rayDirTransform.forward
+            direction = forward
         };
         Vector3 vector3 = ray.origin;
         vector3.y += 1;
         ray.origin = vector3;
-        Debug.DrawRay(ray.origin, ray.direction * rayMaxDistance, Color.red);
-        if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
+        Debug.DrawRay(ray.origin, ray.direction * handRayMaxDistance, Color.red);
+        if (Physics.Raycast(ray,out RaycastHit transHit, handRayMaxDistance,wallLayerMask))
         {
-            _transTimeCheck = _transTime;
-            stateMachine = StateMachine.ToWall;
             _hitPoint = transHit.point;
             _hitNormal = transHit.normal;
-            //TransitionToWall(transHit.point, transHit.normal);
 
+            _toWallStartPosition = transform.position;
+            _toWallTargetPosition = transHit.point
+                + transHit.normal * wallDistance;
+
+            _toWallElapsed = 0f;
+            _transTimeCheck = _transTime;
+
+            stateMachine = StateMachine.ToWall;
         }
     }
 
-    private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
+private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
+{
+    float duration = Mathf.Max(_transTime, 0.01f);
+
+    _toWallElapsed += Runner.DeltaTime;
+
+    float t = Mathf.Clamp01(_toWallElapsed / duration);
+
+    // 부드러운 이동
+    float smoothT = t * t * (3f - 2f * t);
+
+    transform.position = Vector3.Lerp(
+        _toWallStartPosition,
+        _toWallTargetPosition,
+        smoothT
+    );
+
+    _surfaceNormal = hitNormal;
+
+    Vector3 wallUp =
+        Vector3.ProjectOnPlane(Vector3.up, hitNormal).normalized;
+
+    if (wallUp.sqrMagnitude < 0.001f)
+        wallUp = Vector3.up;
+
+    _smoothedWallRot = Quaternion.LookRotation(
+        -hitNormal,
+        wallUp
+    );
+
+    transform.rotation = _smoothedWallRot;
+
+    _rb.velocity = Vector3.zero;
+    _verticalVelocity = 0f;
+
+    if (t >= 1f)
     {
-        // 땅에서 벽으로 갈 때 _transTime 만큼의 시간을 소비해서 선형 이동을 하게 설정
-        _transTimeCheck -= Runner.DeltaTime;
+        stateMachine = StateMachine.Wall;
 
-        if ((_transTimeCheck < 0))
-        {
-            // _transTime 만큼의 시간이 끝나면 StateMachine 변경
-            stateMachine = StateMachine.Wall;
-        }
-        _surfaceNormal = hitNormal;
-        //stateMachine = StateMachine.Wall;
-
-        // 벽 상태 진입 시 물리 속도 초기화 (잔여 속도로 밀려나는 현상 방지)
-        _rb.velocity = Vector3.zero;
-        _verticalVelocity = 0f;
-        //_rb.isKinematic = true;
-
-        // 벽에 붙을 때 벽 기준 상대 Yaw를 0(정면)으로 초기화
         _yaw = 0f;
-
-        Vector3 wallUp = Vector3.ProjectOnPlane(Vector3.up, hitNormal).normalized;
-        if (wallUp.sqrMagnitude < 0.001f)
-        {
-            wallUp = Vector3.up;
-        }
-        Vector3 velo = Vector3.zero;
-
-        transform.position = Vector3.SmoothDamp(transform.position,hitPoint + hitNormal * wallDistance,ref velo, _transTime);
-        _smoothedWallRot = Quaternion.LookRotation(-hitNormal, wallUp);
-        transform.rotation = _smoothedWallRot;
-
 
         _climbInitialized = false;
         _climbStepActive = false;
         _climbTimer = 0f;
         _climbUpGoingDistance = 0f;
     }
+}
 
     private void TransitionToFloor(bool isForce = false)
     {
@@ -895,10 +927,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             _climbStepActive = false;
             _climbTimer = 0f;
         }
-        if(data.Move.sqrMagnitude <= 0 )
-        {
-            return;
-        }
+        //if(data.Move.sqrMagnitude <= 0 )
+        //{
+        //    return;
+        //}
         // 2. 현재 climbing step이 끝났다면 다음 손/발 동작을 계산한다.
 
         if (!_climbStepActive)
@@ -1053,8 +1085,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             // 2-5. 벽 각도 확인
             // =====================================================
 
-            if (Vector3.Angle((transform.up * data.Move.y + transform.right * data.Move.x) , _surfaceNormal) < 23f)
+            if (Vector3.Angle((transform.up * data.Move.y + transform.right * data.Move.x) , _surfaceNormal) < 23f && data.Move.sqrMagnitude > 0)
             {
+                Debug.Log("1067줄");
                 TransitionToFloor(true);
                 return;
             }
@@ -1111,6 +1144,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             }
             else
             {
+                Debug.Log("1123줄");
                 TransitionToFloor(true);
                 return;
                 //_climbUpGoingDistance = 0f;
