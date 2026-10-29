@@ -38,19 +38,8 @@ public class GameManager : NetworkBehaviour
             if (sequentialPlayer == null)
                 sequentialPlayer = FindFirstObjectByType<SequentialPlayer>();
 
-            PrototypeRoundManager.OnRoundStart += OnRoundStartedFromManager;
+            // PrototypeRoundManager calls StartRound directly, exactly once.
         }
-    }
-
-    public override void Despawned(NetworkRunner runner, bool hasState)
-    {
-        PrototypeRoundManager.OnRoundStart -= OnRoundStartedFromManager;
-    }
-
-    private void OnRoundStartedFromManager(PrototypeRoundManager manager)
-    {
-        bool isFirstRound = (manager != null && manager.RoundNumber <= 1);
-        StartRound(isFirstRound);
     }
 
     /// <summary>
@@ -86,7 +75,7 @@ public class GameManager : NetworkBehaviour
     /// </summary>
     public void ReportPlayerEscaped(PlayerGameState player)
     {
-        if (!Object.HasStateAuthority || Phase != RoundPhase.Playing || player == null || !player.IsInPlayground)
+        if (!Object.HasStateAuthority || Phase != RoundPhase.Playing || player == null || player.IsSeeker || !player.IsInPlayground)
             return;
 
         player.MarkEscaped();
@@ -111,7 +100,7 @@ public class GameManager : NetworkBehaviour
     /// </summary>
     public void ReportPlayerDied(PlayerGameState player)
     {
-        if (!Object.HasStateAuthority || Phase != RoundPhase.Playing || player == null || !player.IsInPlayground)
+        if (!Object.HasStateAuthority || Phase != RoundPhase.Playing || player == null || player.IsSeeker || !player.IsInPlayground)
             return;
 
         player.MarkDead();
@@ -140,7 +129,7 @@ public class GameManager : NetworkBehaviour
         // 아직 플레이그라운드에서 활동 중인 생존자가 한 명이라도 있으면 진행
         foreach (PlayerGameState player in players)
         {
-            if (player.IsInPlayground)
+            if (!player.IsSeeker && player.IsInPlayground)
                 return;
         }
 
@@ -161,7 +150,7 @@ public class GameManager : NetworkBehaviour
         // 2. PrototypeRoundManager가 연결되어 있다면 라운드 결과 데이터 보고
         if (protoRoundManager != null)
         {
-            PlayerRef winnerRef = pendingRoundWinner != null ? pendingRoundWinner.Object.InputAuthority : PlayerRef.None;
+            PlayerRef winnerRef = pendingRoundWinner != null ? pendingRoundWinner.Object.InputAuthority : protoRoundManager.Seeker;
             protoRoundManager.EndRound(winnerRef);
         }
         else

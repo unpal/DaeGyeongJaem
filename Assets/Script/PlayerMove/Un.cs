@@ -17,6 +17,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     }
 
     private Rigidbody _rb;
+    private PlayerGameState gameState;
     public Collider _collider;
     [SerializeField] private StateMachine stateMachine = StateMachine.Floor;
     public StateMachine statemachine => stateMachine;
@@ -157,6 +158,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     public override void Spawned()
     {
+        gameState = GetComponent<PlayerGameState>();
         if(Object.HasInputAuthority)
         {
             _rawInput = new RawInput();
@@ -240,7 +242,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     private void OnDestroy()
     {
-        _rawInput.Dispose();
+        _rawInput?.Dispose();
+        if (camPivot != null && Object != null && Object.HasInputAuthority)
+            Destroy(camPivot.gameObject);
     }
 
     void OnEnable()
@@ -253,6 +257,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
         data.Move = _moveInput;
         data.Look = mouseDelta;
+        data.BodyYaw = _yaw;
+        data.AimDirection = camPivot != null ? camPivot.forward : transform.forward;
+        data.Buttons.Set((int)PlayerButtons.Fire,
+            Mouse.current != null && Mouse.current.rightButton.isPressed);
 
         data.Buttons.Set(
             (int)PlayerButtons.Jump,
@@ -268,9 +276,34 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
         return data;
     }
+
+    public void ResetForNextRound(Vector3 position, Quaternion rotation)
+    {
+        stateMachine = StateMachine.Floor;
+        _verticalVelocity = 0f;
+        _jumpBufferTimer = 0f;
+        _climbInitialized = false;
+        _climbStepActive = false;
+        _climbTimer = 0f;
+        _transTimeCheck = 0f;
+        _forceTimeCheck = 0f;
+        _surfaceNormal = Vector3.up;
+        _yaw = rotation.eulerAngles.y;
+        _pitch = 0f;
+        transform.SetPositionAndRotation(position, rotation);
+        if (_rb != null)
+        {
+            _rb.isKinematic = false;
+            _rb.velocity = Vector3.zero;
+            _rb.angularVelocity = Vector3.zero;
+            _rb.position = position;
+            _rb.rotation = rotation;
+        }
+    }
     void OnDisable()
     {
-        _playerActions.Disable();
+        if (_rawInput != null)
+            _playerActions.Disable();
         if (_wallCheckCoroutine != null)
         {
             StopCoroutine(_wallCheckCoroutine);
@@ -286,13 +319,25 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     public override void FixedUpdateNetwork()
     {
+        if (gameState != null && !gameState.CanMove)
+        {
+            if (_rb != null && !_rb.isKinematic)
+                _rb.velocity = Vector3.zero;
+            return;
+        }
         if (!GetInput(out NetworkInputData data))
             return;
+
+        // The host must use the remote player's facing, not its own local camera yaw.
+        if (!Object.HasInputAuthority && !float.IsNaN(data.BodyYaw) && !float.IsInfinity(data.BodyYaw))
+            _yaw = data.BodyYaw;
 
         switch (stateMachine)
         {
             case StateMachine.Floor:
             {
+                if (!Object.HasInputAuthority)
+                    transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
                 FloorMove(data);
 
                 if (data.Buttons.IsSet(PlayerButtons.Attack))
@@ -383,7 +428,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         camPivot.rotation = _smoothedWallRot * Quaternion.Euler(_pitch, _yaw, 0f);
     }
 
-    private Vector3 GetCameraPivotPosition()
+    public Vector3 GetCameraPivotPosition()
     {
         return headTransform != null
             ? headTransform.position + transform.TransformDirection(cameraEyeOffset)

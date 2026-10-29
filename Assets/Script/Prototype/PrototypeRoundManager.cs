@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Fusion;
 using Script.dotori;
 using UnityEngine;
@@ -33,6 +34,7 @@ public class PrototypeRoundManager : NetworkBehaviour
     [Networked] public NetworkBool IsMatchEnding { get; private set; }
     [Networked] public TickTimer PhaseTimer { get; private set; }
     [Networked] public int RoundNumber { get; private set; }
+    [Networked] public PlayerRef Seeker { get; private set; }
 
     private bool sceneTransitionRequested;
 
@@ -48,13 +50,34 @@ public class PrototypeRoundManager : NetworkBehaviour
 
         PendingRoundWinner = PlayerRef.None;
         FinalWinner = PlayerRef.None;
-        BeginNextRound();
+        Seeker = PlayerRef.None;
+        Phase = PrototypeRoundPhase.Starting;
+        PhaseTimer = TickTimer.None;
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (!Object.HasStateAuthority || !PhaseTimer.Expired(Runner))
+        if (!Object.HasStateAuthority)
             return;
+
+        if (RoundNumber == 0)
+        {
+            // Scene loading and the lobby's player spawns may finish after Spawned().
+            var players = new List<PlayerRef>();
+            foreach (PlayerRef player in Runner.ActivePlayers)
+            {
+                if (GetPlayerState(player) == null) return;
+                players.Add(player);
+            }
+            if (players.Count < 2) return;
+            Seeker = players[UnityEngine.Random.Range(0, players.Count)];
+            foreach (PlayerRef player in players)
+                GetPlayerState(player).SetSeeker(player == Seeker);
+            BeginNextRound();
+            return;
+        }
+
+        if (!PhaseTimer.Expired(Runner)) return;
 
         switch (Phase)
         {
@@ -159,6 +182,22 @@ public class PrototypeRoundManager : NetworkBehaviour
 
     public void ReevaluateAfterRosterChange()
     {
+        if (Object.HasStateAuthority && RoundNumber > 0)
+        {
+            int count = 0;
+            bool seekerPresent = false;
+            foreach (PlayerRef player in Runner.ActivePlayers)
+            {
+                if (GetPlayerState(player) == null) continue;
+                count++;
+                if (player == Seeker) seekerPresent = true;
+            }
+            if (!seekerPresent || count < 2)
+            {
+                ReturnToMatchingScene();
+                return;
+            }
+        }
         if (Object.HasStateAuthority && Phase == PrototypeRoundPhase.Playing)
         {
             if (gameManager != null)
@@ -175,6 +214,7 @@ public class PrototypeRoundManager : NetworkBehaviour
                !IsRoundEnding &&
                player != null &&
                player.Object != null &&
+               !player.IsSeeker &&
                player.IsInPlayground;
     }
 
@@ -186,11 +226,11 @@ public class PrototypeRoundManager : NetworkBehaviour
         foreach (PlayerRef playerRef in Runner.ActivePlayers)
         {
             PlayerGameState state = GetPlayerState(playerRef);
-            if (state != null && state.IsInPlayground)
+            if (state != null && !state.IsSeeker && state.IsInPlayground)
                 return;
         }
 
-        EndRound(PendingRoundWinner);
+        EndRound(PendingRoundWinner == PlayerRef.None ? Seeker : PendingRoundWinner);
     }
 
     private void BeginNextRound()
@@ -200,6 +240,9 @@ public class PrototypeRoundManager : NetworkBehaviour
 
         RenderSettings.fog = true;
 
+        Transform seekerSpawn = gameManager != null && gameManager.sequentialPlayer != null
+            ? gameManager.sequentialPlayer.chaserSpawnPoint : null;
+        int runnerSpawnIndex = 0;
         foreach (PlayerRef playerRef in Runner.ActivePlayers)
         {
             PlayerGameState state = GetPlayerState(playerRef);
@@ -209,8 +252,10 @@ public class PrototypeRoundManager : NetworkBehaviour
             PlayerRoundLifecycle lifecycle = state.GetComponent<PlayerRoundLifecycle>();
             if (lifecycle != null)
                 lifecycle.ResetForRound(
-                    PrototypeSpawnPoints.Get(playerRef.PlayerId),
-                    Quaternion.identity);
+                    state.IsSeeker
+                        ? (seekerSpawn != null ? seekerSpawn.position : new Vector3(0f, 1.2f, 0f))
+                        : PrototypeSpawnPoints.Get(runnerSpawnIndex++),
+                    state.IsSeeker && seekerSpawn != null ? seekerSpawn.rotation : Quaternion.identity);
         }
 
         PendingRoundWinner = PlayerRef.None;

@@ -24,6 +24,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     private int lobbySceneBuildIndex;
     //runner.startgame 중복호출 방지용 
     private bool isConnecting;
+    private bool isStartingMatch;
     //이름
     //플레이어 networkobject spawn 됨 > playergamestate가 rpc 로 host에 전달
     public static string LocalPlayerName { get; private set; } = string.Empty;
@@ -63,6 +64,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 
         //최초 매칭 진입에서만 새 Runner를 만들기
         runner = gameObject.AddComponent<NetworkRunner>();
+        runner.ProvideInput = true;
         gameObject.AddComponent<NetworkSceneManagerDefault>();
         gameObject.AddComponent<NetworkObjectProviderDefault>();
 
@@ -96,7 +98,20 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         // 네트워크 씬 전환은 모든 참가자를 이동시킬 수 있는 Host만 요청.
         if (runner != null && runner.IsRunning && runner.IsServer &&
             Input.GetKeyDown(KeyCode.Return))
-            runner.LoadScene(SceneRef.FromIndex(gameplaySceneBuildIndex));
+            StartMatch();
+    }
+
+    private void StartMatch()
+    {
+        if (isStartingMatch || !IsHost) return;
+        if (PlayerCount < 2)
+        {
+            status = "게임 시작에는 2명 이상이 필요합니다.";
+            return;
+        }
+        isStartingMatch = true;
+        runner.SessionInfo.IsOpen = false;
+        runner.LoadScene(SceneRef.FromIndex(gameplaySceneBuildIndex));
     }
 
     //이름을 저장하고 무작위 방 코드를 생성한 뒤 Host 세션을 시작
@@ -287,6 +302,12 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (!r.IsServer)
             return;
+
+        if (IsLobbySceneActive())
+        {
+            isStartingMatch = false;
+            r.SessionInfo.IsOpen = true;
+        }
 
         foreach (PlayerRef player in r.ActivePlayers)
             OnPlayerJoined(r, player);

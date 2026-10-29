@@ -16,10 +16,11 @@ public class PortalEscapeTrigger : MonoBehaviour
             other.GetComponentInParent<PlayerGameState>();
 
         //탈출 동시에 여러번 하면 안됨
-        if (player == null || !player.IsInPlayground)
+        if (player == null || player.IsSeeker || !player.IsInPlayground)
             return;
 
         
-        gameManager.ReportPlayerEscaped(player);
+        if (gameManager == null) gameManager = FindFirstObjectByType<GameManager>();
+        if (gameManager != null) gameManager.ReportPlayerEscaped(player);
     }
 }

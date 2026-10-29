@@ -32,11 +32,12 @@ public class PlayerCondition : NetworkBehaviour
 
     public float BaseMaxStamina => Mathf.Max(0f, baseMaxStamina);
     public float CurrentMaxStamina => Mathf.Clamp(
-        BaseMaxStamina - PermanentDamage - TemporaryDamage,
+        BaseMaxStamina - (IsDamageImmune ? 0f : PermanentDamage + TemporaryDamage),
         0f,
         BaseMaxStamina);
     public bool CanSprint => SprintLockRemaining <= 0f;
-    public bool IsGameOver => CurrentMaxStamina <= 0f;
+    private bool IsDamageImmune => playerGameState != null && playerGameState.IsSeeker;
+    public bool IsGameOver => !IsDamageImmune && CurrentMaxStamina <= 0f;
 
     // 기존 Shotgun 코드와 Inspector 데이터 호환을 위해 유지한다.
     public bool isShotGunHit;
@@ -116,7 +117,7 @@ public class PlayerCondition : NetworkBehaviour
 
     public void ApplyPermanentDamage(float amount)
     {
-        if (!Object.HasStateAuthority || !IsPositiveFinite(amount))
+        if (!Object.HasStateAuthority || IsDamageImmune || !IsPositiveFinite(amount))
             return;
 
         PermanentDamage = Mathf.Clamp(
@@ -132,7 +133,7 @@ public class PlayerCondition : NetworkBehaviour
 
     public void ApplyTemporaryDamage(float amount)
     {
-        if (!Object.HasStateAuthority || !IsPositiveFinite(amount))
+        if (!Object.HasStateAuthority || IsDamageImmune || !IsPositiveFinite(amount))
             return;
 
         TemporaryDamage = Mathf.Clamp(
@@ -153,7 +154,7 @@ public class PlayerCondition : NetworkBehaviour
 
     public void RefreshBurn()
     {
-        if (!Object.HasStateAuthority)
+        if (!Object.HasStateAuthority || IsDamageImmune)
             return;
 
         BurnRemaining = Mathf.Max(BurnRemaining, burnDuration);

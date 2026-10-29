@@ -174,36 +174,14 @@ namespace Script.dotori
             }
 
             // 3. 추격자 생성 (10초 시점)
-            if (chaserPrefab != null)
+            // Release the player seeker at the original AI spawn time.
+            if (DialogueController.Instance != null)
             {
-                Vector3 spawnPosition = chaserSpawnPoint != null ? chaserSpawnPoint.position : Vector3.zero;
-                Quaternion spawnRotation = chaserSpawnPoint != null ? chaserSpawnPoint.rotation : Quaternion.identity;
-
-                NetworkObject chaserNetworkPrefab = chaserPrefab.GetComponent<NetworkObject>();
-                if (chaserNetworkPrefab == null)
-                {
-                    Debug.LogError("[SequentialPlayer] Chaser Prefab에 NetworkObject가 없습니다.");
-                    yield break;
-                }
-
-                NetworkObject chaserObject = Runner.Spawn(chaserNetworkPrefab, spawnPosition, spawnRotation);
-                spawnedChaser = chaserObject.GetComponent<SoundFollowingAgent>();
-
-                if (DialogueController.Instance != null)
-                {
-                    DialogueController.Instance.RpcShow("ChaserSpawn");
-                    DialogueController.Instance.RpcShow("ChaserSpawn_Sub");
-                }
-
-                RpcPlayChaserSpawnSound();
-                Debug.Log($"[SequentialPlayer] 추격자 생성 완료: {spawnPosition}");
+                DialogueController.Instance.RpcShow("ChaserSpawn");
+                DialogueController.Instance.RpcShow("ChaserSpawn_Sub");
             }
-            else
-            {
-                Debug.LogError("[SequentialPlayer] Chaser Prefab이 비어 있습니다.");
-            }
+            RpcPlayChaserSpawnSound();
 
-            // 4. 포탈 활성화 대기 (30초 시점까지)
             while (timer < portalSpawnTime)
             {
                 timer += Time.deltaTime;
@@ -229,19 +207,9 @@ namespace Script.dotori
             }
 
             // 6. 엔드게임 (추격자 폭주 모드)
-            if (spawnedChaser != null)
-            {
-                if (DialogueController.Instance != null)
-                {
-                    DialogueController.Instance.RpcShow("Endgame");
-                }
-
-                spawnedChaser.SetStateToKnowWhereYouAre();
-                RpcPlayBGM(true); // 긴장 BGM으로 변경
-            }
+            // Perception abilities for the player seeker will be added separately.
+            RpcPlayBGM(true);
         }
-
-        // ================= 사운드 RPC =================
 
         [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
         private void RpcPlayPrologueEndSound()

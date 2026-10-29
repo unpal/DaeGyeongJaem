@@ -172,7 +172,7 @@ public class PrototypeRoundView : MonoBehaviour
         {
             PlayerGameState state = manager.GetPlayerState(playerRef);
             if (state == null) continue;
-            string status = state.HasEscaped ? "탈출/관전" : state.IsDead ? "탈락/관전" : "플레이 중";
+            string status = state.IsSeeker ? "술래" : state.HasEscaped ? "탈출/관전" : state.IsDead ? "탈락/관전" : "도망자";
             string crowns = new string('★', Mathf.Clamp(state.Crowns, 0, 2));
             GUI.Label(new Rect(30, 48 + state.SortNum * 32, 285, 30), $"{state.DisplayName}  {status}  {crowns}", rowStyle);
             row++;

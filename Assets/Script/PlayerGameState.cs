@@ -8,6 +8,84 @@ using Script.dotori;
 
 public class PlayerGameState : NetworkBehaviour
 {
+    [Networked] public NetworkBool IsSeeker { get; private set; }
+    [Networked] private TickTimer ShotCooldown { get; set; }
+    [SerializeField, Min(0.1f)] private float shotInterval = 1f;
+    private GameManager roundGame;
+    private PrototypeRoundManager roundManager;
+    private Un movement;
+    private float shotFlashUntil;
+
+    public bool CanMove
+    {
+        get
+        {
+            if (!IsInPlayground) return false;
+            if (roundManager == null) roundManager = FindFirstObjectByType<PrototypeRoundManager>();
+            if (roundGame == null) roundGame = FindFirstObjectByType<GameManager>();
+            if (roundManager == null) return true; // Lobby movement.
+            if (roundManager.Object == null || !roundManager.Object.IsValid) return false;
+            if (roundManager.RoundNumber == 0 || roundManager.IsRoundEnding || roundManager.IsMatchEnding)
+                return false;
+            return !IsSeeker || (roundGame != null && roundGame.Object != null &&
+                roundGame.Object.IsValid && roundGame.Phase == RoundPhase.Playing);
+        }
+    }
+
+    public void SetSeeker(bool value)
+    {
+        if (!Object.HasStateAuthority) return;
+        IsSeeker = value;
+        ShotCooldown = TickTimer.None;
+        GetComponent<PlayerCondition>()?.ResetForNextRound();
+    }
+
+    public override void FixedUpdateNetwork()
+    {
+        if (!Object.HasStateAuthority || !IsSeeker || !CanMove ||
+            roundGame == null || roundGame.Phase != RoundPhase.Playing ||
+            !ShotCooldown.ExpiredOrNotRunning(Runner) ||
+            !GetInput(out NetworkInputData input) || !input.Buttons.IsSet(PlayerButtons.Fire))
+            return;
+
+        Vector3 direction = input.AimDirection;
+        float magnitude = direction.sqrMagnitude;
+        if (float.IsNaN(magnitude) || float.IsInfinity(magnitude) || magnitude < 0.01f)
+            return;
+
+        direction.Normalize();
+        if (movement == null) movement = GetComponent<Un>();
+        Vector3 origin = movement != null ? movement.GetCameraPivotPosition() : transform.position + Vector3.up * 1.5f;
+        ShotCooldown = TickTimer.CreateFromSeconds(Runner, shotInterval);
+        bool hit = Shotgun.FireAt(origin, direction, transform, out Vector3 end);
+        RpcShotFeedback(origin, end, hit);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcShotFeedback(Vector3 origin, Vector3 end, NetworkBool hit)
+    {
+        shotFlashUntil = Time.time + 0.15f;
+        Shotgun.ShowTracer(origin, end, hit);
+    }
+
+    private void OnGUI()
+    {
+        if (Object == null || !Object.IsValid || !Object.HasInputAuthority) return;
+        if (roundManager == null) roundManager = FindFirstObjectByType<PrototypeRoundManager>();
+        if (roundManager == null || roundManager.Object == null ||
+            !roundManager.Object.IsValid || roundManager.RoundNumber == 0) return;
+        GUI.Box(new Rect(20, Screen.height - 70, 360, 45),
+            IsSeeker ? (CanMove ? "술래 | 우클릭: 샷건 | 좌클릭: 등반" : "술래 | 준비 중") : "도망자 | 포탈이 열리면 탈출하세요");
+        if (IsSeeker && CanMove)
+            GUI.Label(new Rect(Screen.width / 2f - 8, Screen.height / 2f - 12, 30, 30),
+                Time.time < shotFlashUntil ? "×" : "+");
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    public void RpcResetMovement(Vector3 position, Quaternion rotation)
+    {
+        GetComponent<Un>()?.ResetForNextRound(position, rotation);
+    }
     public GameObject globalVolume;
     public GameObject wbVolume;
 
@@ -106,7 +184,7 @@ public class PlayerGameState : NetworkBehaviour
 
     public void MarkDead() //죽은거 마킹
     {
-        if (!Object.HasStateAuthority || HasEscaped)
+        if (!Object.HasStateAuthority || IsSeeker || HasEscaped)
             return;
 
         IsDead = true;
@@ -115,7 +193,7 @@ public class PlayerGameState : NetworkBehaviour
 
     public void MarkEscaped() // 탈출한거 마킹
     {
-        if (!Object.HasStateAuthority || IsDead)
+        if (!Object.HasStateAuthority || IsSeeker || IsDead)
             return;
 
         HasEscaped = true;
@@ -136,6 +214,8 @@ public class PlayerGameState : NetworkBehaviour
             return;
 
         Crowns = 0;
+        IsSeeker = false;
+        ShotCooldown = TickTimer.None;
         IsDead = false;
         HasEscaped = false;
     }
@@ -146,6 +226,7 @@ public class PlayerGameState : NetworkBehaviour
 
         IsDead = false;
         HasEscaped = false;
+        ShotCooldown = TickTimer.None;
     }
 
 }

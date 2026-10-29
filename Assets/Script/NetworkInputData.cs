@@ -6,12 +6,15 @@ public enum PlayerButtons
     Jump,
     Attack,
     Sprint,
-    Whistle
+    Whistle,
+    Fire
 }
 
 public struct NetworkInputData : INetworkInput
 {
     public Vector2 Move;
     public Vector2 Look;
+    public Vector3 AimDirection;
+    public float BodyYaw;
     public NetworkButtons Buttons;
 }
