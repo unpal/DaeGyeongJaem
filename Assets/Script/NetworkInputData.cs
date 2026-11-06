@@ -7,7 +7,8 @@ public enum PlayerButtons
     Attack,
     Sprint,
     Whistle,
-    Fire
+    Fire,
+    ItemUse
 }
 
 public struct NetworkInputData : INetworkInput

@@ -8,7 +8,7 @@ namespace Script.item.items
 
         [Networked] private NetworkBool IsCollected { get; set; }
 
-        public string ItemName => "DummyItem";
+        public ItemData _itemData => new ItemData("DummyItem",30);
 
         private void OnTriggerEnter(Collider other)
         {
@@ -19,27 +19,28 @@ namespace Script.item.items
         {
             HandlePickup(collision.gameObject);
         }
-
+        
         private void HandlePickup(GameObject target)
         {
             // 호스트(StateAuthority)에서만 획득 판정 및 Despawn 처리
             if (!Object.HasStateAuthority || IsCollected)
                 return;
 
-            if (target.TryGetComponent(out global::PlayerMove _))
+            if (target.TryGetComponent(out global::Un _))
             {
                 IsCollected = true;
-                OnPickup(target);
-                Runner.Despawn(Object);
+                if(OnPickup(target));
+                    Runner.Despawn(Object);
             }
         }
 
-        public void OnPickup(GameObject player)
+        public bool OnPickup(GameObject player)
         {
-            if (player.TryGetComponent(out global::PlayerMove move))
+            if (player.TryGetComponent(out global::Un Player))
             {
-                //버프 같은 것들
+               return Player._playerInventory.AddItem(_itemData);
             }
+            return false;
         }
     }
 }

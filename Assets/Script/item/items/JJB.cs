@@ -9,7 +9,7 @@ namespace Script.item.items
 
         [Networked] private NetworkBool IsCollected { get; set; }
 
-        public string ItemName => "JJB";
+        public ItemData _itemData => new ItemData("JJB", 0);
 
         private void OnTriggerEnter(Collider other)
         {
@@ -35,12 +35,13 @@ namespace Script.item.items
             }
         }
 
-        public void OnPickup(GameObject player)
+        public bool OnPickup(GameObject player)
         {
-            if (player.TryGetComponent(out PlayerCondition condition))
+            if (player.TryGetComponent(out global::Un Player))
             {
-                condition.RecoverStamina(recoverAmount);
+                return Player._playerInventory.AddItem(_itemData);
             }
+            return false;
         }
     }
 }

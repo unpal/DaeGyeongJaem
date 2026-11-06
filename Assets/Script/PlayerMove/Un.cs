@@ -53,6 +53,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private Vector2 _moveInput;
     private bool JumpPressed;
     private bool AttackPressed;
+    private bool ItemUsePressed;
     Vector2 mouseDelta;
     [SerializeField]
     private Vector3 _surfaceNormal = Vector3.up;
@@ -113,6 +114,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     public Vector3 _rightFootNormal;
     public Vector3 _leftFootNormal;
     private Quaternion _smoothedWallRot = Quaternion.identity;
+
+    public PlayerInventory _playerInventory;
 
 
     [Header("IK Settings")]
@@ -294,6 +297,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             AttackPressed);
 
         data.Buttons.Set(
+        (int)PlayerButtons.ItemUse,
+        ItemUsePressed);
+
+        data.Buttons.Set(
             (int)PlayerButtons.Sprint,
             _sprintAction != null && _sprintAction.IsPressed());
 
@@ -371,6 +378,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                 if (!Object.HasInputAuthority)
                     transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
                 FloorMove(data);
+                    if (data.Buttons.IsSet(PlayerButtons.ItemUse))
+                        UseItem();
 
                 if (data.Buttons.IsSet(PlayerButtons.Attack) && CanSpendStamina(climbDrain * Runner.DeltaTime))
                     WallCheck(data);
@@ -613,7 +622,19 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         }
     }
 
-    public void OnClick(InputAction.CallbackContext context)
+    public void OnUse(InputAction.CallbackContext context)
+    {
+        if (context.started || context.performed)
+        {
+            ItemUsePressed = true;
+        }
+        else
+        {
+            ItemUsePressed = false;
+        }
+    }
+
+    public void OnAttack(InputAction.CallbackContext context)
     {
         //if (context.started || (context.performed && _wallCheckCoroutine == null))
         //{
@@ -1804,5 +1825,41 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
 
         // 왜곡 없는 로컬 Z축 줌인/줌아웃
         cam.transform.localPosition = new Vector3(0f, 0f, _currentCamDistance);
+    }
+
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnCrouch(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnPrevious(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnNext(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnSprint(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void OnWhistle(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
+    }
+    public void UseItem()
+    {
+        Debug.Log("아이템 사용");
+        _playerInventory.UseItem();
     }
 }

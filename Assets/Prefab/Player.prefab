@@ -52,6 +52,7 @@ GameObject:
   - component: {fileID: 6244299301995804234}
   - component: {fileID: -3387834161945059133}
   - component: {fileID: 1645911431800825130}
+  - component: {fileID: 7773620834892478560}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -172,6 +173,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6cc92c39a22f504bafe9e11531f69e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _IsSeeker:
+    _value: 0
+  shotInterval: 1
   globalVolume: {fileID: 0}
   wbVolume: {fileID: 0}
   _Crowns: 0
@@ -410,6 +414,7 @@ MonoBehaviour:
   moveSpeed: 5
   jumpForce: 5
   rayMaxDistance: 5
+  handRayMaxDistance: 1
   gravity: 9.81
   wallLayerMask:
     serializedVersion: 2
@@ -418,6 +423,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   groundCheckDistance: 0.2
+  runSpeed: 8
+  sprintDrain: 15
+  jumpCost: 10
+  climbDrain: 20
+  recoverRate: 10
   animator: {fileID: 4127296217243919022}
   _surfaceNormal: {x: 0, y: 1, z: 0}
   cam: {fileID: 200119594496257742}
@@ -450,6 +460,7 @@ MonoBehaviour:
   _leftHandNormal: {x: 0, y: 0, z: 0}
   _rightFootNormal: {x: 0, y: 0, z: 0}
   _leftFootNormal: {x: 0, y: 0, z: 0}
+  _playerInventory: {fileID: 7773620834892478560}
   handIKWeight: 1
   footIKWeight: 1
   _transTimeCheck: 0
@@ -539,6 +550,21 @@ MonoBehaviour:
     Position: 0.01
     Rotation: 0.01
     Scale: 0.01
+--- !u!114 &7773620834892478560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 80510252676572901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: efe1195a599d8f4458e01d788ef55db4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Condition: {fileID: 5997651382988697563}
+  MyItem: []
+  InventoryNum: 0
 --- !u!1 &709001480072582198
 GameObject:
   m_ObjectHideFlags: 0
