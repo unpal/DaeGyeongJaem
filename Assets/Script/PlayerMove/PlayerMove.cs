@@ -162,8 +162,14 @@ public class PlayerMove : NetworkBehaviour
     public override void FixedUpdateNetwork()
     {
         if (gameState != null &&
-            !gameState.IsInPlayground)
+            (!gameState.IsInPlayground || gameState.IsDowned))
         {
+            if (controller != null)
+            {
+                controller.Velocity = Vector3.zero;
+                controller.IsClimbing = false;
+                controller.IsDash = false;
+            }
             return;
         }
 

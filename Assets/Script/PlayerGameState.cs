@@ -20,7 +20,7 @@ public class PlayerGameState : NetworkBehaviour
     {
         get
         {
-            if (!IsInPlayground) return false;
+            if (!IsInPlayground || IsDowned) return false;
             if (roundManager == null) roundManager = FindFirstObjectByType<PrototypeRoundManager>();
             if (roundGame == null) roundGame = FindFirstObjectByType<GameManager>();
             if (roundManager == null) return true; // Lobby movement.
@@ -103,6 +103,9 @@ public class PlayerGameState : NetworkBehaviour
     public NetworkBool IsDead { get; private set; }
 
     [Networked]
+    public NetworkBool IsDowned { get; private set; }
+
+    [Networked]
     public NetworkBool HasEscaped { get; private set; }
 
     public bool IsInPlayground => !IsDead && !HasEscaped;
@@ -182,18 +185,38 @@ public class PlayerGameState : NetworkBehaviour
         if (cc != null) cc.enabled = isVisible;
     }
 
+    public void MarkDowned()
+    {
+        if (!Object.HasStateAuthority || IsSeeker || !IsInPlayground || IsDowned)
+            return;
+
+        IsDowned = true;
+        GetComponent<Un>()?.ResetForNextRound();
+    }
+
+    public void Revive()
+    {
+        if (!Object.HasStateAuthority || !IsDowned || !IsInPlayground)
+            return;
+
+        // 스태미나를 먼저 복구해야 바로 다시 쓰러지지 않는다.
+        if (GetComponent<PlayerCondition>().CurrentMaxStamina > 0f)
+            IsDowned = false;
+    }
+
     public void MarkDead() //죽은거 마킹
     {
         if (!Object.HasStateAuthority || IsSeeker || HasEscaped)
             return;
 
         IsDead = true;
+        IsDowned = false;
         RenderSettings.fog = false;
     }
 
     public void MarkEscaped() // 탈출한거 마킹
     {
-        if (!Object.HasStateAuthority || IsSeeker || IsDead)
+        if (!Object.HasStateAuthority || IsSeeker || IsDead || IsDowned)
             return;
 
         HasEscaped = true;
@@ -217,6 +240,7 @@ public class PlayerGameState : NetworkBehaviour
         IsSeeker = false;
         ShotCooldown = TickTimer.None;
         IsDead = false;
+        IsDowned = false;
         HasEscaped = false;
     }
     public void ResetRoundResult()
@@ -225,6 +249,7 @@ public class PlayerGameState : NetworkBehaviour
             return;
 
         IsDead = false;
+        IsDowned = false;
         HasEscaped = false;
         ShotCooldown = TickTimer.None;
     }

@@ -26,6 +26,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private RawInput _rawInput;
     private RawInput.PlayerActions _playerActions;
     private InputAction _sprintAction;
+    private InputAction _openEyesAction;
+    private InputAction _reviveAction;
+    private InputAction _useItemAction;
+    public bool OpenEyesHeld => _openEyesAction != null && _openEyesAction.IsPressed();
     private PlayerCondition _condition;
     private PlayerGameState _gameState;
     [Networked] private NetworkBool JumpWasPressed { get; set; }
@@ -185,6 +189,14 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             _sprintAction = new InputAction("Sprint", InputActionType.Button, "<Keyboard>/leftShift");
             _sprintAction.AddBinding("<Gamepad>/leftStickPress");
             _sprintAction.Enable();
+            _openEyesAction = new InputAction("OpenEyes", InputActionType.Button, "<Keyboard>/q");
+            _reviveAction = new InputAction("Revive", InputActionType.Button, "<Keyboard>/e");
+            _useItemAction = new InputAction("UseItem", InputActionType.Button, "<Keyboard>/f");
+            _openEyesAction.Enable();
+            _reviveAction.Enable();
+            _useItemAction.Enable();
+            if (GetComponent<SeekerVisionMask>() == null)
+                gameObject.AddComponent<SeekerVisionMask>();
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
 
@@ -264,6 +276,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     {
         _rawInput?.Dispose();
         _sprintAction?.Dispose();
+        _openEyesAction?.Dispose();
+        _reviveAction?.Dispose();
+        _useItemAction?.Dispose();
         if (camPivot != null && Object != null && Object.HasInputAuthority)
             Destroy(camPivot.gameObject);
     }
@@ -273,6 +288,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         if (_rawInput != null)
             _playerActions.Enable();
         _sprintAction?.Enable();
+        _openEyesAction?.Enable();
+        _reviveAction?.Enable();
+        _useItemAction?.Enable();
     }
     public NetworkInputData GetNetworkInput()
     {
@@ -282,6 +300,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         data.Look = mouseDelta;
         data.BodyYaw = _yaw;
         data.AimDirection = camPivot != null ? camPivot.forward : transform.forward;
+        data.Buttons.Set((int)PlayerButtons.OpenEyes, OpenEyesHeld);
+        data.Buttons.Set((int)PlayerButtons.Revive, _reviveAction != null && _reviveAction.IsPressed());
+        data.Buttons.Set((int)PlayerButtons.UseItem, _useItemAction != null && _useItemAction.IsPressed());
         data.Buttons.Set((int)PlayerButtons.Fire,
             Mouse.current != null && Mouse.current.rightButton.isPressed);
 
@@ -328,6 +349,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         if (_rawInput != null)
             _playerActions.Disable();
         _sprintAction?.Disable();
+        _openEyesAction?.Disable();
+        _reviveAction?.Disable();
+        _useItemAction?.Disable();
         _moveInput = Vector2.zero;
         JumpPressed = false;
         AttackPressed = false;
@@ -346,7 +370,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     public override void FixedUpdateNetwork()
     {
-        if (_gameState == null || !_gameState.IsInPlayground || _condition.IsGameOver)
+        if (_gameState == null || !_gameState.CanMove)
         {
             if (stateMachine == StateMachine.Wall)
             {
@@ -579,7 +603,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         Vector3 moveInput = Vector3.ClampMagnitude(moveDirection, 1f);
         var move = moveInput * (sprinting ? runSpeed : moveSpeed);
 
-        if (_isGrounded && !jumped && !tryingToSprint && !data.Buttons.IsSet(PlayerButtons.Attack))
+        if (_isGrounded && !jumped && !tryingToSprint && !data.Buttons.IsSet(PlayerButtons.Attack) &&
+            !(_gameState.IsSeeker && data.Buttons.IsSet(PlayerButtons.OpenEyes)))
             _condition.RecoverStamina(recoverRate * deltaTime);
 
 

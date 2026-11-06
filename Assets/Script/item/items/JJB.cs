@@ -39,6 +39,7 @@ namespace Script.item.items
         {
             if (player.TryGetComponent(out PlayerCondition condition))
             {
+                condition.CancelRevive();
                 condition.RecoverStamina(recoverAmount);
             }
         }
