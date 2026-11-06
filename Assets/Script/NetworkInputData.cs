@@ -8,6 +8,8 @@ public enum PlayerButtons
     Sprint,
     Whistle,
     Fire,
+    OpenEyes,
+    Revive,
     ItemUse
 }
 

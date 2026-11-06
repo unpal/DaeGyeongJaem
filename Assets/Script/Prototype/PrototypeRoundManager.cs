@@ -154,7 +154,7 @@ public class PrototypeRoundManager : NetworkBehaviour
             return;
         }
 
-        if (!CanAcceptResult(player))
+        if (!CanAcceptResult(player) || player.IsDowned)
             return;
 
         player.MarkEscaped();
@@ -162,6 +162,21 @@ public class PrototypeRoundManager : NetworkBehaviour
         if (PendingRoundWinner == PlayerRef.None)
             PendingRoundWinner = playerRef;
 
+        TryFinishRound();
+    }
+
+    public void ReportPlayerDowned(PlayerGameState player)
+    {
+        if (gameManager != null)
+        {
+            gameManager.ReportPlayerDowned(player);
+            return;
+        }
+
+        if (!CanAcceptResult(player) || player.IsDowned)
+            return;
+
+        player.MarkDowned();
         TryFinishRound();
     }
 
@@ -226,7 +241,7 @@ public class PrototypeRoundManager : NetworkBehaviour
         foreach (PlayerRef playerRef in Runner.ActivePlayers)
         {
             PlayerGameState state = GetPlayerState(playerRef);
-            if (state != null && !state.IsSeeker && state.IsInPlayground)
+            if (state != null && !state.IsSeeker && state.IsInPlayground && !state.IsDowned)
                 return;
         }
 

@@ -75,7 +75,8 @@ public class GameManager : NetworkBehaviour
     /// </summary>
     public void ReportPlayerEscaped(PlayerGameState player)
     {
-        if (!Object.HasStateAuthority || Phase != RoundPhase.Playing || player == null || player.IsSeeker || !player.IsInPlayground)
+        if (!Object.HasStateAuthority || Phase != RoundPhase.Playing || player == null || player.IsSeeker ||
+            !player.IsInPlayground || player.IsDowned)
             return;
 
         player.MarkEscaped();
@@ -95,8 +96,18 @@ public class GameManager : NetworkBehaviour
         CheckRoundFinished();
     }
 
+    public void ReportPlayerDowned(PlayerGameState player)
+    {
+        if (!Object.HasStateAuthority || Phase != RoundPhase.Playing || player == null ||
+            player.IsSeeker || !player.IsInPlayground || player.IsDowned)
+            return;
+
+        player.MarkDowned();
+        CheckRoundFinished();
+    }
+
     /// <summary>
-    /// 플레이어가 사망했을 때 호출
+    /// 플레이어가 사망했을 때 호출 (소생 불가능한 탈락)
     /// </summary>
     public void ReportPlayerDied(PlayerGameState player)
     {
@@ -129,11 +140,11 @@ public class GameManager : NetworkBehaviour
         // 아직 플레이그라운드에서 활동 중인 생존자가 한 명이라도 있으면 진행
         foreach (PlayerGameState player in players)
         {
-            if (!player.IsSeeker && player.IsInPlayground)
+            if (!player.IsSeeker && player.IsInPlayground && !player.IsDowned)
                 return;
         }
 
-        // 전원 탈출 또는 사망 시 라운드 종료 처리
+        // 활동할 수 있는 도망자가 없으면 종료. 쓰러진 동료만 남아도 종료한다.
         FinishRound();
     }
 
