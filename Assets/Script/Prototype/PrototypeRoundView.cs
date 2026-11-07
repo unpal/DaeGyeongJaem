@@ -1,6 +1,7 @@
 using Cinemachine;
 using Fusion;
 using System.Collections.Generic;
+using Script.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -12,6 +13,7 @@ public class PrototypeRoundView : MonoBehaviour
     private GUIStyle rowStyle;
     private NetworkObject configuredCameraOwner;
     private readonly HashSet<NetworkObject> damageConfiguredPlayers = new();
+    private bool wasReviving;
 
     private void Awake()
     {
@@ -36,12 +38,70 @@ public class PrototypeRoundView : MonoBehaviour
 
         PlayerGameState state = localObject.GetComponent<PlayerGameState>();
         PlayerMove move = localObject.GetComponent<PlayerMove>();
+        PlayerCondition condition = localObject.GetComponent<PlayerCondition>();
 
         if (configuredCameraOwner != localObject)
             ConfigureFirstPersonCamera(localObject);
 
         if (state != null && move != null && move.isPlayerInput())
             move.PlayerInputSetting(state.IsInPlayground && manager.Phase == PrototypeRoundPhase.Playing);
+        
+        // #1 스태미나
+        if (!InGameUIManager.Instance) return;
+        
+        if (condition)
+            InGameUIManager.Instance.SetStamina(condition.CurrentStamina, condition.CurrentMaxStamina);
+        
+        // #2 Draw Player State
+        if (manager && manager.Runner)
+        {
+            InGameUIManager.Instance.Init(CountPlayers());
+            foreach (var playerRef in manager.Runner.ActivePlayers)
+            {
+                PlayerGameState targetState = manager.GetPlayerState(playerRef);
+                if (!targetState) continue;
+                int statusIndex = targetState.IsDead ? 1 : targetState.HasEscaped ? 3 : 0;
+                InGameUIManager.Instance.SetMemberState(targetState.SortNum, statusIndex);
+            }
+        }
+        
+        // #3 소생 하트
+        float currentReviveProgress = -1f;
+
+        // 내가 다른 플레이어를 소생 중일 때
+        if (condition != null && condition.ReviveTarget != null)
+        {
+            currentReviveProgress = condition.ReviveProgress;
+        }
+        // 다른 플레이어가 나를 소생 중일 때
+        else if (manager != null && manager.Runner != null)
+        {
+            foreach (var playerRef in manager.Runner.ActivePlayers)
+            {
+                if (playerRef == manager.Runner.LocalPlayer) continue;
+
+                PlayerGameState otherState = manager.GetPlayerState(playerRef);
+                if (!otherState) continue;
+
+                PlayerCondition otherCondition = otherState.GetComponent<PlayerCondition>();
+                if (otherCondition != null && otherCondition.ReviveTarget == localObject)
+                {
+                    currentReviveProgress = otherCondition.ReviveProgress;
+                    break;
+                }
+            }
+        }
+
+        if (currentReviveProgress >= 0f)
+        {
+            InGameUIManager.Instance.SetReviveProgress(currentReviveProgress);
+            wasReviving = true;
+        }
+        else if (wasReviving)
+        {
+            InGameUIManager.Instance.CancelRevive();
+            wasReviving = false;
+        }
     }
 
     private void ConfigureFirstPersonCamera(NetworkObject localPlayer)

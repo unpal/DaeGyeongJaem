@@ -1,4 +1,5 @@
 using Fusion;
+using Script.UI;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -306,6 +307,7 @@ public class PlayerCondition : NetworkBehaviour
         ReviveTarget = null;
         ReviveElapsed = 0f;
         ReviveNeedsRelease = true;
+        InGameUIManager.Instance?.CancelRevive();
     }
 
     private bool CanReviveTarget(PlayerCondition target)
