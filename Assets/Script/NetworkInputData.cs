@@ -10,7 +10,8 @@ public enum PlayerButtons
     Fire,
     OpenEyes,
     Revive,
-    ItemUse
+    ItemUse,
+    UseItem, //Temporary. 이쪽의 변경 사항을 무시해 주세요.
 }
 
 public struct NetworkInputData : INetworkInput

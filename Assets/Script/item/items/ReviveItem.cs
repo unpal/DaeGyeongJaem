@@ -8,7 +8,7 @@ namespace Script.item.items
     {
         [Networked] private NetworkBool IsCollected { get; set; }
         public string ItemName => "ReviveItem";
-
+        public ItemData _itemData => new ItemData("JJB", 0);//Temporary. 이쪽의 변경 사항을 무시해 주세요.
         private void OnTriggerEnter(Collider other)
         {
             OnPickup(other.gameObject);
@@ -19,17 +19,18 @@ namespace Script.item.items
             OnPickup(collision.gameObject);
         }
 
-        public void OnPickup(GameObject player)
+        public bool OnPickup(GameObject player) //Temporary. 이쪽의 변경 사항을 무시해 주세요
         {
             if (Object == null || !Object.HasStateAuthority || IsCollected || player == null)
-                return;
+                return false; //Temporary. 이쪽의 변경 사항을 무시해 주세요
 
             PlayerCondition condition = player.GetComponentInParent<PlayerCondition>();
             if (condition == null || !condition.AddReviveItem())
-                return;
+                return false; //Temporary. 이쪽의 변경 사항을 무시해 주세요
 
             IsCollected = true;
             Runner.Despawn(Object);
+            return true; //Temporary. 이쪽의 변경 사항을 무시해 주세요
         }
     }
 }
