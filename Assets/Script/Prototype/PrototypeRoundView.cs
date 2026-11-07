@@ -166,6 +166,7 @@ public class PrototypeRoundView : MonoBehaviour
         titleStyle ??= new GUIStyle(GUI.skin.label) { fontSize = 26, fontStyle = FontStyle.Bold, normal = { textColor = Color.white } };
         rowStyle ??= new GUIStyle(GUI.skin.label) { fontSize = 18, normal = { textColor = Color.white } };
 
+        /* Canvas 기반의 UI로 교체
         GUI.Box(new Rect(15, 15, 315, 55 + CountPlayers() * 32), $"ROUND {manager.RoundNumber}");
         int row = 0;
         foreach (PlayerRef playerRef in manager.Runner.ActivePlayers)
@@ -177,12 +178,13 @@ public class PrototypeRoundView : MonoBehaviour
             GUI.Label(new Rect(30, 48 + state.SortNum * 32, 285, 30), $"{state.DisplayName}  {status}  {crowns}", rowStyle);
             row++;
         }
+        */
 
         string center = GetCenterMessage();
         if (!string.IsNullOrEmpty(center))
             GUI.Label(new Rect(Screen.width / 2f - 280f, 35f, 560f, 60f), center, titleStyle);
 
-        DrawLocalStamina();
+        // DrawLocalStamina(); Canvas 기반의 UI로 교체
     }
 
     private void DrawLocalStamina()
