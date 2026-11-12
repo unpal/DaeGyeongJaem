@@ -4,6 +4,7 @@ using UnityEngine.UI;
 // 기존 HUD보다 뒤에서 게임 화면만 가린다. 소리나 카메라는 끄지 않는다.
 public class SeekerVisionMask : MonoBehaviour
 {
+    [SerializeField] private Material maskMaterial;
     [SerializeField, Range(0.01f, 0.2f)] private float slitHeight = 0.06f;
     [SerializeField, Range(0.1f, 1f)] private float slitWidth = 0.5f;
 
@@ -11,6 +12,7 @@ public class SeekerVisionMask : MonoBehaviour
     private PlayerCondition condition;
     private Un movement;
     private Canvas maskCanvas;
+    private Material runtimeMaterial;
     private RectTransform top;
     private RectTransform bottom;
     private RectTransform left;
@@ -38,12 +40,20 @@ public class SeekerVisionMask : MonoBehaviour
         {
             GameObject canvasObject = new GameObject("Seeker vision mask", typeof(Canvas));
             maskCanvas = canvasObject.GetComponent<Canvas>();
-            maskCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            maskCanvas.renderMode = RenderMode.ScreenSpaceCamera;
             maskCanvas.sortingOrder = -32768;
             top = CreatePanel("Top");
             bottom = CreatePanel("Bottom");
             left = CreatePanel("Left");
             right = CreatePanel("Right");
+        }
+
+        Camera targetCamera = Camera.main;
+        if (targetCamera != null)
+        {
+            if (maskCanvas.worldCamera != targetCamera)
+                maskCanvas.worldCamera = targetCamera;
+            maskCanvas.planeDistance = Mathf.Max(targetCamera.nearClipPlane + 0.1f, 0.5f);
         }
 
         maskCanvas.enabled = true;
@@ -58,12 +68,29 @@ public class SeekerVisionMask : MonoBehaviour
         SetRect(right, new Vector2(0.5f + halfWidth, 0.5f - halfHeight), new Vector2(1f, 0.5f + halfHeight));
     }
 
+    private Material GetPanelMaterial()
+    {
+        if (maskMaterial != null)
+            return maskMaterial;
+
+        if (runtimeMaterial == null)
+        {
+            Shader shader = Shader.Find("Dotori/DepthNormalOutlineHUD");
+            if (shader != null)
+                runtimeMaterial = new Material(shader);
+        }
+
+        return runtimeMaterial;
+    }
+
     private RectTransform CreatePanel(string panelName)
     {
         GameObject panel = new GameObject(panelName, typeof(RectTransform), typeof(Image));
         panel.transform.SetParent(maskCanvas.transform, false);
         Image image = panel.GetComponent<Image>();
-        image.color = Color.black;
+        Material panelMaterial = GetPanelMaterial();
+        image.material = panelMaterial;
+        image.color = panelMaterial != null ? Color.white : Color.black;
         image.raycastTarget = false;
         return panel.GetComponent<RectTransform>();
     }
@@ -84,5 +111,6 @@ public class SeekerVisionMask : MonoBehaviour
     private void OnDestroy()
     {
         if (maskCanvas != null) Destroy(maskCanvas.gameObject);
+        if (runtimeMaterial != null) Destroy(runtimeMaterial);
     }
 }
