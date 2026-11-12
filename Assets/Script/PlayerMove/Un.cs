@@ -178,6 +178,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private Vector3 _toWallTargetPosition;
     private float _toWallElapsed;
 
+    [SerializeField] private Canvas ChattingCanvas;
+
 
     public override void Spawned()
     {
@@ -200,8 +202,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             _useItemAction.Enable();
             if (GetComponent<SeekerVisionMask>() == null)
                 gameObject.AddComponent<SeekerVisionMask>();
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            //Cursor.lockState = CursorLockMode.Locked;
+            //Cursor.visible = false;
 
             // 카메라 설정
             if (cam == null)
@@ -266,7 +268,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _yaw = transform.eulerAngles.y;
         _smoothedWallRot = transform.rotation;
 
- 
+
     }
 
     //private void Start()
@@ -318,7 +320,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             AttackPressed);
 
         data.Buttons.Set(
-        (int)PlayerButtons.ItemUse,
+        (int)PlayerButtons.UseItem,
         ItemUsePressed);
 
         data.Buttons.Set(
@@ -402,7 +404,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                 if (!Object.HasInputAuthority)
                     transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
                 FloorMove(data);
-                    if (data.Buttons.IsSet(PlayerButtons.ItemUse))
+                    if (data.Buttons.IsSet(PlayerButtons.UseItem))
                         UseItem();
 
                 if (data.Buttons.IsSet(PlayerButtons.Attack) && CanSpendStamina(climbDrain * Runner.DeltaTime))

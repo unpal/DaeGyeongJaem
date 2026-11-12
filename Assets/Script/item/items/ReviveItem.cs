@@ -7,7 +7,8 @@ namespace Script.item.items
     public class ReviveItem : NetworkBehaviour, IItem
     {
         [Networked] private NetworkBool IsCollected { get; set; }
-        public string ItemName => "ReviveItem";
+
+        public ItemData _itemData => new ItemData("ReviveItem",0);
 
         private void OnTriggerEnter(Collider other)
         {
@@ -19,17 +20,18 @@ namespace Script.item.items
             OnPickup(collision.gameObject);
         }
 
-        public void OnPickup(GameObject player)
+        public bool OnPickup(GameObject player)
         {
             if (Object == null || !Object.HasStateAuthority || IsCollected || player == null)
-                return;
+                return false;
 
             PlayerCondition condition = player.GetComponentInParent<PlayerCondition>();
             if (condition == null || !condition.AddReviveItem())
-                return;
+                return false;
 
             IsCollected = true;
             Runner.Despawn(Object);
+            return true;
         }
     }
 }

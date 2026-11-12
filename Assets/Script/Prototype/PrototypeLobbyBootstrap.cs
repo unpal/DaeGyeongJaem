@@ -6,7 +6,6 @@ using Fusion.Sockets;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-
 //얘가 하는일
 // 매칭, 로비scene의 네트워크 관련된 모든일?
 //host client 접속, 플레이어 생성, 네트워크 입력 전달,
@@ -19,7 +18,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     //방 코드
     [SerializeField] private string sessionName = "";
 
-    private NetworkRunner runner;
+    [SerializeField] private NetworkRunner runner;
     private string status = "Host 또는 Client를 선택하세요.";
     private int lobbySceneBuildIndex;
     //runner.startgame 중복호출 방지용 
