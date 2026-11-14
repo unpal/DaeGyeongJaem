@@ -13,6 +13,7 @@ public class PrototypeRoundView : MonoBehaviour
     private GUIStyle rowStyle;
     private NetworkObject configuredCameraOwner;
     private readonly HashSet<NetworkObject> damageConfiguredPlayers = new();
+    private readonly List<PlayerGameState> evaderStates = new();
     private bool wasReviving;
 
     private void Awake()
@@ -46,26 +47,51 @@ public class PrototypeRoundView : MonoBehaviour
         if (state != null && move != null && move.isPlayerInput())
             move.PlayerInputSetting(state.IsInPlayground && manager.Phase == PrototypeRoundPhase.Playing);
         
-        // #1 스태미나
         if (!InGameUIManager.Instance) return;
-        
+
+        bool isSeeker = state != null && state.IsSeeker;
+        InGameUIManager.Instance.SetRoleUI(isSeeker);
+
+        // #1 스태미나 (술래·도망자 공용)
         if (condition)
             InGameUIManager.Instance.SetStamina(condition.CurrentStamina, condition.CurrentMaxStamina);
-        
-        // #2 Draw Player State
-        if (manager && manager.Runner)
+
+        // #2 Draw Player State (도망자 전용: 술래 제외, 0번부터 순차 매핑)
+        if (!isSeeker && manager && manager.Runner)
         {
-            InGameUIManager.Instance.Init(CountPlayers());
+            evaderStates.Clear();
             foreach (var playerRef in manager.Runner.ActivePlayers)
             {
                 PlayerGameState targetState = manager.GetPlayerState(playerRef);
-                if (!targetState) continue;
-                int statusIndex = targetState.IsDead ? 1 : targetState.HasEscaped ? 3 : 0;
-                InGameUIManager.Instance.SetMemberState(targetState.SortNum, statusIndex);
+                if (!targetState || targetState.IsSeeker) continue;
+                evaderStates.Add(targetState);
+            }
+
+            evaderStates.Sort((a, b) => a.SortNum.CompareTo(b.SortNum));
+            InGameUIManager.Instance.Init(evaderStates.Count);
+
+            for (int i = 0; i < evaderStates.Count; i++)
+            {
+                PlayerGameState targetState = evaderStates[i];
+                int statusIndex = targetState.IsDead ? 1
+                    : targetState.IsDowned ? 2
+                    : targetState.HasEscaped ? 3
+                    : 0;
+                InGameUIManager.Instance.SetMemberState(i, statusIndex);
             }
         }
-        
-        // #3 소생 하트
+
+        // #3 소생 하트 (도망자 전용)
+        if (isSeeker)
+        {
+            if (wasReviving)
+            {
+                InGameUIManager.Instance.HideRevive();
+                wasReviving = false;
+            }
+            return;
+        }
+
         float currentReviveProgress = -1f;
 
         // 내가 다른 플레이어를 소생 중일 때

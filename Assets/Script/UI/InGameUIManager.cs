@@ -17,6 +17,9 @@ namespace Script.UI
         [SerializeField] private Image staminaFillImage;
 
         [Header("2. Team Member Status")]
+        [Tooltip("팀원 상태 UI 전체 루트 오브젝트 (도망자 전용)")]
+        [SerializeField] private GameObject teamStatusRoot;
+
         [Tooltip("팀원 각각의 슬롯 루트 오브젝트 (0 ~ 3)")]
         [SerializeField] private GameObject[] memberSlots;
 
@@ -37,7 +40,12 @@ namespace Script.UI
         public const float DEFAULT_CANCEL_FADE_DURATION = 0.5f;
         [SerializeField] private float cancelFadeDuration = DEFAULT_CANCEL_FADE_DURATION;
 
+        [Header("4. Role Visibility")]
+        [Tooltip("도망자 전용으로 표시할 추가 UI 오브젝트 목록 (술래일 때 숨김)")]
+        [SerializeField] private GameObject[] evaderOnlyObjects;
+
         private Coroutine cancelFadeCoroutine;
+        private bool isSeekerMode;
 
         private void Awake()
         {
@@ -90,6 +98,47 @@ namespace Script.UI
         }
 
         // ========================================================================
+        // 0. 역할별 HUD 표시 전환 (Role Visibility)
+        // ========================================================================
+
+        /// <summary>
+        /// 로컬 플레이어의 역할(술래/도망자)에 맞춰 도망자 전용 HUD 요소의 표시 여부를 전환합니다.
+        /// </summary>
+        /// <param name="isSeeker">술래 여부 (true: 술래, false: 도망자)</param>
+        public void SetRoleUI(bool isSeeker)
+        {
+            isSeekerMode = isSeeker;
+            bool isEvader = !isSeeker;
+
+            if (teamStatusRoot != null && teamStatusRoot.activeSelf != isEvader)
+            {
+                teamStatusRoot.SetActive(isEvader);
+            }
+
+            if (isSeeker)
+            {
+                Init(0);
+                HideRevive();
+            }
+
+            if (reviveCanvasGroup != null && reviveCanvasGroup.gameObject.activeSelf != isEvader)
+            {
+                reviveCanvasGroup.gameObject.SetActive(isEvader);
+            }
+
+            if (evaderOnlyObjects != null)
+            {
+                for (int i = 0; i < evaderOnlyObjects.Length; i++)
+                {
+                    if (evaderOnlyObjects[i] != null && evaderOnlyObjects[i].activeSelf != isEvader)
+                    {
+                        evaderOnlyObjects[i].SetActive(isEvader);
+                    }
+                }
+            }
+        }
+
+        // ========================================================================
         // 1. 스태미너 게이지 (Stamina Gauge)
         // ========================================================================
 
@@ -132,11 +181,12 @@ namespace Script.UI
         {
             if (memberSlots == null) return;
 
+            int activeCount = isSeekerMode ? 0 : memberCount;
             for (int i = 0; i < memberSlots.Length; i++)
             {
                 if (memberSlots[i] != null)
                 {
-                    memberSlots[i].SetActive(i < memberCount);
+                    memberSlots[i].SetActive(i < activeCount);
                 }
             }
         }
@@ -148,6 +198,8 @@ namespace Script.UI
         /// <param name="state">상태 인덱스</param>
         public void SetMemberState(int memberIndex, int state)
         {
+            if (isSeekerMode) return;
+
             if (memberImages == null || memberIndex < 0 || memberIndex >= memberImages.Length)
             {
                 Debug.LogWarning($"[InGameUIManager] 유효하지 않은 팀원 인덱스입니다: {memberIndex}");
@@ -180,6 +232,8 @@ namespace Script.UI
         /// <param name="progress">0.0 ~ 1.0 사이의 진행률</param>
         public void SetReviveProgress(float progress)
         {
+            if (isSeekerMode) return;
+
             if (cancelFadeCoroutine != null)
             {
                 StopCoroutine(cancelFadeCoroutine);
@@ -202,6 +256,14 @@ namespace Script.UI
         /// </summary>
         public void CancelRevive()
         {
+            if (isSeekerMode || reviveCanvasGroup == null ||
+                !reviveCanvasGroup.gameObject.activeInHierarchy ||
+                reviveCanvasGroup.alpha <= 0f)
+            {
+                HideRevive();
+                return;
+            }
+
             if (cancelFadeCoroutine != null)
             {
                 StopCoroutine(cancelFadeCoroutine);
