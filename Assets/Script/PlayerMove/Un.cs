@@ -1875,6 +1875,12 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
 
     public void OnLook(InputAction.CallbackContext context)
     {
+        if (Cursor.lockState != CursorLockMode.Locked)
+        {
+            mouseDelta = Vector2.zero;
+            return;
+        }
+
         mouseDelta = context.ReadValue<Vector2>() * mouseSensitivity;
         float mouseX = mouseDelta.x;
         float mouseY = mouseDelta.y;

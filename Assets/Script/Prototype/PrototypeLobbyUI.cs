@@ -26,7 +26,14 @@ public class PrototypeLobbyUI : MonoBehaviour
     [SerializeField] private TMP_Text roomText;
     [SerializeField] private TMP_Text playerCountText;
 
+    [Header("Host ESC Menu")]
+    [SerializeField] private GameObject escMenuPanel;
+    [SerializeField] private GameObject escSettingsPanel;
+    [SerializeField] private TMP_Text escRoomCodeText;
+
     private float copyMessageUntil;
+
+    public bool IsEscMenuOpen => escMenuPanel != null && escMenuPanel.activeSelf;
 
     private void Awake()
     {
@@ -118,9 +125,16 @@ public class PrototypeLobbyUI : MonoBehaviour
             return;
 
         //bootstrap이 관리하는 네트워크 상태를 ui에 반영 룸 코드, 호스트 이름 이런거.
-        roomText.text = string.IsNullOrEmpty(lobby.RoomCode)
+        string roomCodeLabel = string.IsNullOrEmpty(lobby.RoomCode)
             ? "ROOM: ------"
             : $"ROOM: {lobby.RoomCode}";
+        roomText.text = roomCodeLabel;
+        if (escRoomCodeText != null)
+        {
+            escRoomCodeText.text = Time.unscaledTime < copyMessageUntil
+                ? $"ROOM: {lobby.RoomCode} (복사 완료!)"
+                : roomCodeLabel;
+        }
         playerCountText.text = $"PLAYERS: {lobby.PlayerCount} / 5";
         
         //copy 완료 안내
@@ -131,9 +145,21 @@ public class PrototypeLobbyUI : MonoBehaviour
         if (lobby.IsConnected && !roomPanel.activeSelf)
             ShowRoomPanel();
 
-        //로비케릭터 시점 조작, 버튼조작
+        //로비케릭터 시점 조작, 버튼조작 (호스트는 ESC 메뉴 토글, 클라이언트는 커서 토글)
         if (lobby.IsConnected && Input.GetKeyDown(KeyCode.Escape))
-            ToggleCursor();
+        {
+            if (lobby.IsHost)
+            {
+                if (escSettingsPanel != null && escSettingsPanel.activeSelf)
+                    escSettingsPanel.SetActive(false);
+                else
+                    SetEscMenuOpen(!IsEscMenuOpen);
+            }
+            else
+            {
+                ToggleCursor();
+            }
+        }
     }
 
     //bootstrap에 host 생성요청
@@ -147,7 +173,11 @@ public class PrototypeLobbyUI : MonoBehaviour
     public void OpenJoinPanel()
     {
         if (!string.IsNullOrWhiteSpace(nameInput.text))
+        {
+            SetEscMenuOpen(false);
+            SetCursorLocked(false);
             ShowOnly(joinPanel);
+        }
     }
 
 
@@ -172,19 +202,53 @@ public class PrototypeLobbyUI : MonoBehaviour
         copyMessageUntil = Time.unscaledTime + 1.5f;
     }
 
+    public void CloseEscMenu()
+    {
+        SetEscMenuOpen(false);
+    }
+
+    public void ToggleEscSettings()
+    {
+        if (escSettingsPanel != null)
+            escSettingsPanel.SetActive(!escSettingsPanel.activeSelf);
+    }
+
     public void ShowRolePanel()
     {
+        SetEscMenuOpen(false);
+        SetCursorLocked(false);
         ShowOnly(rolePanel);
     }
 
     public void Leave()
     {
+        SetEscMenuOpen(false);
+        SetCursorLocked(false);
         lobby.LeaveToMainMenu();
     }
 
     private void ShowRoomPanel()
     {
         ShowOnly(roomPanel);
+        SetEscMenuOpen(false);
+        SetCursorLocked(true);
+    }
+
+    private void SetEscMenuOpen(bool open)
+    {
+        if (escSettingsPanel != null && !open)
+            escSettingsPanel.SetActive(false);
+
+        if (escMenuPanel != null)
+            escMenuPanel.SetActive(open);
+
+        SetCursorLocked(!open);
+    }
+
+    private static void SetCursorLocked(bool locked)
+    {
+        Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+        Cursor.visible = !locked;
     }
 
     private void ShowOnly(GameObject target)
@@ -205,8 +269,7 @@ public class PrototypeLobbyUI : MonoBehaviour
     private static void ToggleCursor()
     {
         bool unlock = Cursor.lockState == CursorLockMode.Locked;
-        Cursor.lockState = unlock ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = unlock;
+        SetCursorLocked(!unlock);
     }
 
 }
