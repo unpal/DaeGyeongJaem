@@ -1199,7 +1199,8 @@ PrefabInstance:
     m_RemovedComponents:
     - {fileID: 7450353752228834480, guid: 8dfbc7b546b0e104295f6550b383250c, type: 3}
     - {fileID: 2186504156734884225, guid: 8dfbc7b546b0e104295f6550b383250c, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 7644723936414944486, guid: 8dfbc7b546b0e104295f6550b383250c, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8dfbc7b546b0e104295f6550b383250c, type: 3}
@@ -2337,7 +2338,7 @@ MonoBehaviour:
   reliableMode: 0
   encrypt: 0
   transmitEnabled: 1
-  samplingRate: 24000
+  samplingRate: 48000
   frameDuration: 20000
   bitrate: 30000
   sourceType: 0
