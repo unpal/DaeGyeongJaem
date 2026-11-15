@@ -139,7 +139,7 @@ public class PrototypeLobbyUI : MonoBehaviour
                 ? "복사 완료!"
                 : "코드 복사";
         }
-        playerCountText.text = $"PLAYERS: {lobby.PlayerCount} / 5";
+        playerCountText.text = $"PLAYERS: {lobby.PlayerCount} / 7";
         
         //copy 완료 안내
         if (Time.unscaledTime >= copyMessageUntil)

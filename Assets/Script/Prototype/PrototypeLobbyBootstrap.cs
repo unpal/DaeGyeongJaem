@@ -179,7 +179,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         {
             GameMode = mode,
             SessionName = roomCode,
-            PlayerCount = 5,
+            PlayerCount = 7,
             Scene = SceneRef.FromIndex(currentSceneIndex)
         });
 
