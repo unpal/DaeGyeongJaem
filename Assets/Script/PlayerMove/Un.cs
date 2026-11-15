@@ -632,11 +632,14 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             else if (_verticalVelocity < 0f)
             {
                 _verticalVelocity = -2f;
+                animator.SetBool("Jump", false);
             }
         }
         else
         {
             _verticalVelocity -= gravity * deltaTime;
+            animator.SetBool("Jump", true);
+
         }
 
         //카메라를 LateUpdate에서 바꿔주기에 Networktansfrom에서 컴포넌트 내에 변경이 있을 경우 해당 컴포넌트의 값이 LateUpdate에서 변경된 값이 적용되지 않는다.
@@ -679,10 +682,15 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         // 움직일 때 모션이 작동하도록 한다.
         if (move.sqrMagnitude > 0)
         {
-            animator.SetBool("Running", true);
+            if(sprinting)
+                animator.SetBool("Running", true);
+            else
+                animator.SetBool("Running", false);
+            animator.SetBool("Walking", true);
         }
         else
         {
+            animator.SetBool("Walking", false);
             animator.SetBool("Running", false);
         }
 
@@ -1084,6 +1092,9 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
     private void WallClimb(NetworkInputData data)
     {
         float dt = Runner.DeltaTime;
+
+        animator.SetBool("Walking", false);
+        animator.SetBool("Running", false);
 
         // 위쪽으로 이동 중이고, 올라갈 수 있는 발판이 감지되면 맨틀링 시작
         if (data.Move.y > 0.1f)
