@@ -1,6 +1,9 @@
 using UnityEngine;
 using Fusion;
 using Script.dotori;
+using UnityEngine.Events;
+using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 
 //이번 빌드 변경점 > 메인씬, 로비 씬, 게임 결과 화면 추가,
@@ -9,12 +12,37 @@ using Script.dotori;
 public class PlayerGameState : NetworkBehaviour
 {
     [Networked] public NetworkBool IsSeeker { get; private set; }
-    [Networked] private TickTimer ShotCooldown { get; set; }
-    [SerializeField, Min(0.1f)] private float shotInterval = 1f;
+    [Header("Seeker Catch")]
+    [SerializeField, Min(0.1f)] private float catchRange = 2f;
+    [SerializeField, Range(1f, 89f)] private float catchHalfAngle = 50f;
+    [Tooltip("Delay before the server starts checking for a target. Match this to the future animation's impact time.")]
+    [SerializeField, Min(0f)] private float catchWindup = 0.18f;
+    [SerializeField, Min(0.01f)] private float catchActiveDuration = 0.12f;
+    [FormerlySerializedAs("shotInterval")]
+    [SerializeField, Min(0.1f)] private float catchInterval = 1f;
+    [Header("Catch Presentation (optional; leave empty until art is ready)")]
+    [Tooltip("Invoked on every client when the server accepts a catch. Presentation only; do not apply damage here.")]
+    [SerializeField] private UnityEvent onCatchSwingStarted = new UnityEvent();
+    [Tooltip("Invoked on every client when a catch ends, including a round/role cancellation.")]
+    [SerializeField] private UnityEvent onCatchSwingEnded = new UnityEvent();
+    [SerializeField] private UnityEvent onCatchSucceeded = new UnityEvent();
+    [SerializeField] private UnityEvent onCatchMissed = new UnityEvent();
+    [SerializeField] private UnityEvent onCatchCancelled = new UnityEvent();
+
+    private enum CatchResult : byte { Succeeded, Missed, Cancelled }
+
+    [Networked] private TickTimer CatchCooldown { get; set; }
+    [Networked] private TickTimer CatchWindupTimer { get; set; }
+    [Networked] private TickTimer CatchEndTimer { get; set; }
+    [Networked] private NetworkBool CatchWasHeld { get; set; }
+    [Networked] private Vector3 CatchDirection { get; set; }
+    public bool IsCatchSwinging => CatchWindupTimer.IsRunning;
+    private readonly SeekerCatchQuery catchQuery = new SeekerCatchQuery();
     private GameManager roundGame;
     private PrototypeRoundManager roundManager;
     private Un movement;
-    private float shotFlashUntil;
+    private float catchFeedbackUntil;
+    private string catchFeedback;
 
     public bool CanMove
     {
@@ -36,49 +64,149 @@ public class PlayerGameState : NetworkBehaviour
     {
         if (!Object.HasStateAuthority) return;
         IsSeeker = value;
-        ShotCooldown = TickTimer.None;
+        ResetCatch();
         GetComponent<PlayerCondition>()?.ResetForNextRound();
     }
 
     public override void FixedUpdateNetwork()
     {
-        if (!Object.HasStateAuthority || !IsSeeker || !CanMove ||
-            roundGame == null || roundGame.Phase != RoundPhase.Playing ||
-            !ShotCooldown.ExpiredOrNotRunning(Runner) ||
-            !GetInput(out NetworkInputData input) || !input.Buttons.IsSet(PlayerButtons.Fire))
+        if (!Object.HasStateAuthority)
             return;
 
+        bool hasInput = GetInput(out NetworkInputData input);
+        bool pressed = hasInput && input.Buttons.IsSet(PlayerButtons.Catch) && !CatchWasHeld;
+        // Missing input must not turn a held button into another press.
+        if (hasInput) CatchWasHeld = input.Buttons.IsSet(PlayerButtons.Catch);
+
+        if (!IsSeeker || !CanMove || roundGame == null || roundGame.Object == null ||
+            !roundGame.Object.IsValid || !roundGame.Object.HasStateAuthority || roundGame.Runner != Runner ||
+            roundGame.Phase != RoundPhase.Playing)
+        {
+            EndCatchSwing(CatchResult.Cancelled);
+            return;
+        }
+
+        if (IsCatchSwinging)
+        {
+            if (CatchWindupTimer.Expired(Runner)) ResolveCatch();
+            return;
+        }
+
+        if (!pressed || !CatchCooldown.ExpiredOrNotRunning(Runner)) return;
         Vector3 direction = input.AimDirection;
         float magnitude = direction.sqrMagnitude;
         if (float.IsNaN(magnitude) || float.IsInfinity(magnitude) || magnitude < 0.01f)
             return;
 
-        direction.Normalize();
+        CatchDirection = direction.normalized;
+        float windup = Mathf.Max(0f, catchWindup);
+        // Preserve at least one simulation tick of impact even with a very short configured window.
+        float duration = windup + Mathf.Max(Runner.DeltaTime, catchActiveDuration);
+        CatchWindupTimer = TickTimer.CreateFromSeconds(Runner, windup);
+        CatchEndTimer = TickTimer.CreateFromSeconds(Runner, duration);
+        CatchCooldown = TickTimer.CreateFromSeconds(Runner, Mathf.Max(catchInterval, duration));
+        RpcCatchSwingStarted(duration);
+        if (CatchWindupTimer.Expired(Runner)) ResolveCatch();
+    }
+
+    private void ResolveCatch()
+    {
+        // Check expiry before querying: a target entering after the active window must not be caught.
+        if (CatchEndTimer.Expired(Runner))
+        {
+            EndCatchSwing(CatchResult.Missed);
+            return;
+        }
+
         if (movement == null) movement = GetComponent<Un>();
         Vector3 origin = movement != null ? movement.GetCameraPivotPosition() : transform.position + Vector3.up * 1.5f;
-        ShotCooldown = TickTimer.CreateFromSeconds(Runner, shotInterval);
-        bool hit = Shotgun.FireAt(origin, direction, transform, out Vector3 end);
-        RpcShotFeedback(origin, end, hit);
+        Transform target = catchQuery.FindTarget(gameObject.scene.GetPhysicsScene(), origin,
+            CatchDirection, catchRange, catchHalfAngle, transform, ResolveCatchTarget);
+        if (target != null)
+        {
+            PlayerGameState state = target.GetComponent<PlayerGameState>();
+            roundGame.ReportPlayerDowned(state);
+            if (state.IsDowned)
+            {
+                state.GetComponent<PlayerCondition>()?.CancelRevive();
+                EndCatchSwing(CatchResult.Succeeded);
+                return;
+            }
+        }
+    }
+
+    private Transform ResolveCatchTarget(Collider collider)
+    {
+        PlayerGameState target = collider.GetComponentInParent<PlayerGameState>();
+        return target != null && target != this && target.Object != null && target.Object.IsValid &&
+            target.Runner == Runner && target.Object.HasStateAuthority &&
+            !target.IsSeeker && target.IsInPlayground && !target.IsDowned
+            ? target.transform : null;
+    }
+
+    private void EndCatchSwing(CatchResult result)
+    {
+        if (!IsCatchSwinging) return;
+        CatchWindupTimer = TickTimer.None;
+        CatchEndTimer = TickTimer.None;
+        RpcCatchEnded(result);
+    }
+
+    private void ResetCatch()
+    {
+        CatchCooldown = TickTimer.None;
+        EndCatchSwing(CatchResult.Cancelled);
+        CatchDirection = Vector3.zero;
+        // Require a release after role/round changes, including a held button during loading.
+        CatchWasHeld = true;
+        catchFeedbackUntil = 0f;
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RpcShotFeedback(Vector3 origin, Vector3 end, NetworkBool hit)
+    private void RpcCatchSwingStarted(float duration)
     {
-        shotFlashUntil = Time.time + 0.15f;
-        Shotgun.ShowTracer(origin, end, hit);
+        catchFeedback = "손 휘두르기";
+        catchFeedbackUntil = Time.time + duration;
+        onCatchSwingStarted?.Invoke();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcCatchEnded(CatchResult result)
+    {
+        onCatchSwingEnded?.Invoke();
+        switch (result)
+        {
+            case CatchResult.Succeeded:
+                catchFeedback = "잡기 성공";
+                catchFeedbackUntil = Time.time + 0.35f;
+                onCatchSucceeded?.Invoke();
+                break;
+            case CatchResult.Missed:
+                catchFeedback = "빗나감";
+                catchFeedbackUntil = Time.time + 0.35f;
+                onCatchMissed?.Invoke();
+                break;
+            default:
+                catchFeedback = "";
+                catchFeedbackUntil = 0f;
+                onCatchCancelled?.Invoke();
+                break;
+        }
     }
 
     private void OnGUI()
     {
+        /* Canvas 기반 UI로 대체됨
         if (Object == null || !Object.IsValid || !Object.HasInputAuthority) return;
         if (roundManager == null) roundManager = FindFirstObjectByType<PrototypeRoundManager>();
         if (roundManager == null || roundManager.Object == null ||
             !roundManager.Object.IsValid || roundManager.RoundNumber == 0) return;
         GUI.Box(new Rect(20, Screen.height - 70, 360, 45),
-            IsSeeker ? (CanMove ? "술래 | 우클릭: 샷건 | 좌클릭: 등반" : "술래 | 준비 중") : "도망자 | 포탈이 열리면 탈출하세요");
+            IsSeeker ? (CanMove ? "술래 | 우클릭: 손 휘둘러 잡기 | 좌클릭: 등반" : "술래 | 준비 중") : "도망자 | 포탈이 열리면 탈출하세요");
         if (IsSeeker && CanMove)
-            GUI.Label(new Rect(Screen.width / 2f - 8, Screen.height / 2f - 12, 30, 30),
-                Time.time < shotFlashUntil ? "×" : "+");
+            GUI.Label(new Rect(Screen.width / 2f - 60, Screen.height / 2f + 20, 160, 30),
+                Time.time < catchFeedbackUntil ? catchFeedback : "");
+        */
     }
 
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
@@ -238,7 +366,7 @@ public class PlayerGameState : NetworkBehaviour
 
         Crowns = 0;
         IsSeeker = false;
-        ShotCooldown = TickTimer.None;
+        ResetCatch();
         IsDead = false;
         IsDowned = false;
         HasEscaped = false;
@@ -251,7 +379,7 @@ public class PlayerGameState : NetworkBehaviour
         IsDead = false;
         IsDowned = false;
         HasEscaped = false;
-        ShotCooldown = TickTimer.None;
+        ResetCatch();
     }
 
 }

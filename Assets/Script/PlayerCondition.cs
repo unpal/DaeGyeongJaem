@@ -399,7 +399,7 @@ public void ApplyTemporaryDamage(float amount)
 
         bool otherAction = input.Move.sqrMagnitude > 0f ||
             input.Buttons.IsSet(PlayerButtons.Jump) || input.Buttons.IsSet(PlayerButtons.Attack) ||
-            input.Buttons.IsSet(PlayerButtons.Fire) || input.Buttons.IsSet(PlayerButtons.UseItem) ||
+            input.Buttons.IsSet(PlayerButtons.Catch) || input.Buttons.IsSet(PlayerButtons.UseItem) ||
             (movement != null && movement.statemachine != Un.StateMachine.Floor);
 
         if (ReviveNeedsRelease || otherAction || !playerGameState.CanMove ||

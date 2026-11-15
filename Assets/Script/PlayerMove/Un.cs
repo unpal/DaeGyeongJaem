@@ -307,7 +307,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     {
         NetworkInputData data = new NetworkInputData();
 
-        int selectedSlot = (_playerInventory != null && (_gameState == null || !_gameState.IsSeeker))
+        bool isSeeker = _gameState != null && _gameState.IsSeeker;
+        int selectedSlot = (_playerInventory != null && !isSeeker)
             ? _playerInventory.SelectedSlot
             : -1;
         bool rightClickHeld = (Mouse.current != null && Mouse.current.rightButton.isPressed) || ItemUsePressed;
@@ -319,7 +320,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         data.SelectedSlot = selectedSlot;
         data.Buttons.Set((int)PlayerButtons.OpenEyes, OpenEyesHeld);
         data.Buttons.Set((int)PlayerButtons.Revive, _reviveAction != null && _reviveAction.IsPressed());
-        data.Buttons.Set((int)PlayerButtons.Fire, rightClickHeld);
+        data.Buttons.Set((int)PlayerButtons.Catch, isSeeker && rightClickHeld);
 
         data.Buttons.Set(
             (int)PlayerButtons.Jump,
@@ -331,7 +332,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
         data.Buttons.Set(
             (int)PlayerButtons.UseItem,
-            selectedSlot >= 0 && rightClickHeld);
+            !isSeeker && selectedSlot >= 0 && rightClickHeld);
 
         data.Buttons.Set(
             (int)PlayerButtons.Sprint,

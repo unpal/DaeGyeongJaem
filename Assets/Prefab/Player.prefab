@@ -194,7 +194,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _IsSeeker:
     _value: 0
-  shotInterval: 1
+  catchRange: 2
+  catchHalfAngle: 50
+  catchWindup: 0.18
+  catchActiveDuration: 0.12
+  catchInterval: 1
+  onCatchSwingStarted:
+    m_PersistentCalls:
+      m_Calls: []
+  onCatchSwingEnded:
+    m_PersistentCalls:
+      m_Calls: []
+  onCatchSucceeded:
+    m_PersistentCalls:
+      m_Calls: []
+  onCatchMissed:
+    m_PersistentCalls:
+      m_Calls: []
+  onCatchCancelled:
+    m_PersistentCalls:
+      m_Calls: []
   globalVolume: {fileID: 0}
   wbVolume: {fileID: 0}
   _Crowns: 0
