@@ -62,7 +62,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         }
 
         //최초 매칭 진입에서만 새 Runner를 만들기
-        runner = gameObject.AddComponent<NetworkRunner>();
+        runner = gameObject.GetComponent<NetworkRunner>();
         runner.ProvideInput = true;
         gameObject.AddComponent<NetworkSceneManagerDefault>();
         gameObject.AddComponent<NetworkObjectProviderDefault>();
@@ -155,23 +155,36 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 
     private async void StartSession(GameMode mode, string roomCode)
     {
-        // 버튼을 여러 번 눌러 StartGame이 중복 호출되는 것을 방지
         isConnecting = true;
-        status = mode == GameMode.Host ? "방을 만드는 중..." : "방에 접속하는 중...";
+        status = mode == GameMode.Host
+            ? "방을 만드는 중..."
+            : "방에 접속하는 중...";
+
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+
+        // Scene Build Index 검사
+        if (currentSceneIndex < 0 ||
+            currentSceneIndex >= SceneManager.sceneCountInBuildSettings)
+        {
+            Debug.LogError(
+                $"[Lobby] 잘못된 Scene Build Index: {currentSceneIndex}"
+            );
+
+            isConnecting = false;
+            status = "현재 씬이 Build Settings에 등록되지 않았습니다.";
+            return;
+        }
 
         StartGameResult result = await runner.StartGame(new StartGameArgs
         {
             GameMode = mode,
-            // 같은 코드를 사용하는 Host와 Client가 동일한 세션에 접속
             SessionName = roomCode,
-            //플레이어 수 조정가능
             PlayerCount = 5,
-
-            // 세션 시작 후에도 현재 매칭 씬을 네트워크 씬으로 사용한다.
-            Scene = SceneRef.FromIndex(gameObject.scene.buildIndex)
+            Scene = SceneRef.FromIndex(currentSceneIndex)
         });
 
         isConnecting = false;
+
         status = result.Ok
             ? (mode == GameMode.Host
                 ? "방 준비 완료 - Enter로 게임 시작"

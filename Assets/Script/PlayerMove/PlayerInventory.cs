@@ -7,8 +7,7 @@ using UnityEngine;
 
 public class PlayerInventory : MonoBehaviour
 {
-    [SerializeField] private PlayerCondition Condition;//
-    [SerializeField] private List<ItemData> MyItem = new();
+    [SerializeField] private IItem[] MyItem = new IItem[3];
     [SerializeField] private int InventoryNum = 0;
     void Start()
     {
@@ -20,12 +19,18 @@ public class PlayerInventory : MonoBehaviour
     {
         
     }
-    public bool AddItem(ItemData Item)
+    public bool AddItem(IItem Item)
     {
-        if (MyItem.Count >= 3)
-            return false;
-        MyItem.Add(Item);
-        return true;
+        for(int i = 0; i < 3;i++)
+        {
+            if (MyItem[i] == null)
+            {
+                MyItem[i] = Item;
+                return true;
+            }
+            
+        }
+        return false;
     }
     public void SwitchInventory(int Num)
     {
@@ -34,12 +39,21 @@ public class PlayerInventory : MonoBehaviour
 
     public void UseItem()
     {
-        if (Condition == null)
+        if (InventoryNum < 0 || InventoryNum >= MyItem.Length)
+        {
+            Debug.Log("인벤토리 넘버가 내 인벤토리를 넘어감");
             return;
-        if (InventoryNum < 0 || InventoryNum >= MyItem.Count)
+        }
+        if (MyItem[InventoryNum] == null)
+        {
+            Debug.Log("아이템 없음");
             return;
-        Condition.RecoverTemporaryDamage(MyItem[InventoryNum].AmountHeal);
-        MyItem.RemoveAt(InventoryNum);
+        }
+        MyItem[InventoryNum].OnUse(gameObject);
+
+        MyItem[InventoryNum] = null;
+
+        Debug.Log("정상 아이템 사용");
     }
 
 }

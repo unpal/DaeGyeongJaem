@@ -29,7 +29,7 @@ namespace Script.item.items
             if (target.TryGetComponent(out global::Un _))
             {
                 IsCollected = true;
-                if(OnPickup(target));
+                if(OnPickup(target))
                     Runner.Despawn(Object);
             }
         }
@@ -38,7 +38,27 @@ namespace Script.item.items
         {
             if (player.TryGetComponent(out global::Un Player))
             {
-               return Player._playerInventory.AddItem(_itemData);
+               return Player._playerInventory.AddItem(this);
+            }
+            return false;
+        }
+
+        public bool OnUse(GameObject player)
+        {
+            
+            if (player.TryGetComponent(out global::PlayerCondition Player))
+            {
+                if(Player.RecoverAllDamage(_itemData.AmountHeal) == 1)
+                {
+                    Debug.Log("정상 힐 아이템 사용");
+                    return true;
+
+                }
+                else
+                {
+                    Debug.Log("비정상 힐 아이템 사용");
+                    return false;
+                }
             }
             return false;
         }

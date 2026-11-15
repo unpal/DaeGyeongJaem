@@ -30,8 +30,8 @@ namespace Script.item.items
             if (target.TryGetComponent(out PlayerCondition _))
             {
                 IsCollected = true;
-                OnPickup(target);
-                Runner.Despawn(Object);
+                if(OnPickup(target))
+                    Runner.Despawn(Object);
             }
         }
 
@@ -39,9 +39,14 @@ namespace Script.item.items
         {
             if (player.TryGetComponent(out global::Un Player))
             {
-                return Player._playerInventory.AddItem(_itemData);
+                return Player._playerInventory.AddItem(this);
             }
             return false;
+        }
+
+        public bool OnUse(GameObject player)
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

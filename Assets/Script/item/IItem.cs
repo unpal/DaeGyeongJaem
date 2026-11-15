@@ -20,5 +20,6 @@ namespace Script.item
 
         ItemData _itemData { get; }
         bool OnPickup(GameObject player);
+        public bool OnUse(GameObject player);
     }
 }

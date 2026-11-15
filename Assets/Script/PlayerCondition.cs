@@ -13,6 +13,11 @@ public class PlayerCondition : NetworkBehaviour
     [SerializeField, Min(0.01f)] private float burnTick = 0.5f;
     [SerializeField, Min(0f)] private float burnDamage = 2f;
 
+    [Header("WaterGunAttack")]
+    [SerializeField, Min(0f)] private float WaterGunAttackDuration = 3f;
+    [SerializeField, Min(0.01f)] private float WaterGunAttackTick = 0.1f;
+    [SerializeField, Min(0f)] private float WaterGunAttackDamage = 1f;
+
     [Header("Recovery")]
     [SerializeField, Min(0f)] private float recoverDelay = 5f;
     [SerializeField, Min(0f)] private float recoverRate = 1f;
@@ -39,6 +44,8 @@ public class PlayerCondition : NetworkBehaviour
     [Networked] private float BurnTickAccumulator { get; set; }
     [Networked] private float RecoveryDelayRemaining { get; set; }
     [Networked] private float SprintLockRemaining { get; set; }
+    [Networked] private float WaterGunAttackRemaining { get; set; }
+    [Networked] private float WaterGunAttackTickAccumulator { get; set; }
 
     private PlayerGameState playerGameState;
     private GameManager gameManager;
@@ -79,6 +86,7 @@ public class PlayerCondition : NetworkBehaviour
         float deltaTime = Runner.DeltaTime;
         CheckDowned();
         UpdateBurn(deltaTime);
+        UpdateWaterGunAttack(deltaTime);
         if (!playerGameState.IsDowned)
             UpdateRecovery(deltaTime);
         SprintLockRemaining = Mathf.Max(0f, SprintLockRemaining - deltaTime);
@@ -156,7 +164,36 @@ public class PlayerCondition : NetworkBehaviour
         CheckDowned();
     }
 
-    public void ApplyTemporaryDamage(float amount)
+    public short RecoverAllDamage(float amount)
+    {
+        if (!Object.HasStateAuthority || playerGameState.IsDowned || !IsPositiveFinite(amount))
+            return 0;
+
+        if (TemporaryDamage > 0 || PermanentDamage > 0)
+        {
+
+
+        float tempRecover = amount - PermanentDamage;
+
+        if (tempRecover > 0)
+        {
+            float TemporaryRecover = amount - tempRecover;
+
+            TemporaryDamage = Mathf.Max(0f, TemporaryDamage - TemporaryRecover);
+
+            PermanentDamage = Mathf.Max(0f, PermanentDamage - tempRecover);
+        }
+        else
+        {
+            PermanentDamage = Mathf.Max(0f, PermanentDamage - amount);
+        }
+
+            return 1;
+        }
+        return 2;
+    }
+
+public void ApplyTemporaryDamage(float amount)
     {
         if (!Object.HasStateAuthority || IsDamageImmune || playerGameState.IsDowned ||
             !playerGameState.IsInPlayground || !IsPositiveFinite(amount))
@@ -189,6 +226,15 @@ public class PlayerCondition : NetworkBehaviour
         RecoveryDelayRemaining = recoverDelay;
     }
 
+    public void RefreshWaterGunAttack()
+    {
+        if (!Object.HasStateAuthority || IsDamageImmune || playerGameState.IsDowned)
+            return;
+
+        BurnRemaining = Mathf.Max(WaterGunAttackRemaining, WaterGunAttackDuration);
+        RecoveryDelayRemaining = recoverDelay;
+    }
+
     public void LockSprint(float seconds)
     {
         if (!Object.HasStateAuthority || !IsPositiveFinite(seconds))
@@ -211,6 +257,23 @@ public class PlayerCondition : NetworkBehaviour
         {
             BurnTickAccumulator -= interval;
             ApplyTemporaryDamage(burnDamage);
+        }
+    }
+
+    private void UpdateWaterGunAttack(float deltaTime)
+    {
+        if (WaterGunAttackRemaining <= 0f)
+            return;
+
+        WaterGunAttackRemaining = Mathf.Max(0f, WaterGunAttackRemaining - deltaTime);
+        WaterGunAttackTickAccumulator += deltaTime;
+        RecoveryDelayRemaining = recoverDelay;
+
+        float interval = Mathf.Max(0.01f, WaterGunAttackTick);
+        while (WaterGunAttackTickAccumulator >= interval)
+        {
+            WaterGunAttackTickAccumulator -= interval;
+            ApplyPermanentDamage(WaterGunAttackDamage);
         }
     }
 
