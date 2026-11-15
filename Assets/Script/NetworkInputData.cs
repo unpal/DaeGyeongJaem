@@ -7,7 +7,7 @@ public enum PlayerButtons
     Attack,
     Sprint,
     Whistle,
-    Fire,
+    Catch,
     OpenEyes,
     Revive,
     ItemUse

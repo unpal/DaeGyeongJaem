@@ -305,9 +305,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         data.AimDirection = camPivot != null ? camPivot.forward : transform.forward;
         data.Buttons.Set((int)PlayerButtons.OpenEyes, OpenEyesHeld);
         data.Buttons.Set((int)PlayerButtons.Revive, _reviveAction != null && _reviveAction.IsPressed());
-        data.Buttons.Set((int)PlayerButtons.UseItem, _useItemAction != null && _useItemAction.IsPressed());
-        data.Buttons.Set((int)PlayerButtons.Fire,
-            Mouse.current != null && Mouse.current.rightButton.isPressed);
+        bool isSeeker = _gameState != null && _gameState.IsSeeker;
+        data.Buttons.Set((int)PlayerButtons.Catch,
+            isSeeker && Mouse.current != null && Mouse.current.rightButton.isPressed);
 
         data.Buttons.Set(
             (int)PlayerButtons.Jump,
@@ -319,7 +319,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
         data.Buttons.Set(
         (int)PlayerButtons.ItemUse,
-        ItemUsePressed);
+        !isSeeker && (ItemUsePressed || (_useItemAction != null && _useItemAction.IsPressed())));
 
         data.Buttons.Set(
             (int)PlayerButtons.Sprint,
