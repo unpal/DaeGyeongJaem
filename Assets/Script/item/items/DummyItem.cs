@@ -58,7 +58,7 @@ namespace Script.item.items
                 return;
 
             condition.CancelRevive();
-            condition.RecoverTemporaryDamage(amountHeal);
+            condition.RecoverAllDamage(amountHeal);
         }
     }
 }

@@ -182,6 +182,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     [SerializeField] private Canvas ChattingCanvas;
 
+    [SerializeField] private float WaterGunDistance = 5.0f;
+
 
     public override void Spawned()
     {
@@ -2003,5 +2005,34 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
             return;
 
         _playerInventory?.SyncClear();
+    }
+
+    public void UseWaterGun()
+    {
+
+        // 내 캐릭터가 보는 위치(y축 회전 값)
+        Quaternion yawRotation =
+            Quaternion.Euler(0f, _yaw, 0f);
+
+
+        // y 축 회전값을 통한 내가 보는 곳에 대한 앞 찾기
+        Vector3 forward =
+            yawRotation * Vector3.forward;
+
+        var ray = new Ray
+        {
+            origin = transform.position,
+            direction = forward
+        };
+        Debug.DrawRay(ray.origin, ray.direction * WaterGunDistance, Color.red);
+        if (Physics.Raycast(ray, out RaycastHit transHit, WaterGunDistance, wallLayerMask))
+        {
+            GameObject HitObj = transHit.transform.gameObject;
+
+            if(HitObj.TryGetComponent<PlayerCondition>(out PlayerCondition HitCondition))
+            {
+                HitCondition.RefreshWaterGunAttack();
+            }
+        }
     }
 }
