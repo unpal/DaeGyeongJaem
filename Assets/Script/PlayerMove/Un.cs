@@ -1875,7 +1875,7 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
 
     public void OnLook(InputAction.CallbackContext context)
     {
-        if (Cursor.lockState != CursorLockMode.Locked)
+        if (Cursor.visible)
         {
             mouseDelta = Vector2.zero;
             return;

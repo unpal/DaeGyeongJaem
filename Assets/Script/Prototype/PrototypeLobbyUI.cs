@@ -30,8 +30,10 @@ public class PrototypeLobbyUI : MonoBehaviour
     [SerializeField] private GameObject escMenuPanel;
     [SerializeField] private GameObject escSettingsPanel;
     [SerializeField] private TMP_Text escRoomCodeText;
+    [SerializeField] private TMP_Text escCopyButtonText;
 
     private float copyMessageUntil;
+    private bool clientCursorUnlocked;
 
     public bool IsEscMenuOpen => escMenuPanel != null && escMenuPanel.activeSelf;
 
@@ -130,10 +132,12 @@ public class PrototypeLobbyUI : MonoBehaviour
             : $"ROOM: {lobby.RoomCode}";
         roomText.text = roomCodeLabel;
         if (escRoomCodeText != null)
+            escRoomCodeText.text = roomCodeLabel;
+        if (escCopyButtonText != null)
         {
-            escRoomCodeText.text = Time.unscaledTime < copyMessageUntil
-                ? $"ROOM: {lobby.RoomCode} (복사 완료!)"
-                : roomCodeLabel;
+            escCopyButtonText.text = Time.unscaledTime < copyMessageUntil
+                ? "복사 완료!"
+                : "코드 복사";
         }
         playerCountText.text = $"PLAYERS: {lobby.PlayerCount} / 5";
         
@@ -157,9 +161,22 @@ public class PrototypeLobbyUI : MonoBehaviour
             }
             else
             {
-                ToggleCursor();
+                clientCursorUnlocked = !clientCursorUnlocked;
+                SetCursorLocked(!clientCursorUnlocked);
             }
         }
+    }
+
+    private void LateUpdate()
+    {
+        if (lobby == null || !lobby.IsConnected || roomPanel == null || !roomPanel.activeSelf)
+            return;
+
+        if (Input.GetKey(KeyCode.Escape))
+            return;
+
+        bool shouldLockCursor = lobby.IsHost ? !IsEscMenuOpen : !clientCursorUnlocked;
+        SetCursorLocked(shouldLockCursor);
     }
 
     //bootstrap에 host 생성요청
@@ -174,6 +191,7 @@ public class PrototypeLobbyUI : MonoBehaviour
     {
         if (!string.IsNullOrWhiteSpace(nameInput.text))
         {
+            clientCursorUnlocked = false;
             SetEscMenuOpen(false);
             SetCursorLocked(false);
             ShowOnly(joinPanel);
@@ -215,6 +233,7 @@ public class PrototypeLobbyUI : MonoBehaviour
 
     public void ShowRolePanel()
     {
+        clientCursorUnlocked = false;
         SetEscMenuOpen(false);
         SetCursorLocked(false);
         ShowOnly(rolePanel);
@@ -222,6 +241,7 @@ public class PrototypeLobbyUI : MonoBehaviour
 
     public void Leave()
     {
+        clientCursorUnlocked = false;
         SetEscMenuOpen(false);
         SetCursorLocked(false);
         lobby.LeaveToMainMenu();
@@ -230,6 +250,7 @@ public class PrototypeLobbyUI : MonoBehaviour
     private void ShowRoomPanel()
     {
         ShowOnly(roomPanel);
+        clientCursorUnlocked = false;
         SetEscMenuOpen(false);
         SetCursorLocked(true);
     }

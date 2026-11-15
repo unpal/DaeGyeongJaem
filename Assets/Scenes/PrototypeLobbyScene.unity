@@ -6103,6 +6103,7 @@ MonoBehaviour:
   escMenuPanel: {fileID: 2100001001}
   escSettingsPanel: {fileID: 2100001009}
   escRoomCodeText: {fileID: 2100001020}
+  escCopyButtonText: {fileID: 2100001029}
 --- !u!4 &1936350742
 Transform:
   m_ObjectHideFlags: 0
