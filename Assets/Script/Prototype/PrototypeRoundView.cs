@@ -81,7 +81,17 @@ public class PrototypeRoundView : MonoBehaviour
             }
         }
 
-        // #3 소생 하트 (도망자 전용)
+        // #3 아이템 슬롯 (도망자 전용)
+        if (!isSeeker)
+        {
+            PlayerInventory inventory = localObject.GetComponent<PlayerInventory>();
+            if (inventory != null)
+                InGameUIManager.Instance.UpdateItemSlots(inventory.Items, inventory.SelectedSlot);
+            else
+                InGameUIManager.Instance.UpdateItemSlots(null, -1);
+        }
+
+        // #4 소생 하트 (도망자 전용)
         if (isSeeker)
         {
             if (wasReviving)

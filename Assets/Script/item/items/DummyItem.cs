@@ -5,10 +5,17 @@ namespace Script.item.items
 {
     public class DummyItem : NetworkBehaviour, IItem
     {
+        [SerializeField] private float amountHeal = 30f;
+        public Sprite itemSprite;
 
         [Networked] private NetworkBool IsCollected { get; set; }
 
-        public ItemData _itemData => new ItemData("DummyItem",30);
+        public ItemData _itemData => new ItemData("DummyItem", amountHeal, itemSprite, OnUse);
+
+        private void Awake()
+        {
+            ItemData.RegisterSprite("DummyItem", itemSprite);
+        }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -19,28 +26,39 @@ namespace Script.item.items
         {
             HandlePickup(collision.gameObject);
         }
-        
+
         private void HandlePickup(GameObject target)
         {
             // 호스트(StateAuthority)에서만 획득 판정 및 Despawn 처리
-            if (!Object.HasStateAuthority || IsCollected)
+            if (Object == null || !Object.HasStateAuthority || IsCollected || target == null)
                 return;
 
-            if (target.TryGetComponent(out global::Un _))
+            if (target.GetComponentInParent<global::Un>() != null && OnPickup(target))
             {
                 IsCollected = true;
-                if(OnPickup(target));
-                    Runner.Despawn(Object);
+                Runner.Despawn(Object);
             }
         }
 
         public bool OnPickup(GameObject player)
         {
-            if (player.TryGetComponent(out global::Un Player))
-            {
-               return Player._playerInventory.AddItem(_itemData);
-            }
-            return false;
+            if (player == null)
+                return false;
+
+            global::Un playerUn = player.GetComponentInParent<global::Un>();
+            if (playerUn == null || playerUn._playerInventory == null)
+                return false;
+
+            return playerUn._playerInventory.AddItem(_itemData);
+        }
+
+        public void OnUse(PlayerCondition condition)
+        {
+            if (condition == null)
+                return;
+
+            condition.CancelRevive();
+            condition.RecoverTemporaryDamage(amountHeal);
         }
     }
 }

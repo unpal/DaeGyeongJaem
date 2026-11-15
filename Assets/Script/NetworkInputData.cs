@@ -19,5 +19,6 @@ public struct NetworkInputData : INetworkInput
     public Vector2 Look;
     public Vector3 AimDirection;
     public float BodyYaw;
+    public int SelectedSlot;
     public NetworkButtons Buttons;
 }

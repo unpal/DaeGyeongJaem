@@ -1,5 +1,6 @@
 using Cinemachine;
 using Fusion;
+using Script.item;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -33,6 +34,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private PlayerCondition _condition;
     private PlayerGameState _gameState;
     [Networked] private NetworkBool JumpWasPressed { get; set; }
+    [Networked] private NetworkBool UseItemWasPressed { get; set; }
 
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 5f;
@@ -185,6 +187,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     {
         _condition = GetComponent<PlayerCondition>();
         _gameState = GetComponent<PlayerGameState>();
+        if (_playerInventory == null)
+            _playerInventory = GetComponent<PlayerInventory>();
         if(Object.HasInputAuthority)
         {
             _rawInput = new RawInput();
@@ -301,15 +305,19 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     {
         NetworkInputData data = new NetworkInputData();
 
+        int selectedSlot = (_playerInventory != null && (_gameState == null || !_gameState.IsSeeker))
+            ? _playerInventory.SelectedSlot
+            : -1;
+        bool rightClickHeld = (Mouse.current != null && Mouse.current.rightButton.isPressed) || ItemUsePressed;
+
         data.Move = _moveInput;
         data.Look = mouseDelta;
         data.BodyYaw = _yaw;
         data.AimDirection = camPivot != null ? camPivot.forward : transform.forward;
+        data.SelectedSlot = selectedSlot;
         data.Buttons.Set((int)PlayerButtons.OpenEyes, OpenEyesHeld);
         data.Buttons.Set((int)PlayerButtons.Revive, _reviveAction != null && _reviveAction.IsPressed());
-        data.Buttons.Set((int)PlayerButtons.UseItem, _useItemAction != null && _useItemAction.IsPressed());
-        data.Buttons.Set((int)PlayerButtons.Fire,
-            Mouse.current != null && Mouse.current.rightButton.isPressed);
+        data.Buttons.Set((int)PlayerButtons.Fire, rightClickHeld);
 
         data.Buttons.Set(
             (int)PlayerButtons.Jump,
@@ -320,8 +328,8 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             AttackPressed);
 
         data.Buttons.Set(
-        (int)PlayerButtons.UseItem,
-        ItemUsePressed);
+            (int)PlayerButtons.UseItem,
+            selectedSlot >= 0 && rightClickHeld);
 
         data.Buttons.Set(
             (int)PlayerButtons.Sprint,
@@ -343,6 +351,9 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _surfaceNormal = Vector3.up;
         _yaw = rotation.eulerAngles.y;
         _pitch = 0f;
+        _playerInventory?.SyncClear();
+        if (Object != null && (Object.HasStateAuthority || Object.HasInputAuthority))
+            UseItemWasPressed = false;
         transform.SetPositionAndRotation(position, rotation);
         if (_rb != null)
         {
@@ -404,8 +415,6 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                 if (!Object.HasInputAuthority)
                     transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
                 FloorMove(data);
-                    if (data.Buttons.IsSet(PlayerButtons.UseItem))
-                        UseItem();
 
                 if (data.Buttons.IsSet(PlayerButtons.Attack) && CanSpendStamina(climbDrain * Runner.DeltaTime))
                     WallCheck(data);
@@ -446,7 +455,47 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             default:
                 throw new ArgumentOutOfRangeException();
         }
+
+        bool useItemPressed = data.Buttons.IsSet(PlayerButtons.UseItem);
+        if (Object.HasStateAuthority &&
+            (_gameState == null || !_gameState.IsSeeker) &&
+            useItemPressed && !UseItemWasPressed &&
+            data.SelectedSlot >= 0)
+        {
+            UseItem(data.SelectedSlot);
+        }
+
         JumpWasPressed = data.Buttons.IsSet(PlayerButtons.Jump);
+        UseItemWasPressed = useItemPressed;
+    }
+
+    private void Update()
+    {
+        if (Object == null || !Object.HasInputAuthority || _playerInventory == null)
+            return;
+
+        if (_gameState != null && _gameState.IsSeeker)
+        {
+            if (_playerInventory.SelectedSlot != -1)
+                _playerInventory.SwitchInventory(-1);
+            return;
+        }
+
+        if (Keyboard.current == null)
+            return;
+
+        if (Keyboard.current.digit1Key.wasPressedThisFrame)
+        {
+            _playerInventory.ToggleSlot(0);
+        }
+        else if (Keyboard.current.digit2Key.wasPressedThisFrame)
+        {
+            _playerInventory.ToggleSlot(1);
+        }
+        else if (Keyboard.current.digit3Key.wasPressedThisFrame)
+        {
+            _playerInventory.ToggleSlot(2);
+        }
     }
 
     private bool CanSpendStamina(float amount)
@@ -488,8 +537,12 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _climbTimer = 0f;
         _climbUpGoingDistance = 0f;
         _isRightTurn = true;
+        _playerInventory?.SyncClear();
         if (Object.HasStateAuthority || Object.HasInputAuthority)
+        {
             JumpWasPressed = false;
+            UseItemWasPressed = false;
+        }
     }
 
     /// <summary>
@@ -1857,36 +1910,92 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
 
     public void OnInteract(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
     }
 
     public void OnCrouch(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
     }
 
     public void OnPrevious(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
     }
 
     public void OnNext(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
     }
 
     public void OnSprint(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
     }
 
     public void OnWhistle(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
     }
+
     public void UseItem()
     {
-        Debug.Log("아이템 사용");
-        _playerInventory.UseItem();
+        UseItem(_playerInventory != null ? _playerInventory.SelectedSlot : -1);
+    }
+
+    public void UseItem(int slotIndex)
+    {
+        if (_playerInventory == null || slotIndex < 0)
+            return;
+
+        if (_playerInventory.UseItem(slotIndex))
+        {
+            Debug.Log($"아이템 사용 (슬롯 {slotIndex + 1})");
+        }
+    }
+
+    public void NotifyInventoryAdded(ItemData item)
+    {
+        if (item == null || Object == null || !Object.HasStateAuthority || Object.HasInputAuthority)
+            return;
+
+        RpcSyncInventoryAdd(item.ItemName, item.AmountHeal);
+    }
+
+    public void NotifyInventoryRemoved(int slotIndex)
+    {
+        if (Object == null || !Object.HasStateAuthority || Object.HasInputAuthority)
+            return;
+
+        RpcSyncInventoryRemove(slotIndex);
+    }
+
+    public void NotifyInventoryCleared()
+    {
+        if (Object == null || !Object.HasStateAuthority || Object.HasInputAuthority)
+            return;
+
+        RpcSyncInventoryClear();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    private void RpcSyncInventoryAdd(string itemName, float amountHeal)
+    {
+        if (Object != null && Object.HasStateAuthority)
+            return;
+
+        _playerInventory?.SyncAddItem(new ItemData(itemName, amountHeal));
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    private void RpcSyncInventoryRemove(int slotIndex)
+    {
+        if (Object != null && Object.HasStateAuthority)
+            return;
+
+        _playerInventory?.SyncRemoveAt(slotIndex);
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    private void RpcSyncInventoryClear()
+    {
+        if (Object != null && Object.HasStateAuthority)
+            return;
+
+        _playerInventory?.SyncClear();
     }
 }

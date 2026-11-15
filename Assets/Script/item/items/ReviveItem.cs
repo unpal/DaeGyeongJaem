@@ -6,9 +6,16 @@ namespace Script.item.items
     // 기존 아이템처럼 닿으면 획득. 실제 소모는 10초 소생이 끝났을 때 한다.
     public class ReviveItem : NetworkBehaviour, IItem
     {
+        public Sprite itemSprite;
+
         [Networked] private NetworkBool IsCollected { get; set; }
 
-        public ItemData _itemData => new ItemData("ReviveItem",0);
+        public ItemData _itemData => new ItemData("ReviveItem", 0f, itemSprite, OnUse);
+
+        private void Awake()
+        {
+            ItemData.RegisterSprite("ReviveItem", itemSprite);
+        }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -32,6 +39,10 @@ namespace Script.item.items
             IsCollected = true;
             Runner.Despawn(Object);
             return true;
+        }
+
+        public void OnUse(PlayerCondition condition)
+        {
         }
     }
 }

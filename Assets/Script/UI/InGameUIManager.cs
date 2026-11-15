@@ -1,4 +1,6 @@
 using System.Collections;
+using System.Collections.Generic;
+using Script.item;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,6 +45,23 @@ namespace Script.UI
         [Header("4. Role Visibility")]
         [Tooltip("도망자 전용으로 표시할 추가 UI 오브젝트 목록 (술래일 때 숨김)")]
         [SerializeField] private GameObject[] evaderOnlyObjects;
+
+        [Header("5. Item Slots (Evader Only)")]
+        [Tooltip("좌측 하단 3슬롯 아이템 UI 전체 루트 오브젝트 (도망자 전용)")]
+        [SerializeField] private GameObject itemSlotsRoot;
+
+        [Tooltip("각 아이템 슬롯(0 ~ 2)의 배경/테두리 Image 컴포넌트")]
+        [SerializeField] private Image[] itemSlotBackgrounds;
+
+        [Tooltip("각 아이템 슬롯(0 ~ 2)의 아이템 아이콘 Image 컴포넌트")]
+        [SerializeField] private Image[] itemSlotIcons;
+
+        [Tooltip("각 아이템 슬롯(0 ~ 2) 선택 시 활성화할 별도 강조 오브젝트 (선택 사항)")]
+        [SerializeField] private GameObject[] itemSlotHighlights;
+
+        [SerializeField] private Color normalSlotColor = new Color(1f, 1f, 1f, 0.5f);
+        [SerializeField] private Color selectedSlotColor = new Color(1f, 0.9f, 0.2f, 1f);
+        [SerializeField] private float selectedSlotScale = 1.1f;
 
         private Coroutine cancelFadeCoroutine;
         private bool isSeekerMode;
@@ -95,6 +114,8 @@ namespace Script.UI
                 reviveCanvasGroup.blocksRaycasts = false;
                 reviveCanvasGroup.interactable = false;
             }
+
+            ClearItemSlotsUI();
         }
 
         // ========================================================================
@@ -115,10 +136,16 @@ namespace Script.UI
                 teamStatusRoot.SetActive(isEvader);
             }
 
+            if (itemSlotsRoot != null && itemSlotsRoot.activeSelf != isEvader)
+            {
+                itemSlotsRoot.SetActive(isEvader);
+            }
+
             if (isSeeker)
             {
                 Init(0);
                 HideRevive();
+                ClearItemSlotsUI();
             }
 
             if (reviveCanvasGroup != null && reviveCanvasGroup.gameObject.activeSelf != isEvader)
@@ -317,6 +344,63 @@ namespace Script.UI
             }
 
             cancelFadeCoroutine = null;
+        }
+
+        // ========================================================================
+        // 4. 아이템 슬롯 (Item Slots - Evader Only)
+        // ========================================================================
+
+        /// <summary>
+        /// 도망자 전용 3슬롯 아이템 UI의 아이콘과 선택 강조 상태를 갱신합니다.
+        /// </summary>
+        /// <param name="items">보유 중인 아이템 목록 (최대 3개)</param>
+        /// <param name="selectedSlot">현재 선택된 슬롯 인덱스 (0 ~ 2, 미선택 시 -1)</param>
+        public void UpdateItemSlots(IReadOnlyList<ItemData> items, int selectedSlot)
+        {
+            if (isSeekerMode) return;
+
+            ApplyItemSlotsVisual(items, selectedSlot);
+        }
+
+        private void ClearItemSlotsUI()
+        {
+            ApplyItemSlotsVisual(null, -1);
+        }
+
+        private void ApplyItemSlotsVisual(IReadOnlyList<ItemData> items, int selectedSlot)
+        {
+            int bgCount = itemSlotBackgrounds != null ? itemSlotBackgrounds.Length : 0;
+            int iconCount = itemSlotIcons != null ? itemSlotIcons.Length : 0;
+            int highlightCount = itemSlotHighlights != null ? itemSlotHighlights.Length : 0;
+            int slotCount = Mathf.Max(bgCount, Mathf.Max(iconCount, highlightCount));
+
+            for (int i = 0; i < slotCount; i++)
+            {
+                ItemData item = (items != null && i < items.Count) ? items[i] : null;
+                bool hasItem = item != null;
+
+                if (itemSlotIcons != null && i < itemSlotIcons.Length && itemSlotIcons[i] != null)
+                {
+                    itemSlotIcons[i].sprite = hasItem ? item.ItemSprite : null;
+                    itemSlotIcons[i].enabled = hasItem;
+                }
+
+                bool isSelected = !isSeekerMode && i == selectedSlot;
+
+                if (itemSlotBackgrounds != null && i < itemSlotBackgrounds.Length && itemSlotBackgrounds[i] != null)
+                {
+                    itemSlotBackgrounds[i].color = isSelected ? selectedSlotColor : normalSlotColor;
+                    itemSlotBackgrounds[i].rectTransform.localScale = Vector3.one * (isSelected ? selectedSlotScale : 1f);
+                }
+
+                if (itemSlotHighlights != null && i < itemSlotHighlights.Length && itemSlotHighlights[i] != null)
+                {
+                    if (itemSlotHighlights[i].activeSelf != isSelected)
+                    {
+                        itemSlotHighlights[i].SetActive(isSelected);
+                    }
+                }
+            }
         }
     }
 }

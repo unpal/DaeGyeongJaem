@@ -6,10 +6,16 @@ namespace Script.item.items
     public class JJB : NetworkBehaviour, IItem
     {
         [SerializeField] private float recoverAmount = 10f;
+        public Sprite itemSprite;
 
         [Networked] private NetworkBool IsCollected { get; set; }
 
-        public ItemData _itemData => new ItemData("JJB", 0);
+        public ItemData _itemData => new ItemData("JJB", 0f, itemSprite, OnUse);
+
+        private void Awake()
+        {
+            ItemData.RegisterSprite("JJB", itemSprite);
+        }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -24,24 +30,35 @@ namespace Script.item.items
         private void HandlePickup(GameObject target)
         {
             // 호스트(StateAuthority)에서만 획득 판정 및 Despawn 처리
-            if (!Object.HasStateAuthority || IsCollected)
+            if (Object == null || !Object.HasStateAuthority || IsCollected || target == null)
                 return;
 
-            if (target.TryGetComponent(out PlayerCondition _))
+            if (target.GetComponentInParent<PlayerCondition>() != null && OnPickup(target))
             {
                 IsCollected = true;
-                OnPickup(target);
                 Runner.Despawn(Object);
             }
         }
 
         public bool OnPickup(GameObject player)
         {
-            if (player.TryGetComponent(out global::Un Player))
-            {
-                return Player._playerInventory.AddItem(_itemData);
-            }
-            return false;
+            if (player == null)
+                return false;
+
+            global::Un playerUn = player.GetComponentInParent<global::Un>();
+            if (playerUn == null || playerUn._playerInventory == null)
+                return false;
+
+            return playerUn._playerInventory.AddItem(_itemData);
+        }
+
+        public void OnUse(PlayerCondition condition)
+        {
+            if (condition == null)
+                return;
+
+            condition.CancelRevive();
+            condition.RecoverStamina(recoverAmount);
         }
     }
 }
