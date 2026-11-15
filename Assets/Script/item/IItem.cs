@@ -7,6 +7,8 @@ namespace Script.item
     [Serializable]
     public class ItemData
     {
+        public const string WaterGunItemName = "WaterGun";
+
         private static readonly Dictionary<string, Sprite> RegisteredSprites = new();
 
         public string ItemName;

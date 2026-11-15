@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Script.item;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -63,8 +64,37 @@ namespace Script.UI
         [SerializeField] private Color selectedSlotColor = new Color(1f, 0.9f, 0.2f, 1f);
         [SerializeField] private float selectedSlotScale = 1.1f;
 
+        [Header("6. Mic Status")]
+        [Tooltip("우측 하단 마이크 상태 아이콘 Image (술래·도망자 공용)")]
+        [SerializeField] private Image micIconImage;
+
+        [Tooltip("마이크 켜짐 상태 스프라이트 (선택 사항)")]
+        [SerializeField] private Sprite micOnSprite;
+
+        [Tooltip("마이크 음소거(Mute) 상태 스프라이트 (선택 사항)")]
+        [SerializeField] private Sprite micOffSprite;
+
+        [SerializeField] private Color micOnColor = Color.white;
+        [SerializeField] private Color micOffColor = new Color(1f, 0.3f, 0.3f, 0.8f);
+
+        [Header("7. Item Key Guide (Evader Only)")]
+        [Tooltip("우측 아이템 키 안내 설명창 루트 오브젝트 (도망자 전용)")]
+        [SerializeField] private GameObject itemKeyGuideRoot;
+
+        [Tooltip("발사 / 내려놓기 / 던지기 3줄 안내를 출력할 단일 TMP_Text")]
+        [SerializeField] private TMP_Text itemKeyGuideText;
+
+        [Header("8. Crosshair (Evader Only)")]
+        [Tooltip("화면 중앙 물총 조준선 오브젝트 (도망자 전용)")]
+        [SerializeField] private GameObject crosshairObject;
+
         private Coroutine cancelFadeCoroutine;
         private bool isSeekerMode;
+        private string currentFireKey = "우클릭";
+        private string currentDropKey = "G";
+        private string currentThrowKey = "V";
+
+        public bool IsMicMuted { get; private set; }
 
         private void Awake()
         {
@@ -115,6 +145,8 @@ namespace Script.UI
                 reviveCanvasGroup.interactable = false;
             }
 
+            SetMicMuted(false);
+            SetItemKeyGuideBindings(currentFireKey, currentDropKey, currentThrowKey);
             ClearItemSlotsUI();
         }
 
@@ -400,6 +432,94 @@ namespace Script.UI
                         itemSlotHighlights[i].SetActive(isSelected);
                     }
                 }
+            }
+
+            ItemData selectedItem = (!isSeekerMode && items != null && selectedSlot >= 0 && selectedSlot < items.Count)
+                ? items[selectedSlot]
+                : null;
+
+            SetItemKeyGuideVisible(selectedItem != null);
+            SetCrosshairVisible(
+                selectedItem != null &&
+                string.Equals(selectedItem.ItemName, ItemData.WaterGunItemName, System.StringComparison.Ordinal));
+        }
+
+        // ========================================================================
+        // 5. 마이크 상태 / 아이템 키 안내 / 물총 조준선 (Mic / Key Guide / Crosshair)
+        // ========================================================================
+
+        /// <summary>
+        /// 우측 하단 마이크 아이콘의 켜짐/음소거 상태를 갱신합니다. (술래·도망자 공용)
+        /// </summary>
+        /// <param name="isMuted">음소거 여부 (true: 음소거, false: 마이크 켜짐)</param>
+        public void SetMicMuted(bool isMuted)
+        {
+            IsMicMuted = isMuted;
+
+            if (micIconImage == null)
+                return;
+
+            Sprite targetSprite = isMuted ? micOffSprite : micOnSprite;
+            if (targetSprite != null)
+            {
+                micIconImage.sprite = targetSprite;
+            }
+
+            micIconImage.color = isMuted ? micOffColor : micOnColor;
+        }
+
+        /// <summary>
+        /// 우측 아이템 키 안내 설명창의 키 바인딩 표시 텍스트를 갱신합니다.
+        /// </summary>
+        /// <param name="fireKey">발사 키 표시 문자열</param>
+        /// <param name="dropKey">내려놓기 키 표시 문자열</param>
+        /// <param name="throwKey">던지기 키 표시 문자열</param>
+        public void SetItemKeyGuideBindings(string fireKey, string dropKey, string throwKey)
+        {
+            if (!string.IsNullOrWhiteSpace(fireKey))
+                currentFireKey = fireKey;
+
+            if (!string.IsNullOrWhiteSpace(dropKey))
+                currentDropKey = dropKey;
+
+            if (!string.IsNullOrWhiteSpace(throwKey))
+                currentThrowKey = throwKey;
+
+            if (itemKeyGuideText != null)
+            {
+                itemKeyGuideText.text = $"발사 - {currentFireKey}\n내려놓기 - {currentDropKey}\n던지기 - {currentThrowKey}";
+            }
+        }
+
+        /// <summary>
+        /// 우측 아이템 키 안내 설명창의 표시 여부를 제어합니다. (도망자 전용)
+        /// </summary>
+        /// <param name="visible">표시 여부</param>
+        public void SetItemKeyGuideVisible(bool visible)
+        {
+            if (itemKeyGuideRoot == null)
+                return;
+
+            bool shouldShow = !isSeekerMode && visible;
+            if (itemKeyGuideRoot.activeSelf != shouldShow)
+            {
+                itemKeyGuideRoot.SetActive(shouldShow);
+            }
+        }
+
+        /// <summary>
+        /// 화면 중앙 물총 조준선의 표시 여부를 제어합니다. (도망자 전용)
+        /// </summary>
+        /// <param name="visible">표시 여부</param>
+        public void SetCrosshairVisible(bool visible)
+        {
+            if (crosshairObject == null)
+                return;
+
+            bool shouldShow = !isSeekerMode && visible;
+            if (crosshairObject.activeSelf != shouldShow)
+            {
+                crosshairObject.SetActive(shouldShow);
             }
         }
     }
