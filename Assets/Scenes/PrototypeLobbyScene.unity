@@ -2292,8 +2292,6 @@ GameObject:
   m_Component:
   - component: {fileID: 727811171}
   - component: {fileID: 727811172}
-  - component: {fileID: 727811173}
-  - component: {fileID: 727811174}
   m_Layer: 0
   m_Name: Recorder
   m_TagString: Untagged
@@ -2359,31 +2357,6 @@ MonoBehaviour:
   useOnAudioFilterRead: 0
   useMicrophoneTypeFallback: 1
   recordWhenJoined: 1
---- !u!114 &727811173
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 727811170}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 533876ac9b1a9ca44890e2aeba1035fb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &727811174
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 727811170}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd19266ed05d7f94aabe5d2e03743e56, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  recorder: {fileID: 727811172}
 --- !u!1 &751723239
 GameObject:
   m_ObjectHideFlags: 0
@@ -6668,7 +6641,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!82 &2004373035
 AudioSource:
   m_ObjectHideFlags: 0
@@ -6861,9 +6834,9 @@ MonoBehaviour:
   ApplyDontDestroyOnLoad: 1
   runInBackground: 1
   statsResetInterval: 1000
-  speakerPrefab: {fileID: 80510252676572901, guid: a487810742ab4bf4c9ff225da8a4d16e, type: 3}
+  speakerPrefab: {fileID: 0}
   primaryRecorder: {fileID: 727811172}
-  usePrimaryRecorder: 1
+  usePrimaryRecorder: 0
   cppCompatibilityMode: 0
   Settings:
     AppIdRealtime: 
@@ -6883,7 +6856,7 @@ MonoBehaviour:
     EnableLobbyStatistics: 0
     NetworkLogging: 1
   ShowSettings: 1
-  AutoConnectAndJoin: 1
+  AutoConnectAndJoin: 0
   UseFusionAppSettings: 1
   UseFusionAuthValues: 1
 --- !u!114 &2100000006

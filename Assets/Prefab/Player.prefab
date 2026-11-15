@@ -74,6 +74,7 @@ Transform:
   m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 694857854059878629}
   - {fileID: 6355937184777502658}
   - {fileID: 9090896596399048440}
   - {fileID: 6175063435306810339}
@@ -81,7 +82,6 @@ Transform:
   - {fileID: 6135567398758371061}
   - {fileID: 7871711493636714027}
   - {fileID: 8851511694691749576}
-  - {fileID: 694857854059878629}
   - {fileID: 8045459587687446740}
   - {fileID: 7651410919888036540}
   - {fileID: 7267124361493114611}
@@ -2440,7 +2440,7 @@ AudioSource:
   MinDistance: 1
   MaxDistance: 500
   Pan2D: 0
-  rolloffMode: 0
+  rolloffMode: 1
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
