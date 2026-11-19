@@ -13,6 +13,9 @@ public class MainMenuController : MonoBehaviour
 
     private void Awake()
     {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+
         if (backgroundMusic == null)
             return;
 

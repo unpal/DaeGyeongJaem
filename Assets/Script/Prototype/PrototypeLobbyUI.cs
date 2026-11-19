@@ -26,20 +26,37 @@ public class PrototypeLobbyUI : MonoBehaviour
     [SerializeField] private TMP_Text roomText;
     [SerializeField] private TMP_Text playerCountText;
 
-    [Header("Host ESC Menu")]
+    [Header("Lobby Controls")]
+    [SerializeField] private Button roomCopyButton;
+    [SerializeField] private Button escCopyButton;
+    [SerializeField] private TMP_Text lobbyHintText;
+
+    [Header("ESC Menu")]
     [SerializeField] private GameObject escMenuPanel;
+    [SerializeField] private GameObject escMenuContainer;
     [SerializeField] private GameObject escSettingsPanel;
     [SerializeField] private TMP_Text escRoomCodeText;
     [SerializeField] private TMP_Text escCopyButtonText;
 
+    [Header("Audio Settings")]
+    [SerializeField] private Slider masterVolumeSlider;
+    [SerializeField] private TMP_Text masterVolumeText;
+
+    private const string MasterVolumeKey = "MasterVolume";
     private float copyMessageUntil;
-    private bool clientCursorUnlocked;
+    private bool volumeChanged;
+    private bool cursorUnlocked;
 
     public bool IsEscMenuOpen => escMenuPanel != null && escMenuPanel.activeSelf;
 
     private void Awake()
     {
-        ConfigureRoomHud();
+        if (masterVolumeSlider != null)
+        {
+            masterVolumeSlider.SetValueWithoutNotify(AudioListener.volume);
+            masterVolumeSlider.onValueChanged.AddListener(SetMasterVolume);
+            UpdateVolumeLabel(AudioListener.volume);
+        }
 
         //마지막으로 사용한 이름 불러와서 저장해서 매번 입력 안해도되게.
         nameInput.text = PlayerPrefs.GetString("PlayerName", "");
@@ -47,78 +64,38 @@ public class PrototypeLobbyUI : MonoBehaviour
         ShowRolePanel();
     }
 
-    private void ConfigureRoomHud()
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void RestoreMasterVolume()
     {
-        if (roomPanel == null)
-            return;
-
-        RectTransform panelRect = roomPanel.GetComponent<RectTransform>();
-        SetTopLeftRect(panelRect, new Vector2(20f, -20f), new Vector2(380f, 220f));
-
-        Image background = roomPanel.GetComponent<Image>();
-        if (background == null)
-            background = roomPanel.AddComponent<Image>();
-
-        background.color = new Color(0f, 0f, 0f, 0.62f);
-        background.raycastTarget = false;
-
-        ConfigureHudText(roomText, new Vector2(16f, -14f), new Vector2(348f, 34f), 24f);
-        ConfigureHudText(playerCountText, new Vector2(16f, -50f), new Vector2(348f, 30f), 20f);
-        ConfigureHudText(statusText, new Vector2(16f, -82f), new Vector2(348f, 48f), 16f);
-
-        Button[] buttons = roomPanel.GetComponentsInChildren<Button>(true);
-        for (int i = 0; i < buttons.Length; i++)
-        {
-            RectTransform buttonRect = buttons[i].GetComponent<RectTransform>();
-            SetTopLeftRect(
-                buttonRect,
-                new Vector2(16f + i * 112f, -140f),
-                new Vector2(100f, 36f));
-
-            TMP_Text label = buttons[i].GetComponentInChildren<TMP_Text>(true);
-            if (label != null)
-                label.fontSize = 16f;
-        }
-
-        foreach (TMP_Text text in roomPanel.GetComponentsInChildren<TMP_Text>(true))
-        {
-            if (text == roomText || text == playerCountText || text == statusText ||
-                text.GetComponentInParent<Button>() != null)
-                continue;
-
-            ConfigureHudText(text, new Vector2(16f, -184f), new Vector2(348f, 24f), 14f);
-        }
+        AudioListener.volume = Mathf.Clamp01(PlayerPrefs.GetFloat(MasterVolumeKey, 1f));
     }
 
-    private static void ConfigureHudText(
-        TMP_Text text,
-        Vector2 position,
-        Vector2 size,
-        float fontSize)
+    private void SetMasterVolume(float value)
     {
-        if (text == null)
-            return;
-
-        SetTopLeftRect(text.rectTransform, position, size);
-        text.fontSize = fontSize;
-        text.enableAutoSizing = false;
-        text.alignment = TextAlignmentOptions.MidlineLeft;
-        text.overflowMode = TextOverflowModes.Ellipsis;
+        AudioListener.volume = Mathf.Clamp01(value);
+        PlayerPrefs.SetFloat(MasterVolumeKey, AudioListener.volume);
+        volumeChanged = true;
+        UpdateVolumeLabel(AudioListener.volume);
     }
 
-    private static void SetTopLeftRect(
-        RectTransform rect,
-        Vector2 position,
-        Vector2 size)
+    private void UpdateVolumeLabel(float value)
     {
-        if (rect == null)
-            return;
+        if (masterVolumeText != null)
+            masterVolumeText.text = $"전체 음량  {Mathf.RoundToInt(value * 100f)}%";
+    }
 
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = position;
-        rect.sizeDelta = size;
+    private void SaveVolume()
+    {
+        if (!volumeChanged) return;
+        PlayerPrefs.Save();
+        volumeChanged = false;
+    }
+
+    private void OnDestroy()
+    {
+        if (masterVolumeSlider != null)
+            masterVolumeSlider.onValueChanged.RemoveListener(SetMasterVolume);
+        SaveVolume();
     }
 
     private void Update()
@@ -140,6 +117,13 @@ public class PrototypeLobbyUI : MonoBehaviour
                 : "코드 복사";
         }
         playerCountText.text = $"PLAYERS: {lobby.PlayerCount} / 7";
+        bool canCopy = lobby.IsConnected && !string.IsNullOrEmpty(lobby.RoomCode);
+        if (roomCopyButton != null) roomCopyButton.interactable = canCopy;
+        if (escCopyButton != null) escCopyButton.interactable = canCopy;
+        if (lobbyHintText != null)
+            lobbyHintText.text = "ESC 메뉴 · Tab 커서";
+        if (escRoomCodeText != null && Time.unscaledTime < copyMessageUntil)
+            escRoomCodeText.text = "방 코드 복사 완료!";
         
         //copy 완료 안내
         if (Time.unscaledTime >= copyMessageUntil)
@@ -149,21 +133,18 @@ public class PrototypeLobbyUI : MonoBehaviour
         if (lobby.IsConnected && !roomPanel.activeSelf)
             ShowRoomPanel();
 
-        //로비케릭터 시점 조작, 버튼조작 (호스트는 ESC 메뉴 토글, 클라이언트는 커서 토글)
+        // 호스트와 참가자 모두 같은 메뉴를 사용한다.
         if (lobby.IsConnected && Input.GetKeyDown(KeyCode.Escape))
         {
-            if (lobby.IsHost)
-            {
-                if (escSettingsPanel != null && escSettingsPanel.activeSelf)
-                    escSettingsPanel.SetActive(false);
-                else
-                    SetEscMenuOpen(!IsEscMenuOpen);
-            }
+            if (escSettingsPanel != null && escSettingsPanel.activeSelf)
+                ToggleEscSettings();
             else
-            {
-                clientCursorUnlocked = !clientCursorUnlocked;
-                SetCursorLocked(!clientCursorUnlocked);
-            }
+                SetEscMenuOpen(!IsEscMenuOpen);
+        }
+        if (lobby.IsConnected && !IsEscMenuOpen && Input.GetKeyDown(KeyCode.Tab))
+        {
+            cursorUnlocked = !cursorUnlocked;
+            SetCursorLocked(!cursorUnlocked);
         }
     }
 
@@ -175,8 +156,7 @@ public class PrototypeLobbyUI : MonoBehaviour
         if (Input.GetKey(KeyCode.Escape))
             return;
 
-        bool shouldLockCursor = lobby.IsHost ? !IsEscMenuOpen : !clientCursorUnlocked;
-        SetCursorLocked(shouldLockCursor);
+        SetCursorLocked(!IsEscMenuOpen && !cursorUnlocked);
     }
 
     //bootstrap에 host 생성요청
@@ -191,7 +171,6 @@ public class PrototypeLobbyUI : MonoBehaviour
     {
         if (!string.IsNullOrWhiteSpace(nameInput.text))
         {
-            clientCursorUnlocked = false;
             SetEscMenuOpen(false);
             SetCursorLocked(false);
             ShowOnly(joinPanel);
@@ -214,6 +193,9 @@ public class PrototypeLobbyUI : MonoBehaviour
 
     public void CopyRoomCode()
     {
+        if (lobby == null || !lobby.IsConnected || string.IsNullOrEmpty(lobby.RoomCode))
+            return;
+
         //// 운영체제 클립보드에 현재 Fusion SessionName인 방 코드를 복사 << thx..
         GUIUtility.systemCopyBuffer = lobby.RoomCode;
         statusText.text = "방 코드 복사 완료!";
@@ -227,13 +209,21 @@ public class PrototypeLobbyUI : MonoBehaviour
 
     public void ToggleEscSettings()
     {
-        if (escSettingsPanel != null)
-            escSettingsPanel.SetActive(!escSettingsPanel.activeSelf);
+        if (escSettingsPanel == null)
+            return;
+
+        bool open = !escSettingsPanel.activeSelf;
+        if (open && !IsEscMenuOpen)
+            SetEscMenuOpen(true);
+        escSettingsPanel.SetActive(open);
+        if (escMenuContainer != null)
+            escMenuContainer.SetActive(!open);
+        if (!open)
+            SaveVolume();
     }
 
     public void ShowRolePanel()
     {
-        clientCursorUnlocked = false;
         SetEscMenuOpen(false);
         SetCursorLocked(false);
         ShowOnly(rolePanel);
@@ -241,7 +231,6 @@ public class PrototypeLobbyUI : MonoBehaviour
 
     public void Leave()
     {
-        clientCursorUnlocked = false;
         SetEscMenuOpen(false);
         SetCursorLocked(false);
         lobby.LeaveToMainMenu();
@@ -250,20 +239,24 @@ public class PrototypeLobbyUI : MonoBehaviour
     private void ShowRoomPanel()
     {
         ShowOnly(roomPanel);
-        clientCursorUnlocked = false;
         SetEscMenuOpen(false);
         SetCursorLocked(true);
     }
 
     private void SetEscMenuOpen(bool open)
     {
+        cursorUnlocked = false;
         if (escSettingsPanel != null && !open)
             escSettingsPanel.SetActive(false);
+        if (escMenuContainer != null)
+            escMenuContainer.SetActive(true);
+        if (!open)
+            SaveVolume();
 
         if (escMenuPanel != null)
             escMenuPanel.SetActive(open);
 
-        SetCursorLocked(!open);
+        SetCursorLocked(!open && lobby != null && lobby.IsConnected);
     }
 
     private static void SetCursorLocked(bool locked)
@@ -283,14 +276,6 @@ public class PrototypeLobbyUI : MonoBehaviour
             matchingTitle.gameObject.SetActive(showEntryDecorations);
         if (sideShade != null)
             sideShade.SetActive(showEntryDecorations);
-    }
-
-    //커서 잠겨있으면 ui 조작모드,
-    //풀려있으면 캐릭터 시점 조작
-    private static void ToggleCursor()
-    {
-        bool unlock = Cursor.lockState == CursorLockMode.Locked;
-        SetCursorLocked(!unlock);
     }
 
 }
