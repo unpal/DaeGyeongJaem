@@ -43,14 +43,15 @@ public class PlayerRoundLifecycle : MonoBehaviour
         gameState.ResetRoundResult();
         condition?.ResetForNextRound();
         playerMove?.ResetForNextRound();
-        movement?.ResetForNextRound();
+        if (movement != null)
+            movement.ResetForNextRound(spawnPosition, spawnRotation);
         gameState.RpcResetMovement(spawnPosition, spawnRotation);
         fallDamage?.ResetForNextRound();
         // playerNoise?.RestartPeriodicNoise();
 
         if (controller != null)
             controller.Teleport(spawnPosition, spawnRotation);
-        else
+        else if (movement == null)
             transform.SetPositionAndRotation(spawnPosition, spawnRotation);
     }
 }

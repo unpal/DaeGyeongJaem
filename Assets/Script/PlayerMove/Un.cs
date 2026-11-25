@@ -2,27 +2,68 @@ using Cinemachine;
 using Fusion;
 using Script.item;
 using System;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerCondition))]
 public class Un : NetworkBehaviour, RawInput.IPlayerActions
 {
     public enum StateMachine
     {
-        Floor, // 0~45도: 평지/완만한 경사 (점프/중력 적용)
-        Wall, // 45~180도: 수직벽/오버행/천장/기둥 (등반)
-        ToWall, // 벽으로 붙기위해 이동중인 상태(등반 하기전 잠깐동안)
-        ToFloor
+        Floor,
+        Wall,
+        Ragdoll
     }
 
-    private Rigidbody _rb;
-    private PlayerGameState gameState;
-    public Collider _collider;
+    [Header("Config")]
+    [SerializeField] private ClimbingConfig config;
+
+    [Header("State (Read Only)")]
     [SerializeField] private StateMachine stateMachine = StateMachine.Floor;
-    public StateMachine statemachine => stateMachine;
+
+    [Header("References")]
+    [SerializeField] private Animator animator;
+    [SerializeField] private CinemachineVirtualCamera cam;
+    [SerializeField] private Transform headTransform;
+    [SerializeField] private Transform camPivot;
+    [SerializeField] private Vector3 cameraEyeOffset = new Vector3(0f, 0.1f, 0f);
+    [SerializeField] private float mouseSensitivity = 0.1f;
+    [SerializeField] private float minPitch = -80f;
+    [SerializeField] private float maxPitch = 80f;
+    [SerializeField] private float wallYawLimit = 70f;
+
+    [Header("Scroll / Zoom Settings")]
+    [SerializeField] private float scrollSensitivity = 0.01f;
+    [SerializeField] private float minDistance = -10f;
+    [SerializeField] private float maxDistance = 0f;
+
+    [Header("Items & UI")]
+    public PlayerInventory _playerInventory;
+    [SerializeField] private Canvas ChattingCanvas;
+    [SerializeField] private float WaterGunDistance = 5.0f;
+
+    [Networked] private StateMachine NetState { get; set; }
+    [Networked] private NetworkBool JumpWasPressed { get; set; }
+    [Networked] private NetworkBool UseItemWasPressed { get; set; }
+    [Networked] private int RagdollSequence { get; set; }
+    [Networked] private Vector3 RagdollInitialVelocity { get; set; }
+    [Networked] private Vector3 NetSurfaceNormal { get; set; }
+
+    public StateMachine statemachine => (Object != null && Object.IsValid) ? NetState : stateMachine;
+    public bool OpenEyesHeld => _openEyesAction != null && _openEyesAction.IsPressed();
+    public bool IsGrounded => _cc != null && _cc.enabled && _cc.isGrounded;
+    public bool IsClimbing => statemachine == StateMachine.Wall;
+    public bool IsRagdoll => statemachine == StateMachine.Ragdoll;
+    public bool IsLunging => _lungeRemaining > 0f;
+
+    private CharacterController _cc;
+    private NetworkTransform _networkTransform;
+    private PlayerCondition _condition;
+    private PlayerGameState _gameState;
+    private PlayerRagdoll _ragdoll;
+    private FallDamage _fallDamage;
+    private ClimbingConfig _runtimeFallbackConfig;
 
     private RawInput _rawInput;
     private RawInput.PlayerActions _playerActions;
@@ -30,188 +71,96 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private InputAction _openEyesAction;
     private InputAction _reviveAction;
     private InputAction _useItemAction;
-    public bool OpenEyesHeld => _openEyesAction != null && _openEyesAction.IsPressed();
-    private PlayerCondition _condition;
-    private PlayerGameState _gameState;
-    [Networked] private NetworkBool JumpWasPressed { get; set; }
-    [Networked] private NetworkBool UseItemWasPressed { get; set; }
-
-    [SerializeField] private float moveSpeed = 5f;
-    [SerializeField] private float jumpForce = 5f;
-    [SerializeField] private float rayMaxDistance = 5f;
-    [SerializeField] private float handRayMaxDistance = 1f;
-    [SerializeField] private float gravity = 9.81f;
-    [SerializeField] private LayerMask wallLayerMask = ~0;
-    [SerializeField] private LayerMask groundLayerMask = ~0;
-    [SerializeField] private float groundCheckDistance = 0.2f;
-
-    [Header("Stamina")]
-    [SerializeField, Min(0f)] private float runSpeed = 8f;
-    [SerializeField, Min(0f)] private float sprintDrain = 15f;
-    [SerializeField, Min(0f)] private float jumpCost = 10f;
-    [SerializeField, Min(0f)] private float climbDrain = 20f;
-    [SerializeField, Min(0f)] private float recoverRate = 10f;
-
-    [Header("Climb Shared Settings")]
-    [SerializeField]
-    private Animator animator;
 
     private Vector2 _moveInput;
-    private bool JumpPressed;
-    private bool AttackPressed;
-    private bool ItemUsePressed;
-    Vector2 mouseDelta;
-    [SerializeField]
-    private Vector3 _surfaceNormal = Vector3.up;
-    private bool _isClicking = false;
-    private float _verticalVelocity;
-    private bool _isGrounded;
-    private float _jumpBufferTimer;
-    private Coroutine _wallCheckCoroutine;
-    private Coroutine _wallClimbCoroutine;
+    private Vector2 _mouseDelta;
+    private bool _jumpPressed;
+    private bool _attackPressed;
+    private bool _itemUsePressed;
 
-    [Header("Camera & Head Tracking")]
-    [SerializeField]
-    private CinemachineVirtualCamera cam;
-
-    [SerializeField] private Transform headTransform; // 머리 뼈대 (Bone)
-    [SerializeField] private Transform camPivot; // 카메라 피벗 (비어있으면 자동 생성)
-    [SerializeField] private Vector3 cameraEyeOffset = new Vector3(0f, 0.1f, 0f); // 머리 뼈 기준 눈높이 오프셋
-    [SerializeField] private float mouseSensitivity = 0.1f;
-    [SerializeField] private float minPitch = -80f; // 아래쪽 최대 각도
-    [SerializeField] private float maxPitch = 80f; // 위쪽 최대 각도
-    [SerializeField] private float wallYawLimit = 70f; // 벽 등반 시 좌우 시야각 한계
-
-    [Header("Wall Climbing")]
-    [SerializeField]
-    private Transform leftUpperArm;
-
-    [SerializeField] private Transform rightUpperArm;
-    [SerializeField] private Transform leftCalf;
-    [SerializeField] private Transform rightCalf;
-    [SerializeField] private float wallDistance = 0.5f;
-    [SerializeField] private float armLength = 0.7f;
-    [SerializeField] private float wallClimbDuration = 0.5f;
-    [SerializeField] private float tweenConst = 0.1f;
-    public float tweenconst => tweenConst;
-    [SerializeField] private float wallRotationTweenSpeed = 10f; // 벽 회전 트위닝 속도
-    [SerializeField] private int searchCount = 10;
-    [SerializeField] private float upGoingDistanceDivider = 0.5f;
-
-    [Header("Scroll / Zoom Settings")]
-    [SerializeField]
-    private float scrollSensitivity = 0.01f;
-
-    [SerializeField] private float minDistance = -10f;
-    [SerializeField] private float maxDistance;
+    private float _pitch;
+    private float _yaw;
     private float _currentCamDistance;
 
-    // 통합 각도 상태 (Single Source of Truth)
-    private float _pitch; // 상하 각도 (Pitch)
-    private float _yaw; // 지상: 월드 Yaw, 벽: 벽 기준 상대 Yaw
-    private bool _isRightTurn = true;
-    public Vector3 _rightHandPos;
-    public Vector3 _leftHandPos;
-    public Vector3 _rightFootPos;
-    public Vector3 _leftFootPos;
-    
-    public Vector3 _rightHandNormal;
-    public Vector3 _leftHandNormal;
-    public Vector3 _rightFootNormal;
-    public Vector3 _leftFootNormal;
-    private Quaternion _smoothedWallRot = Quaternion.identity;
+    private Vector3 _surfaceNormal = Vector3.up;
+    private float _verticalVelocity;
+    private float _regrabCooldownTimer;
+    private float _recoverLockTimer;
 
-    public PlayerInventory _playerInventory;
+    private bool _trackingWallReleaseFall;
+    private float _wallReleaseStartY;
 
+    private float _ragdollElapsed;
+    private float _ragdollSettleTimer;
+    private float _lungeRemaining;
+    private float _lungeCooldownTimer;
+    private bool _ragdollImpactReported;
+    private Vector3 _fallbackRagdollVelocity;
+    private Vector3 _latestAimDirection = Vector3.forward;
 
-    [Header("IK Settings")]
-    [Range(0f, 1f)]
-    [SerializeField]
-    private float handIKWeight = 1f;
-    public float handikweight => handIKWeight;
+    private bool _localRagdollApplied;
+    private int _appliedRagdollSequence;
 
-    [Range(0f, 1f)][SerializeField] private float footIKWeight = 1f;
-    public float footikweight => footIKWeight;
+    private readonly RaycastHit[] _raycastScratch = new RaycastHit[16];
+    private readonly Collider[] _overlapScratch = new Collider[16];
 
+    private FallDamage ResolveFallDamage()
+    {
+        if (_fallDamage == null)
+            _fallDamage = GetComponent<FallDamage>();
+        return _fallDamage;
+    }
 
-    private bool _climbStepActive = false;
-    private bool _climbInitialized = false;
-    private float _climbTimer = 0f;
-    private float _climbUpGoingDistance = 0f;
+    private ClimbingConfig GetConfig()
+    {
+        if (config != null)
+            return config;
 
-    [SerializeField]
-    private float _transTimeCheck = 0;
-    [SerializeField]
-    private float _transTime = 0.1f;
+        config = Resources.Load<ClimbingConfig>("ClimbingConfig");
+        if (config != null)
+            return config;
 
-    private Vector3 _hitPoint = Vector3.zero;
-    private Vector3 _hitNormal = Vector3.zero;
-    [SerializeField]
-    private float _forceTime = 0.1f;
-    [SerializeField]
-    private float _forceTimeCheck = 0;
+        if (_runtimeFallbackConfig == null)
+            _runtimeFallbackConfig = ScriptableObject.CreateInstance<ClimbingConfig>();
 
-    [Header("Wall Edge / Mantle")]
-    [SerializeField] private float mantleDuration = 0.55f;
-    [SerializeField] private float mantleForwardOffset = 0.35f;
-    [SerializeField] private float mantleRayUp = 1.5f;
-    [SerializeField] private float mantleRayDistance = 4f;
-    [SerializeField] private float mantleHeightTolerance = 0.1f;
-
-    private float _mantleElapsed;
-    private Vector3 _mantleStartPosition;
-    private Vector3 _mantleTargetPosition;
-    private Quaternion _mantleStartBodyRotation;
-    private Quaternion _mantleTargetBodyRotation;
-    private Quaternion _mantleStartCameraRotation;
-    private Quaternion _mantleTargetCameraRotation;
-    private float _mantleTargetYaw;
-
-    private Vector3 _HitPo;
-    private Vector3 _HitNo;
-
-    private Vector3 _TransHitPo;
-    private Vector3 _TransHitNo;
-
-    [SerializeField]
-    private GameObject RayCastObj;
-
-    private Vector3 _toWallStartPosition;
-    private Vector3 _toWallTargetPosition;
-    private float _toWallElapsed;
-
-    [SerializeField] private Canvas ChattingCanvas;
-
-    [SerializeField] private float WaterGunDistance = 5.0f;
-
+        return _runtimeFallbackConfig;
+    }
 
     public override void Spawned()
     {
+        _cc = GetComponent<CharacterController>();
+        _networkTransform = GetComponent<NetworkTransform>();
         _condition = GetComponent<PlayerCondition>();
         _gameState = GetComponent<PlayerGameState>();
+        _ragdoll = GetComponent<PlayerRagdoll>();
+        _fallDamage = GetComponent<FallDamage>();
+
         if (_playerInventory == null)
             _playerInventory = GetComponent<PlayerInventory>();
-        if(Object.HasInputAuthority)
+
+        ResolveAnimatorAndHead();
+
+        if (Object.HasInputAuthority)
         {
             _rawInput = new RawInput();
             _playerActions = _rawInput.Player;
             _playerActions.Enable();
             _playerActions.AddCallbacks(this);
+
             _sprintAction = new InputAction("Sprint", InputActionType.Button, "<Keyboard>/leftShift");
             _sprintAction.AddBinding("<Gamepad>/leftStickPress");
             _sprintAction.Enable();
+
             _openEyesAction = new InputAction("OpenEyes", InputActionType.Button, "<Keyboard>/q");
             _reviveAction = new InputAction("Revive", InputActionType.Button, "<Keyboard>/e");
             _useItemAction = new InputAction("UseItem", InputActionType.Button, "<Keyboard>/f");
             _openEyesAction.Enable();
             _reviveAction.Enable();
             _useItemAction.Enable();
+
             if (GetComponent<SeekerVisionMask>() == null)
                 gameObject.AddComponent<SeekerVisionMask>();
-            //Cursor.lockState = CursorLockMode.Locked;
-            //Cursor.visible = false;
 
-            // 카메라 설정
             if (cam == null)
             {
                 cam = GetComponentInChildren<CinemachineVirtualCamera>();
@@ -219,69 +168,74 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
                     Debug.LogError("카메라 설정 오류 발생 바로 확인 바람");
             }
 
-            // 머리 뼈 Transform 자동 탐색 (Humanoid Avatar 기준)
-            if (headTransform == null && animator != null && animator.isHuman)
-            {
-                headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
-            }
-
-            // 독립 카메라 피벗 생성 (뼈대의 회전 왜곡 영향 차단)
-            if (camPivot == null)
+            if (camPivot == null || (cam != null && camPivot == cam.transform))
             {
                 GameObject pivotGo = new GameObject("CameraPivot");
                 camPivot = pivotGo.transform;
-                camPivot.position = GetCameraPivotPosition();
-                camPivot.rotation = transform.rotation;
             }
+
+            _yaw = transform.eulerAngles.y;
+            camPivot.position = GetCameraPivotPosition();
+            camPivot.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
 
             if (cam != null)
             {
-                // 카메라는 피벗의 자식으로 배치
+                cam.Follow = null;
+                cam.LookAt = null;
                 cam.transform.SetParent(camPivot, false);
+                cam.transform.localScale = Vector3.one;
                 _currentCamDistance = Mathf.Clamp(cam.transform.localPosition.z, minDistance, maxDistance);
                 cam.transform.localPosition = new Vector3(0f, 0f, _currentCamDistance);
                 cam.transform.localRotation = Quaternion.identity;
             }
         }
-        else
+        else if (cam != null)
         {
-            if (cam != null)
-            {
-                cam.gameObject.SetActive(false);
-            }
+            cam.gameObject.SetActive(false);
         }
 
-
-        TryGetComponent(out _rb);
-        if (!_rb)
-        {
-            _rb = gameObject.AddComponent<Rigidbody>();
-        }
-
-        if (!_collider)
-            TryGetComponent(out _collider);
-
-        if (animator == null)
-        {
-            animator = GetComponentInChildren<Animator>();
-        }
-
-        _rb.useGravity = false;
-        _rb.freezeRotation = true;
-        _rb.interpolation = RigidbodyInterpolation.Interpolate;
-
-        // 초기 수평 각도 및 회전 상태 설정
         _yaw = transform.eulerAngles.y;
-        _smoothedWallRot = transform.rotation;
+        _surfaceNormal = Vector3.up;
+        stateMachine = StateMachine.Floor;
 
+        if (Object.HasStateAuthority)
+        {
+            NetState = StateMachine.Floor;
+            NetSurfaceNormal = Vector3.up;
+        }
 
+        _ragdoll?.SetRagdollEnabled(false);
+        _localRagdollApplied = false;
+        _appliedRagdollSequence = RagdollSequence;
+        if (_cc != null)
+            _cc.enabled = _gameState == null || _gameState.IsInPlayground;
     }
 
-    //private void Start()
-    //{
-    //    Cursor.lockState = CursorLockMode.Locked;
-    //    Cursor.visible = false;
-    //}
+    private void ResolveAnimatorAndHead()
+    {
+        if (animator == null || !animator.gameObject.activeSelf)
+        {
+            Animator[] animators = GetComponentsInChildren<Animator>(true);
+            foreach (Animator candidate in animators)
+            {
+                if (candidate == null) continue;
+                if (candidate.gameObject.activeSelf)
+                {
+                    animator = candidate;
+                    break;
+                }
+            }
+
+            if (animator == null && animators.Length > 0)
+                animator = animators[0];
+        }
+
+        if (headTransform == null && _ragdoll != null && _ragdoll.HeadBone != null)
+            headTransform = _ragdoll.HeadBone;
+
+        if (headTransform == null && animator != null && animator.isHuman)
+            headTransform = animator.GetBoneTransform(HumanBodyBones.Head);
+    }
 
     private void OnDestroy()
     {
@@ -290,11 +244,15 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _openEyesAction?.Dispose();
         _reviveAction?.Dispose();
         _useItemAction?.Dispose();
-        if (camPivot != null && Object != null && Object.HasInputAuthority)
+
+        if (camPivot != null && camPivot != transform && Object != null && Object.HasInputAuthority)
             Destroy(camPivot.gameObject);
+
+        if (_runtimeFallbackConfig != null)
+            Destroy(_runtimeFallbackConfig);
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         if (_rawInput != null)
             _playerActions.Enable();
@@ -303,6 +261,22 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _reviveAction?.Enable();
         _useItemAction?.Enable();
     }
+
+    private void OnDisable()
+    {
+        if (_rawInput != null)
+            _playerActions.Disable();
+        _sprintAction?.Disable();
+        _openEyesAction?.Disable();
+        _reviveAction?.Disable();
+        _useItemAction?.Disable();
+
+        _moveInput = Vector2.zero;
+        _jumpPressed = false;
+        _attackPressed = false;
+        _itemUsePressed = false;
+    }
+
     public NetworkInputData GetNetworkInput()
     {
         NetworkInputData data = new NetworkInputData();
@@ -311,157 +285,196 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         int selectedSlot = (_playerInventory != null && !isSeeker)
             ? _playerInventory.SelectedSlot
             : -1;
-        bool rightClickHeld = (Mouse.current != null && Mouse.current.rightButton.isPressed) || ItemUsePressed;
+        bool rightClickHeld = (Mouse.current != null && Mouse.current.rightButton.isPressed) || _itemUsePressed;
 
         data.Move = _moveInput;
-        data.Look = mouseDelta;
+        data.Look = _mouseDelta;
         data.BodyYaw = _yaw;
         data.AimDirection = camPivot != null ? camPivot.forward : transform.forward;
         data.SelectedSlot = selectedSlot;
+
         data.Buttons.Set((int)PlayerButtons.OpenEyes, OpenEyesHeld);
         data.Buttons.Set((int)PlayerButtons.Revive, _reviveAction != null && _reviveAction.IsPressed());
         data.Buttons.Set((int)PlayerButtons.Catch, isSeeker && rightClickHeld);
-
-        data.Buttons.Set(
-            (int)PlayerButtons.Jump,
-            JumpPressed);
-
-        data.Buttons.Set(
-            (int)PlayerButtons.Attack,
-            AttackPressed);
-
-        data.Buttons.Set(
-            (int)PlayerButtons.UseItem,
-            !isSeeker && selectedSlot >= 0 && rightClickHeld);
-
-        data.Buttons.Set(
-            (int)PlayerButtons.Sprint,
-            _sprintAction != null && _sprintAction.IsPressed());
+        data.Buttons.Set((int)PlayerButtons.Jump, _jumpPressed);
+        data.Buttons.Set((int)PlayerButtons.Attack, _attackPressed);
+        data.Buttons.Set((int)PlayerButtons.UseItem, !isSeeker && selectedSlot >= 0 && rightClickHeld);
+        data.Buttons.Set((int)PlayerButtons.Sprint, _sprintAction != null && _sprintAction.IsPressed());
 
         return data;
     }
 
+    public void TeleportCharacter(Vector3 position, Quaternion rotation)
+    {
+        bool shouldEnableCc = _cc != null && !IsRagdoll && (_gameState == null || _gameState.IsInPlayground);
+        if (_cc != null)
+            _cc.enabled = false;
+
+        transform.SetPositionAndRotation(position, rotation);
+
+        if (_networkTransform != null && Object != null && Object.HasStateAuthority)
+            _networkTransform.Teleport(position, rotation);
+
+        Physics.SyncTransforms();
+
+        if (_cc != null)
+            _cc.enabled = shouldEnableCc;
+    }
+
     public void ResetForNextRound(Vector3 position, Quaternion rotation)
+    {
+        ResetLocalMovementFields(rotation.eulerAngles.y);
+        _playerInventory?.SyncClear();
+
+        if (Object != null && Object.HasStateAuthority)
+        {
+            NetState = StateMachine.Floor;
+            NetSurfaceNormal = Vector3.up;
+            JumpWasPressed = false;
+            UseItemWasPressed = false;
+            RagdollInitialVelocity = Vector3.zero;
+        }
+
+        _ragdoll?.SetRagdollEnabled(false);
+        _localRagdollApplied = false;
+        _appliedRagdollSequence = Object != null && Object.IsValid ? RagdollSequence : 0;
+
+        TeleportCharacter(position, rotation);
+        ResetAnimatorBools();
+    }
+
+    public void ResetForNextRound()
+    {
+        if (Object != null && Object.HasStateAuthority)
+            RpcResetMovement();
+    }
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RpcResetMovement()
+    {
+        ResetLocalMovementFields(transform.eulerAngles.y);
+        _playerInventory?.SyncClear();
+
+        if (Object != null && Object.HasStateAuthority)
+        {
+            NetState = StateMachine.Floor;
+            NetSurfaceNormal = Vector3.up;
+            JumpWasPressed = false;
+            UseItemWasPressed = false;
+            RagdollInitialVelocity = Vector3.zero;
+        }
+
+        _ragdoll?.SetRagdollEnabled(false);
+        _localRagdollApplied = false;
+        _appliedRagdollSequence = Object != null && Object.IsValid ? RagdollSequence : 0;
+
+        if (_cc != null)
+            _cc.enabled = _gameState == null || _gameState.IsInPlayground;
+
+        ResetAnimatorBools();
+    }
+
+    private void ResetLocalMovementFields(float yawDegrees)
     {
         stateMachine = StateMachine.Floor;
         _verticalVelocity = 0f;
-        _jumpBufferTimer = 0f;
-        _climbInitialized = false;
-        _climbStepActive = false;
-        _climbTimer = 0f;
-        _transTimeCheck = 0f;
-        _forceTimeCheck = 0f;
+        _regrabCooldownTimer = 0f;
+        _recoverLockTimer = 0f;
+        _trackingWallReleaseFall = false;
+        _ragdollElapsed = 0f;
+        _ragdollSettleTimer = 0f;
+        _lungeRemaining = 0f;
+        _lungeCooldownTimer = 0f;
+        _ragdollImpactReported = false;
+        _fallbackRagdollVelocity = Vector3.zero;
         _surfaceNormal = Vector3.up;
-        _yaw = rotation.eulerAngles.y;
+        _yaw = yawDegrees;
         _pitch = 0f;
-        _playerInventory?.SyncClear();
-        if (Object != null && (Object.HasStateAuthority || Object.HasInputAuthority))
-            UseItemWasPressed = false;
-        transform.SetPositionAndRotation(position, rotation);
-        if (_rb != null)
-        {
-            _rb.isKinematic = false;
-            _rb.velocity = Vector3.zero;
-            _rb.angularVelocity = Vector3.zero;
-            _rb.position = position;
-            _rb.rotation = rotation;
-        }
-    }
-    void OnDisable()
-    {
-        if (_rawInput != null)
-            _playerActions.Disable();
-        _sprintAction?.Disable();
-        _openEyesAction?.Disable();
-        _reviveAction?.Disable();
-        _useItemAction?.Disable();
-        _moveInput = Vector2.zero;
-        JumpPressed = false;
-        AttackPressed = false;
-        if (_wallCheckCoroutine != null)
-        {
-            StopCoroutine(_wallCheckCoroutine);
-            _wallCheckCoroutine = null;
-        }
-
-        if (_wallClimbCoroutine != null)
-        {
-            StopCoroutine(_wallClimbCoroutine);
-            _wallClimbCoroutine = null;
-        }
     }
 
     public override void FixedUpdateNetwork()
     {
+        if (Object == null || !Object.IsValid)
+            return;
+
+        if (!Object.HasStateAuthority)
+            return;
+
+        float dt = Runner.DeltaTime;
+        _regrabCooldownTimer = Mathf.Max(0f, _regrabCooldownTimer - dt);
+        _recoverLockTimer = Mathf.Max(0f, _recoverLockTimer - dt);
+        _lungeCooldownTimer = Mathf.Max(0f, _lungeCooldownTimer - dt);
+
         if (_gameState == null || !_gameState.CanMove)
         {
-            if (stateMachine == StateMachine.Wall)
+            if (NetState == StateMachine.Wall)
             {
-                Debug.Log("315줄");
-                TransitionToFloor();
+                ExitWallToFloor(trackFallForRagdoll: false);
             }
-            _rb.velocity = Vector3.zero;
+            else if (NetState == StateMachine.Ragdoll && (_gameState == null || _gameState.IsDowned || !_gameState.IsInPlayground))
+            {
+                ForceExitRagdollAtCurrentPosition();
+            }
+
+            if (_cc != null && _cc.enabled && NetState == StateMachine.Floor)
+                _cc.Move(Vector3.zero);
+
+            ResetAnimatorBools();
             return;
         }
 
         if (!GetInput(out NetworkInputData data))
             return;
 
-        // The host must use the remote player's facing, not its own local camera yaw.
         if (!Object.HasInputAuthority && !float.IsNaN(data.BodyYaw) && !float.IsInfinity(data.BodyYaw))
             _yaw = data.BodyYaw;
 
-        switch (stateMachine)
+        if (data.AimDirection.sqrMagnitude > 0.001f &&
+            !float.IsNaN(data.AimDirection.x) &&
+            !float.IsInfinity(data.AimDirection.x))
+        {
+            _latestAimDirection = data.AimDirection.normalized;
+        }
+        else
+        {
+            _latestAimDirection = Quaternion.Euler(0f, _yaw, 0f) * Vector3.forward;
+        }
+
+        if (NetState != StateMachine.Ragdoll && _cc != null && _cc.enabled)
+            Physics.SyncTransforms();
+
+        switch (NetState)
         {
             case StateMachine.Floor:
-            {
-                if (!Object.HasInputAuthority)
-                    transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
-                FloorMove(data);
+                transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
 
-                if (data.Buttons.IsSet(PlayerButtons.Attack) && CanSpendStamina(climbDrain * Runner.DeltaTime))
-                    WallCheck(data);
+                FloorMove(data, dt);
 
+                if (NetState == StateMachine.Floor &&
+                    _recoverLockTimer <= 0f &&
+                    _regrabCooldownTimer <= 0f &&
+                    data.Buttons.IsSet(PlayerButtons.Attack) &&
+                    _condition.CurrentStamina > 0f)
+                {
+                    TryGrabWall(data);
+                }
                 break;
-            }
 
             case StateMachine.Wall:
-            {
-
-                // WallClimb 안에서 ToFloor로 전환했다면 이 틱에
-                // 일반 벽타기 해제 로직이 상태를 덮어쓰지 않게 한다.
-                if (stateMachine == StateMachine.Wall &&
-                    !data.Buttons.IsSet(PlayerButtons.Attack) ||
-                    !SpendStamina(climbDrain * Runner.DeltaTime))
-                {
-                        TransitionToFloor();
-                }
-                    else
-                    {
-                        WallClimb(data);
-                        if (climbDrain > 0f && _condition.CurrentStamina <= 0f && stateMachine == StateMachine.Wall)
-                        {
-                            TransitionToFloor();
-                        }
-                    }
-                    break;
-            }
-
-            case StateMachine.ToWall:
-                TransitionToWall(_hitPoint, _hitNormal);
+                WallClimb(data, dt);
                 break;
 
-            case StateMachine.ToFloor:
-                UpdateMantleToFloor();
+            case StateMachine.Ragdoll:
+                UpdateRagdoll(dt);
                 break;
 
             default:
-                throw new ArgumentOutOfRangeException();
+                NetState = StateMachine.Floor;
+                break;
         }
 
         bool useItemPressed = data.Buttons.IsSet(PlayerButtons.UseItem);
-        if (Object.HasStateAuthority &&
-            (_gameState == null || !_gameState.IsSeeker) &&
+        if ((_gameState == null || !_gameState.IsSeeker) &&
             useItemPressed && !UseItemWasPressed &&
             data.SelectedSlot >= 0)
         {
@@ -470,6 +483,19 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
         JumpWasPressed = data.Buttons.IsSet(PlayerButtons.Jump);
         UseItemWasPressed = useItemPressed;
+        stateMachine = NetState;
+    }
+
+    public override void Render()
+    {
+        if (Object == null || !Object.IsValid)
+            return;
+
+        stateMachine = NetState;
+        if (!Object.HasStateAuthority && NetSurfaceNormal.sqrMagnitude > 0.0001f)
+            _surfaceNormal = NetSurfaceNormal.normalized;
+
+        SyncLocalRagdollPresentation();
     }
 
     private void Update()
@@ -488,125 +514,730 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             return;
 
         if (Keyboard.current.digit1Key.wasPressedThisFrame)
-        {
             _playerInventory.ToggleSlot(0);
-        }
         else if (Keyboard.current.digit2Key.wasPressedThisFrame)
-        {
             _playerInventory.ToggleSlot(1);
-        }
         else if (Keyboard.current.digit3Key.wasPressedThisFrame)
-        {
             _playerInventory.ToggleSlot(2);
-        }
     }
 
-    private bool CanSpendStamina(float amount)
-    {
-        return amount == 0f || _condition.CanUseStamina(amount);
-    }
-
-    private bool SpendStamina(float amount)
-    {
-        if (!CanSpendStamina(amount))
-            return false;
-
-        if (amount == 0f)
-            return true;
-
-        return Object.HasStateAuthority
-            ? _condition.TryUseStamina(amount)
-            : true;
-    }
-
-    public void ResetForNextRound()
-    {
-        if (Object != null && Object.HasStateAuthority)
-            RpcResetMovement();
-    }
-
-    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
-    private void RpcResetMovement()
-    {
-        if (_rb == null)
-            return;
-        TransitionToFloor();
-        _rb.velocity = Vector3.zero;
-        _rb.angularVelocity = Vector3.zero;
-        _verticalVelocity = 0f;
-        _isGrounded = false;
-        _climbInitialized = false;
-        _climbStepActive = false;
-        _climbTimer = 0f;
-        _climbUpGoingDistance = 0f;
-        _isRightTurn = true;
-        _playerInventory?.SyncClear();
-        if (Object.HasStateAuthority || Object.HasInputAuthority)
-        {
-            JumpWasPressed = false;
-            UseItemWasPressed = false;
-        }
-    }
-
-    /// <summary>
-    /// 단일 Pitch/Yaw 각도를 기준으로 몸체(Body)와 카메라 피벗(CameraPivot)의 위치/회전을 동기화합니다.
-    /// </summary>
     private void LateUpdate()
     {
-        if (Object == null || !Object.HasInputAuthority)
+        if (Object == null || !Object.HasInputAuthority || camPivot == null)
             return;
 
-        if (camPivot == null)
-            return;
+        if (statemachine == StateMachine.Wall)
+        {
+            float wallYaw = GetWallFacingYaw(_surfaceNormal);
+            float rel = Mathf.Clamp(Mathf.DeltaAngle(wallYaw, _yaw), -wallYawLimit, wallYawLimit);
+            _yaw = wallYaw + rel;
+        }
 
         camPivot.position = GetCameraPivotPosition();
-
-        // 모서리 전환 중에는 _surfaceNormal을 이용해 벽 회전을 다시 계산하지 않는다.
-        // 전환 시작 시 저장한 회전값을 기준으로 몸체와 카메라를 함께 보간한다.
-        if (stateMachine == StateMachine.ToFloor)
-        {
-            float duration = Mathf.Max(mantleDuration, 0.01f);
-            float t = Mathf.Clamp01(_mantleElapsed / duration);
-            float smoothT = t * t * (3f - 2f * t);
-
-            transform.rotation = Quaternion.Slerp(
-                _mantleStartBodyRotation,
-                _mantleTargetBodyRotation,
-                smoothT);
-
-            camPivot.rotation = Quaternion.Slerp(
-                _mantleStartCameraRotation,
-                _mantleTargetCameraRotation,
-                smoothT);
-
-            return;
-        }
-
-        if (stateMachine == StateMachine.Floor)
-        {
-            transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
-            camPivot.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
-            return;
-        }
-
-        //// Wall / ToWall: 벽의 Up 방향을 기준으로 회전한다.
-        //Vector3 wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
-        //if (wallUp.sqrMagnitude < 0.001f)
-        //    wallUp = transform.up;
-
-        //Quaternion targetWallBaseRot = Quaternion.LookRotation(-_surfaceNormal, wallUp);
-        //float blend = 1f - Mathf.Exp(-wallRotationTweenSpeed * Time.deltaTime);
-        //_smoothedWallRot = Quaternion.Slerp(_smoothedWallRot, targetWallBaseRot, blend);
-
-        //transform.rotation = _smoothedWallRot;
-        //camPivot.rotation = _smoothedWallRot * Quaternion.Euler(_pitch, _yaw, 0f);
+        camPivot.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
     }
 
     public Vector3 GetCameraPivotPosition()
     {
-        return headTransform != null
-            ? headTransform.position + transform.TransformDirection(cameraEyeOffset)
-            : transform.position + Vector3.up * 1.5f;
+        if (IsRagdoll && _ragdoll != null && _ragdoll.HeadBone != null)
+            return _ragdoll.HeadBone.position + Vector3.up * cameraEyeOffset.y;
+
+        if (headTransform != null)
+            return headTransform.position + transform.TransformDirection(cameraEyeOffset);
+
+        return transform.position + Vector3.up * 1.5f;
+    }
+
+    private void FloorMove(NetworkInputData data, float dt)
+    {
+        ClimbingConfig cfg = GetConfig();
+
+        if (_cc != null && !_cc.enabled && (_gameState == null || _gameState.IsInPlayground))
+            _cc.enabled = true;
+
+        bool wasGrounded = _cc != null && _cc.isGrounded;
+        bool jumped = false;
+
+        if (wasGrounded)
+        {
+            _trackingWallReleaseFall = false;
+
+            if (_recoverLockTimer <= 0f &&
+                data.Buttons.IsSet(PlayerButtons.Jump) &&
+                !JumpWasPressed &&
+                SpendStamina(cfg.jumpStaminaCost))
+            {
+                _verticalVelocity = cfg.jumpSpeed;
+                jumped = true;
+                SetAnimBool("Jump", true);
+            }
+            else if (_verticalVelocity < 0f)
+            {
+                _verticalVelocity = cfg.groundedStickVelocity;
+                SetAnimBool("Jump", false);
+            }
+        }
+        else
+        {
+            _verticalVelocity -= cfg.gravity * dt;
+            SetAnimBool("Jump", true);
+        }
+
+        Quaternion yawRotation = Quaternion.Euler(0f, _yaw, 0f);
+        Vector3 forward = yawRotation * Vector3.forward;
+        Vector3 right = yawRotation * Vector3.right;
+
+        Vector2 rawMove = _recoverLockTimer > 0f ? Vector2.zero : data.Move;
+        Vector3 moveDirection = right * rawMove.x + forward * rawMove.y;
+        if (moveDirection.sqrMagnitude > 1f)
+            moveDirection.Normalize();
+
+        bool tryingToSprint = _recoverLockTimer <= 0f &&
+            data.Buttons.IsSet(PlayerButtons.Sprint) &&
+            rawMove.sqrMagnitude > 0.01f;
+
+        bool sprinting = tryingToSprint &&
+            _condition.CanSprint &&
+            SpendStamina(cfg.sprintStaminaDrain * dt);
+
+        Vector3 horizontalMove = moveDirection * (sprinting ? cfg.runSpeed : cfg.walkSpeed);
+
+        if (wasGrounded &&
+            !jumped &&
+            !tryingToSprint &&
+            !data.Buttons.IsSet(PlayerButtons.Attack) &&
+            !(_gameState != null && _gameState.IsSeeker && data.Buttons.IsSet(PlayerButtons.OpenEyes)))
+        {
+            _condition.RecoverStamina(cfg.groundStaminaRecoverRate * dt);
+        }
+
+        SetAnimBool("Climbing", false);
+        if (horizontalMove.sqrMagnitude > 0.001f)
+        {
+            SetAnimBool("Walking", true);
+            SetAnimBool("Running", sprinting);
+        }
+        else
+        {
+            SetAnimBool("Walking", false);
+            SetAnimBool("Running", false);
+        }
+
+        Vector3 velocity = horizontalMove;
+        velocity.y = _verticalVelocity;
+
+        if (_cc != null && _cc.enabled)
+            _cc.Move(velocity * dt);
+
+        bool groundedNow = _cc != null && _cc.isGrounded;
+        if (groundedNow)
+        {
+            _trackingWallReleaseFall = false;
+        }
+        else if (_trackingWallReleaseFall &&
+            (_wallReleaseStartY - transform.position.y) >= cfg.manualReleaseRagdollFallDistance)
+        {
+            // 방안 B: 직접 손을 놓은 뒤 착지 전 일정 높이 이상 낙하하면 공중에서 래그돌 전환
+            Vector3 fallVelocity = horizontalMove;
+            fallVelocity.y = _verticalVelocity;
+            EnterRagdoll(fallVelocity);
+        }
+    }
+
+    private void TryGrabWall(NetworkInputData data)
+    {
+        ClimbingConfig cfg = GetConfig();
+        Vector3 aimDir = data.AimDirection.sqrMagnitude > 0.01f
+            ? data.AimDirection.normalized
+            : (Quaternion.Euler(0f, _yaw, 0f) * Vector3.forward);
+        Vector3 bodyForward = Quaternion.Euler(0f, _yaw, 0f) * Vector3.forward;
+
+        Vector3 chestOrigin = transform.position + Vector3.up * cfg.grabRayOriginHeight;
+        Vector3 waistOrigin = transform.position + Vector3.up * cfg.wallProbeHeight;
+
+        RaycastHit hit;
+        bool found = TryCastClimbRaycast(chestOrigin, aimDir, cfg.grabRayDistance, cfg.climbableLayers, out hit) &&
+            cfg.IsClimbableSlope(hit.normal);
+
+        if (!found)
+        {
+            found = TryCastClimbRaycast(chestOrigin, bodyForward, cfg.grabRayDistance, cfg.climbableLayers, out hit) &&
+                cfg.IsClimbableSlope(hit.normal);
+        }
+
+        if (!found)
+        {
+            found = TryCastClimbRaycast(waistOrigin, bodyForward, cfg.grabRayDistance, cfg.climbableLayers, out hit) &&
+                cfg.IsClimbableSlope(hit.normal);
+        }
+
+        if (!found)
+        {
+            found = TryCastClimbSphere(chestOrigin, aimDir, cfg.grabSphereRadius, cfg.grabRayDistance, cfg.climbableLayers, out hit) &&
+                cfg.IsClimbableSlope(hit.normal);
+        }
+
+        if (!found)
+            return;
+
+        EnterWall(hit, cfg);
+    }
+
+    private void EnterWall(RaycastHit hit, ClimbingConfig cfg)
+    {
+        _surfaceNormal = hit.normal.normalized;
+        NetSurfaceNormal = _surfaceNormal;
+        NetState = StateMachine.Wall;
+        stateMachine = StateMachine.Wall;
+
+        _verticalVelocity = 0f;
+        _lungeRemaining = 0f;
+        _trackingWallReleaseFall = false;
+        ResolveFallDamage()?.ResetFallTrackingFromCurrentHeight();
+
+        if (_cc != null && _cc.enabled)
+        {
+            Vector3 currentProbePos = transform.position + Vector3.up * cfg.wallProbeHeight;
+            float distFromPlane = Vector3.Dot(currentProbePos - hit.point, _surfaceNormal);
+            Vector3 snapDelta = _surfaceNormal * (cfg.wallStandOffDistance - distFromPlane);
+            _cc.Move(snapDelta);
+        }
+
+        Vector3 flatIntoWall = Vector3.ProjectOnPlane(-_surfaceNormal, Vector3.up);
+        if (flatIntoWall.sqrMagnitude > 0.001f)
+            transform.rotation = Quaternion.LookRotation(flatIntoWall.normalized, Vector3.up);
+
+        SetAnimBool("Climbing", true);
+        SetAnimBool("Walking", false);
+        SetAnimBool("Running", false);
+        SetAnimBool("Jump", false);
+    }
+
+    private void WallClimb(NetworkInputData data, float dt)
+    {
+        ClimbingConfig cfg = GetConfig();
+
+        // 1. 좌클릭 해제 시 손 놓기 (방안 B 낙하 추적 시작)
+        if (!data.Buttons.IsSet(PlayerButtons.Attack))
+        {
+            _lungeRemaining = 0f;
+            ExitWallToFloor(trackFallForRagdoll: true);
+            return;
+        }
+
+        // 2. 등반 중 Space 단발 입력으로 벽 밀착 위쪽 도약(런지) 발동 (스태미나 > 0이면 1회 허용)
+        bool jumpJustPressed = data.Buttons.IsSet(PlayerButtons.Jump) && !JumpWasPressed;
+        if (_lungeRemaining <= 0f &&
+            _lungeCooldownTimer <= 0f &&
+            jumpJustPressed &&
+            _condition != null &&
+            _condition.CurrentStamina > 0f &&
+            SpendStamina(cfg.lungeStaminaCost))
+        {
+            _lungeRemaining = Mathf.Max(0.05f, cfg.lungeDuration);
+            _lungeCooldownTimer = cfg.lungeCooldown;
+        }
+
+        bool isLunging = _lungeRemaining > 0f;
+
+        // 3. 일반 등반 스태미나 소모 (도약 중에는 유예해 꼭대기 맨틀 또는 도약 종료 후 추락 보장)
+        if (!isLunging)
+        {
+            float drain = cfg.climbStaminaDrain * dt;
+            bool spent = drain <= 0f || SpendStamina(drain);
+            if (!spent || (cfg.climbStaminaDrain > 0f && _condition.CurrentStamina <= 0f))
+            {
+                EnterRagdoll(_surfaceNormal * cfg.staminaDepletedPushOffSpeed);
+                return;
+            }
+        }
+
+        SetAnimBool("Climbing", true);
+        SetAnimBool("Walking", false);
+        SetAnimBool("Running", false);
+        SetAnimBool("Jump", false);
+
+        Vector2 rawMove = Vector2.ClampMagnitude(data.Move, 1f);
+        ComputeWallBasis(_surfaceNormal, out Vector3 wallUp, out Vector3 wallRight);
+        Vector3 desiredTangentDir = isLunging
+            ? wallUp
+            : (wallUp * rawMove.y + wallRight * rawMove.x);
+
+        // 4. 벽 접촉 확인 및 굽은 벽/코너 법선 추적
+        Vector3 probeOrigin = transform.position + Vector3.up * cfg.wallProbeHeight;
+        bool hasWall = ProbeClimbSurface(probeOrigin, desiredTangentDir, cfg, out RaycastHit wallHit);
+
+        if (!hasWall)
+        {
+            if ((isLunging || rawMove.y > 0.1f) && cfg.enableAutoMantle && TryMantleLedge(_surfaceNormal, cfg, out Vector3 mantlePos))
+            {
+                TeleportCharacter(mantlePos, transform.rotation);
+                ExitWallToFloor(trackFallForRagdoll: false);
+                return;
+            }
+
+            ExitWallToFloor(trackFallForRagdoll: true);
+            return;
+        }
+
+        // 벽 상단 끝을 오르는 중이면 자동 맨틀 체크
+        if ((isLunging || rawMove.y > 0.1f) && cfg.enableAutoMantle)
+        {
+            Vector3 upperProbe = transform.position + Vector3.up * (cfg.wallProbeHeight + 0.55f);
+            bool hasUpperWall = TryCastClimbRaycast(upperProbe, -_surfaceNormal, cfg.wallKeepContactDistance, cfg.climbableLayers, out _);
+            if (!hasUpperWall && TryMantleLedge(_surfaceNormal, cfg, out Vector3 mantlePos))
+            {
+                TeleportCharacter(mantlePos, transform.rotation);
+                ExitWallToFloor(trackFallForRagdoll: false);
+                return;
+            }
+        }
+
+        if (!cfg.IsClimbableSlope(wallHit.normal))
+        {
+            ExitWallToFloor(trackFallForRagdoll: false);
+            return;
+        }
+
+        float blend = 1f - Mathf.Exp(-cfg.wallNormalSmoothSpeed * dt);
+        _surfaceNormal = Vector3.Slerp(_surfaceNormal, wallHit.normal.normalized, blend).normalized;
+        NetSurfaceNormal = _surfaceNormal;
+
+        // 5. 등반 / 벽 밀착 도약 이동 및 벽 밀착 유지
+        ComputeWallBasis(_surfaceNormal, out wallUp, out wallRight);
+        Vector3 tangentMove;
+        if (isLunging)
+        {
+            float duration = Mathf.Max(0.05f, cfg.lungeDuration);
+            float t = Mathf.Clamp01(_lungeRemaining / duration);
+            float lungeSpeed = Mathf.Lerp(cfg.climbSpeed, Mathf.Max(cfg.climbSpeed, cfg.lungeUpwardImpulse), t);
+            tangentMove = wallUp * lungeSpeed;
+            _lungeRemaining = Mathf.Max(0f, _lungeRemaining - dt);
+        }
+        else
+        {
+            tangentMove = (wallUp * rawMove.y + wallRight * rawMove.x) * cfg.climbSpeed;
+        }
+
+        float currentDist = Vector3.Dot(probeOrigin - wallHit.point, wallHit.normal);
+        Vector3 pullMove = wallHit.normal * ((cfg.wallStandOffDistance - currentDist) * cfg.wallPullStrength);
+
+        if (_cc != null && _cc.enabled)
+            _cc.Move((tangentMove + pullMove) * dt);
+
+        if (!isLunging && rawMove.y < -0.1f && _cc != null && _cc.enabled && _cc.isGrounded)
+        {
+            ExitWallToFloor(trackFallForRagdoll: false);
+            return;
+        }
+
+        // 5. 벽 정면을 바라보도록 몸체 수평 회전
+        Vector3 flatIntoWall = Vector3.ProjectOnPlane(-_surfaceNormal, Vector3.up);
+        if (flatIntoWall.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRot = Quaternion.LookRotation(flatIntoWall.normalized, Vector3.up);
+            float rotBlend = 1f - Mathf.Exp(-cfg.wallBodyTurnSpeed * dt);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotBlend);
+        }
+    }
+
+    private bool ProbeClimbSurface(
+        Vector3 probeOrigin,
+        Vector3 desiredTangentDir,
+        ClimbingConfig cfg,
+        out RaycastHit wallHit)
+    {
+        if (TryCastClimbRaycast(probeOrigin, -_surfaceNormal, cfg.wallKeepContactDistance, cfg.climbableLayers, out wallHit))
+            return true;
+
+        if (desiredTangentDir.sqrMagnitude > 0.001f)
+        {
+            Vector3 tangentNorm = desiredTangentDir.normalized;
+            Vector3 curvedDir = (-_surfaceNormal + tangentNorm * 0.45f).normalized;
+            if (TryCastClimbRaycast(probeOrigin + tangentNorm * 0.15f, curvedDir, cfg.wallKeepContactDistance * 1.15f, cfg.climbableLayers, out wallHit))
+                return true;
+        }
+
+        Vector3 lowerOrigin = transform.position + Vector3.up * (cfg.wallProbeHeight * 0.45f);
+        if (TryCastClimbRaycast(lowerOrigin, -_surfaceNormal, cfg.wallKeepContactDistance, cfg.climbableLayers, out wallHit))
+            return true;
+
+        Vector3 highOrigin = transform.position + Vector3.up * cfg.grabRayOriginHeight;
+        if (TryCastClimbRaycast(highOrigin, -_surfaceNormal, cfg.wallKeepContactDistance, cfg.climbableLayers, out wallHit))
+            return true;
+
+        return false;
+    }
+
+    private bool TryMantleLedge(Vector3 wallNormal, ClimbingConfig cfg, out Vector3 mantlePosition)
+    {
+        mantlePosition = transform.position;
+
+        Vector3 intoWall = Vector3.ProjectOnPlane(-wallNormal, Vector3.up);
+        if (intoWall.sqrMagnitude < 0.001f)
+            intoWall = Vector3.ProjectOnPlane(transform.forward, Vector3.up);
+
+        if (intoWall.sqrMagnitude < 0.001f)
+            return false;
+
+        intoWall.Normalize();
+        Vector3 downOrigin = transform.position + intoWall * cfg.mantleForwardOffset + Vector3.up * cfg.mantleRayUpOffset;
+
+        if (!TryCastClimbRaycast(downOrigin, Vector3.down, cfg.mantleRayDownDistance, cfg.climbableLayers, out RaycastHit topHit))
+            return false;
+
+        if (Vector3.Angle(Vector3.up, topHit.normal) > cfg.mantleMaxSlopeAngle)
+            return false;
+
+        float heightDiff = topHit.point.y - transform.position.y;
+        if (heightDiff < 0.1f || heightDiff > 1.85f)
+            return false;
+
+        Vector3 candidate = topHit.point + Vector3.up * 0.05f;
+        if (!HasCapsuleClearance(candidate, cfg.climbableLayers))
+            return false;
+
+        mantlePosition = candidate;
+        return true;
+    }
+
+    private bool HasCapsuleClearance(Vector3 footPosition, LayerMask mask)
+    {
+        float worldScale = Mathf.Abs(transform.lossyScale.y);
+        float radius = (_cc != null ? _cc.radius : 0.5f) * Mathf.Max(Mathf.Abs(transform.lossyScale.x), 0.1f) * 0.85f;
+        float height = (_cc != null ? _cc.height : 3.6f) * Mathf.Max(worldScale, 0.1f);
+        float centerY = _cc != null ? _cc.center.y * worldScale : height * 0.5f;
+        float halfSpan = Mathf.Max(0f, height * 0.5f - radius);
+
+        Vector3 center = footPosition + Vector3.up * centerY;
+        Vector3 bottom = center - Vector3.up * halfSpan;
+        Vector3 top = center + Vector3.up * halfSpan;
+
+        int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius, _overlapScratch, mask, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < count; i++)
+        {
+            Collider col = _overlapScratch[i];
+            if (col == null || col.transform.IsChildOf(transform))
+                continue;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private void ExitWallToFloor(bool trackFallForRagdoll)
+    {
+        ClimbingConfig cfg = GetConfig();
+
+        NetState = StateMachine.Floor;
+        stateMachine = StateMachine.Floor;
+        _surfaceNormal = Vector3.up;
+        NetSurfaceNormal = Vector3.up;
+        _lungeRemaining = 0f;
+        _regrabCooldownTimer = cfg.climbRegrabCooldown;
+
+        if (trackFallForRagdoll)
+        {
+            _trackingWallReleaseFall = true;
+            _wallReleaseStartY = transform.position.y;
+            _verticalVelocity = Mathf.Min(_verticalVelocity, -0.5f);
+        }
+        else
+        {
+            _trackingWallReleaseFall = false;
+            _verticalVelocity = Mathf.Min(_verticalVelocity, 0f);
+        }
+
+        SetAnimBool("Climbing", false);
+    }
+
+    private void EnterRagdoll(Vector3 initialVelocity)
+    {
+        NetState = StateMachine.Ragdoll;
+        stateMachine = StateMachine.Ragdoll;
+        RagdollInitialVelocity = initialVelocity;
+        RagdollSequence++;
+
+        _surfaceNormal = Vector3.up;
+        NetSurfaceNormal = Vector3.up;
+        _lungeRemaining = 0f;
+        _trackingWallReleaseFall = false;
+        _ragdollElapsed = 0f;
+        _ragdollSettleTimer = 0f;
+        _ragdollImpactReported = false;
+        _fallbackRagdollVelocity = initialVelocity;
+        _verticalVelocity = 0f;
+        ResolveFallDamage()?.OnEnterRagdoll();
+
+        SetAnimBool("Climbing", false);
+        SetAnimBool("Walking", false);
+        SetAnimBool("Running", false);
+        SetAnimBool("Jump", false);
+
+        SyncLocalRagdollPresentation();
+    }
+
+    private void UpdateRagdoll(float dt)
+    {
+        ClimbingConfig cfg = GetConfig();
+        _ragdollElapsed += dt;
+
+        if (_ragdoll != null && _ragdoll.HasValidRig)
+        {
+            bool nearGround = _ragdoll.IsHipsNearGround(cfg.ragdollGroundLayers, cfg.ragdollGroundCheckDistance);
+            if (nearGround && !_ragdollImpactReported)
+            {
+                _ragdollImpactReported = true;
+                float impactY = _ragdoll.TryGetSafeStandUpPosition(
+                    cfg.ragdollGroundLayers,
+                    0.5f,
+                    cfg.ragdollGroundCheckDistance + 0.35f,
+                    out Vector3 impactPos)
+                    ? impactPos.y
+                    : _ragdoll.HipsWorldPosition.y;
+                ResolveFallDamage()?.ReportRagdollImpact(impactY);
+            }
+
+            bool slowEnough = _ragdoll.HipsVelocity.sqrMagnitude <= cfg.ragdollSettleSpeed * cfg.ragdollSettleSpeed;
+
+            if (_ragdollElapsed >= cfg.ragdollMinDuration && nearGround && slowEnough)
+                _ragdollSettleTimer += dt;
+            else
+                _ragdollSettleTimer = 0f;
+
+            if (_ragdollSettleTimer >= cfg.ragdollSettleHoldTime || _ragdollElapsed >= cfg.ragdollMaxDuration)
+            {
+                _ragdoll.TryGetSafeStandUpPosition(cfg.ragdollGroundLayers, 0.8f, 1.5f, out Vector3 standUpPos);
+                ExitRagdollToFloor(standUpPos);
+            }
+        }
+        else
+        {
+            // 프리팹 본 래그돌이 아직 구성되지 않은 환경에서의 폴백 낙하/회복
+            if (_cc != null && !_cc.enabled && (_gameState == null || _gameState.IsInPlayground))
+                _cc.enabled = true;
+
+            _fallbackRagdollVelocity.y -= cfg.gravity * dt;
+            if (_cc != null && _cc.enabled)
+                _cc.Move(_fallbackRagdollVelocity * dt);
+
+            bool grounded = _cc != null && _cc.isGrounded;
+            if (grounded && !_ragdollImpactReported)
+            {
+                _ragdollImpactReported = true;
+                ResolveFallDamage()?.ReportRagdollImpact(transform.position.y);
+            }
+
+            if (_ragdollElapsed >= cfg.ragdollMinDuration && grounded)
+                _ragdollSettleTimer += dt;
+            else
+                _ragdollSettleTimer = 0f;
+
+            if (_ragdollSettleTimer >= cfg.ragdollSettleHoldTime || _ragdollElapsed >= cfg.ragdollMaxDuration)
+                ExitRagdollToFloor(transform.position);
+        }
+    }
+
+    private void ExitRagdollToFloor(Vector3 standUpPosition)
+    {
+        ClimbingConfig cfg = GetConfig();
+
+        if (!_ragdollImpactReported)
+        {
+            _ragdollImpactReported = true;
+            ResolveFallDamage()?.ReportRagdollImpact(standUpPosition.y);
+        }
+
+        NetState = StateMachine.Floor;
+        stateMachine = StateMachine.Floor;
+        _surfaceNormal = Vector3.up;
+        NetSurfaceNormal = Vector3.up;
+        _lungeRemaining = 0f;
+        _trackingWallReleaseFall = false;
+        _verticalVelocity = cfg.groundedStickVelocity;
+        _recoverLockTimer = cfg.standUpRecoverDelay;
+        _regrabCooldownTimer = cfg.climbRegrabCooldown;
+
+        if (_localRagdollApplied)
+        {
+            _ragdoll?.SetRagdollEnabled(false);
+            _localRagdollApplied = false;
+        }
+
+        Quaternion standRotation = Quaternion.Euler(0f, _yaw, 0f);
+        TeleportCharacter(standUpPosition, standRotation);
+        ResolveFallDamage()?.OnExitRagdoll(standUpPosition.y);
+        ResetAnimatorBools();
+    }
+
+    private void ForceExitRagdollAtCurrentPosition()
+    {
+        Vector3 standPos = (_ragdoll != null && _ragdoll.HasValidRig)
+            ? _ragdoll.HipsWorldPosition
+            : transform.position;
+        ExitRagdollToFloor(standPos);
+    }
+
+    private void SyncLocalRagdollPresentation(bool forceResetIfNotRagdoll = false)
+    {
+        if (Object == null || !Object.IsValid)
+            return;
+
+        if (NetState == StateMachine.Ragdoll)
+        {
+            if (!_localRagdollApplied || _appliedRagdollSequence != RagdollSequence)
+            {
+                _ragdoll?.SetRagdollEnabled(true, RagdollInitialVelocity);
+                if (_cc != null && _ragdoll != null && _ragdoll.HasValidRig)
+                    _cc.enabled = false;
+
+                _localRagdollApplied = true;
+                _appliedRagdollSequence = RagdollSequence;
+            }
+        }
+        else if (_localRagdollApplied || forceResetIfNotRagdoll)
+        {
+            _ragdoll?.SetRagdollEnabled(false);
+            if (_cc != null && (_gameState == null || _gameState.IsInPlayground))
+                _cc.enabled = true;
+
+            _localRagdollApplied = false;
+        }
+    }
+
+    private bool TryCastClimbRaycast(
+        Vector3 origin,
+        Vector3 direction,
+        float maxDistance,
+        LayerMask mask,
+        out RaycastHit bestHit)
+    {
+        bestHit = default;
+        if (direction.sqrMagnitude < 0.0001f)
+            return false;
+
+        int count = Physics.RaycastNonAlloc(
+            origin,
+            direction.normalized,
+            _raycastScratch,
+            maxDistance,
+            mask,
+            QueryTriggerInteraction.Ignore);
+
+        float closestDist = float.MaxValue;
+        bool found = false;
+
+        for (int i = 0; i < count; i++)
+        {
+            RaycastHit hit = _raycastScratch[i];
+            if (hit.collider == null || hit.collider.transform.IsChildOf(transform))
+                continue;
+
+            if (hit.distance < closestDist)
+            {
+                closestDist = hit.distance;
+                bestHit = hit;
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
+    private bool TryCastClimbSphere(
+        Vector3 origin,
+        Vector3 direction,
+        float radius,
+        float maxDistance,
+        LayerMask mask,
+        out RaycastHit bestHit)
+    {
+        bestHit = default;
+        if (direction.sqrMagnitude < 0.0001f)
+            return false;
+
+        Vector3 dir = direction.normalized;
+        Vector3 pulledOrigin = origin - dir * radius;
+        int count = Physics.SphereCastNonAlloc(
+            pulledOrigin,
+            radius,
+            dir,
+            _raycastScratch,
+            maxDistance + radius,
+            mask,
+            QueryTriggerInteraction.Ignore);
+
+        float closestDist = float.MaxValue;
+        bool found = false;
+
+        for (int i = 0; i < count; i++)
+        {
+            RaycastHit hit = _raycastScratch[i];
+            if (hit.collider == null || hit.collider.transform.IsChildOf(transform))
+                continue;
+
+            if (hit.distance <= 0.001f)
+                continue;
+
+            if (hit.distance < closestDist)
+            {
+                closestDist = hit.distance;
+                bestHit = hit;
+                found = true;
+            }
+        }
+
+        return found;
+    }
+
+    private void ComputeWallBasis(Vector3 normal, out Vector3 wallUp, out Vector3 wallRight)
+    {
+        wallUp = Vector3.ProjectOnPlane(Vector3.up, normal);
+        if (wallUp.sqrMagnitude < 0.001f)
+            wallUp = Vector3.ProjectOnPlane(transform.up, normal);
+        if (wallUp.sqrMagnitude < 0.001f)
+            wallUp = Vector3.forward;
+
+        wallUp.Normalize();
+        wallRight = Vector3.Cross(normal, wallUp);
+        if (wallRight.sqrMagnitude < 0.001f)
+            wallRight = transform.right;
+        wallRight.Normalize();
+    }
+
+    private float GetWallFacingYaw(Vector3 surfaceNormal)
+    {
+        Vector3 flatIntoWall = Vector3.ProjectOnPlane(-surfaceNormal, Vector3.up);
+        if (flatIntoWall.sqrMagnitude < 0.001f)
+            return _yaw;
+
+        return Quaternion.LookRotation(flatIntoWall.normalized, Vector3.up).eulerAngles.y;
+    }
+
+    private bool SpendStamina(float amount)
+    {
+        if (amount <= 0f)
+            return true;
+
+        if (_condition == null || !_condition.CanUseStamina(amount))
+            return false;
+
+        return !Object.HasStateAuthority || _condition.TryUseStamina(amount);
+    }
+
+    private void SetAnimBool(string parameterName, bool value)
+    {
+        if (animator != null)
+            animator.SetBool(parameterName, value);
+    }
+
+    private void ResetAnimatorBools()
+    {
+        SetAnimBool("Climbing", false);
+        SetAnimBool("Walking", false);
+        SetAnimBool("Running", false);
+        SetAnimBool("Jump", false);
     }
 
     public void OnMove(InputAction.CallbackContext context)
@@ -614,1343 +1245,60 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _moveInput = context.ReadValue<Vector2>();
     }
 
-    private void FloorMove(NetworkInputData data)
-    {
-        float deltaTime = Runner.DeltaTime;
-        float checkDist = _collider != null ? _collider.bounds.extents.y + 0.1f : groundCheckDistance;
-        _isGrounded = Physics.Raycast(transform.position, Vector3.down, checkDist, groundLayerMask);
-        bool jumped = false;
-
-        if (_isGrounded)
-        {
-            if (data.Buttons.IsSet(PlayerButtons.Jump) && !JumpWasPressed && SpendStamina(jumpCost))
-            {
-                _verticalVelocity = jumpForce;
-                _isGrounded = false;
-                jumped = true;
-            }
-            else if (_verticalVelocity < 0f)
-            {
-                _verticalVelocity = -2f;
-                animator.SetBool("Jump", false);
-            }
-        }
-        else
-        {
-            _verticalVelocity -= gravity * deltaTime;
-            animator.SetBool("Jump", true);
-
-        }
-
-        //카메라를 LateUpdate에서 바꿔주기에 Networktansfrom에서 컴포넌트 내에 변경이 있을 경우 해당 컴포넌트의 값이 LateUpdate에서 변경된 값이 적용되지 않는다.
-
-
-        // 내 캐릭터가 보는 위치(y축 회전 값)
-        Quaternion yawRotation =
-            Quaternion.Euler(0f, _yaw, 0f);
-
-
-        // y 축 회전값을 통한 내가 보는 곳에 대한 앞, 옆 찾기
-        Vector3 forward =
-            yawRotation * Vector3.forward;
-
-        Vector3 right =
-            yawRotation * Vector3.right;
-
-        // 찾은 앞, 옆을 통해 이동할 위치를 측정한다.
-        Vector3 moveDirection =
-            right * data.Move.x +
-            forward * data.Move.y;
-
-
-        // 대각선에 대한 보값을 제거한다.
-        if (moveDirection.sqrMagnitude > 1f)
-            moveDirection.Normalize();
-
-        // 마지막으로 이동할 속도를 곱한다.
-        bool tryingToSprint = data.Buttons.IsSet(PlayerButtons.Sprint) && data.Move.sqrMagnitude > 0.01f;
-        bool sprinting = tryingToSprint && _condition.CanSprint && SpendStamina(sprintDrain * deltaTime);
-        Vector3 moveInput = Vector3.ClampMagnitude(moveDirection, 1f);
-        var move = moveInput * (sprinting ? runSpeed : moveSpeed);
-
-        if (_isGrounded && !jumped && !tryingToSprint && !data.Buttons.IsSet(PlayerButtons.Attack) &&
-            !(_gameState.IsSeeker && data.Buttons.IsSet(PlayerButtons.OpenEyes)))
-            _condition.RecoverStamina(recoverRate * deltaTime);
-
-
-
-        // 움직일 때 모션이 작동하도록 한다.
-        if (move.sqrMagnitude > 0)
-        {
-            if(sprinting)
-                animator.SetBool("Running", true);
-            else
-                animator.SetBool("Running", false);
-            animator.SetBool("Walking", true);
-        }
-        else
-        {
-            animator.SetBool("Walking", false);
-            animator.SetBool("Running", false);
-        }
-
-        move.y = _verticalVelocity;
-
-        _rb.velocity = move;
-
-
-    }
-
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.started || context.performed)
-        {
-            JumpPressed = true;
-        }
-        else
-        {
-            JumpPressed = false;
-        }
+        _jumpPressed = context.started || context.performed;
     }
 
     public void OnUse(InputAction.CallbackContext context)
     {
-        if (context.started || context.performed)
-        {
-            ItemUsePressed = true;
-        }
-        else
-        {
-            ItemUsePressed = false;
-        }
+        _itemUsePressed = context.started || context.performed;
     }
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        //if (context.started || (context.performed && _wallCheckCoroutine == null))
-        //{
-        //    _wallCheckCoroutine ??= StartCoroutine(WallCheckCoroutine());
-        //}
-        //else if (context.canceled)
-        //{
-        //    if (_wallCheckCoroutine != null)
-        //    {
-        //        StopCoroutine(_wallCheckCoroutine);
-        //        _wallCheckCoroutine = null;
-        //    }
-
-        //    if (stateMachine == StateMachine.Wall)
-        //    {
-        //        TransitionToFloor();
-        //    }
-        //}
-
-        if (context.started || (context.performed))
-        {
-            AttackPressed = true;
-        }
-        else
-        {
-            AttackPressed = false;
-
-        }
+        _attackPressed = context.started || context.performed;
     }
-
-    private void WallCheck(NetworkInputData data)
-    {
-
-        // 내 캐릭터가 보는 위치(y축 회전 값)
-        Quaternion yawRotation =
-            Quaternion.Euler(0f, _yaw, 0f);
-
-
-        // y 축 회전값을 통한 내가 보는 곳에 대한 앞 찾기
-        Vector3 forward =
-            yawRotation * Vector3.forward;
-
-        var rayDirTransform = headTransform != null ? headTransform : transform;
-        var ray = new Ray
-        {
-            origin = transform.position,
-            direction = forward
-        };
-        Vector3 vector3 = ray.origin;
-        vector3.y += 1;
-        ray.origin = vector3;
-        Debug.DrawRay(ray.origin, ray.direction * handRayMaxDistance, Color.red);
-        if (Physics.Raycast(ray,out RaycastHit transHit, handRayMaxDistance,wallLayerMask))
-        {
-            _hitPoint = transHit.point;
-            _hitNormal = transHit.normal;
-
-            _toWallStartPosition = transform.position;
-            _toWallTargetPosition = transHit.point
-                + transHit.normal * wallDistance;
-
-            _toWallElapsed = 0f;
-            _transTimeCheck = _transTime;
-
-            stateMachine = StateMachine.ToWall;
-        }
-    }
-
-private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
-{
-    float duration = Mathf.Max(_transTime, 0.01f);
-
-    _toWallElapsed += Runner.DeltaTime;
-
-    float t = Mathf.Clamp01(_toWallElapsed / duration);
-
-    // 부드러운 이동
-    float smoothT = t * t * (3f - 2f * t);
-
-    transform.position = Vector3.Lerp(
-        _toWallStartPosition,
-        _toWallTargetPosition,
-        smoothT
-    );
-
-    _surfaceNormal = hitNormal;
-
-    Vector3 wallUp =
-        Vector3.ProjectOnPlane(Vector3.up, hitNormal).normalized;
-
-    if (wallUp.sqrMagnitude < 0.001f)
-        wallUp = Vector3.up;
-
-    _smoothedWallRot = Quaternion.LookRotation(
-        -hitNormal,
-        wallUp
-    );
-
-    transform.rotation = _smoothedWallRot;
-
-    _rb.velocity = Vector3.zero;
-    _verticalVelocity = 0f;
-
-    if (t >= 1f)
-    {
-        stateMachine = StateMachine.Wall;
-
-        _yaw = 0f;
-
-        _climbInitialized = false;
-        _climbStepActive = false;
-        _climbTimer = 0f;
-        _climbUpGoingDistance = 0f;
-    }
-}
-
-    private void TransitionToFloor(bool isForce = false)
-    {
-        if (isForce)
-        {
-            // 전환 중 매 Tick 다시 시작하지 않도록 한다.
-            if (stateMachine == StateMachine.ToFloor)
-                return;
-
-            if (TryGetMantleTarget(out Vector3 targetPosition, out Quaternion targetRotation))
-            {
-                BeginMantleToFloor(targetPosition, targetRotation);
-            }
-            else
-            {
-                // 위쪽에 올라갈 수 있는 평지를 찾지 못했다면 벽타기만 종료한다.
-                SetFloorYawFromCamera();
-                FinishTransitionToFloor();
-            }
-
-            return;
-        }
-
-        SetFloorYawFromCamera();
-        FinishTransitionToFloor();
-    }
-
-    private void SetFloorYawFromCamera()
-    {
-        Vector3 lookForward = camPivot != null ? camPivot.forward : transform.forward;
-        Vector3 floorForward = Vector3.ProjectOnPlane(lookForward, Vector3.up).normalized;
-
-        if (floorForward.sqrMagnitude > 0.001f)
-            _mantleTargetYaw = Quaternion.LookRotation(floorForward, Vector3.up).eulerAngles.y;
-        else
-            _mantleTargetYaw = transform.eulerAngles.y;
-    }
-
-    private bool TryGetMantleTarget(
-        out Vector3 targetPosition,
-        out Quaternion targetRotation)
-    {
-        targetPosition = transform.position;
-        targetRotation = transform.rotation;
-
-        // 캐릭터가 바라보는 방향을 수평면에 투영
-        Vector3 forward = Vector3.ProjectOnPlane(
-            transform.forward,
-            Vector3.up
-        ).normalized;
-
-        if (forward.sqrMagnitude < 0.001f)
-        {
-            Debug.LogWarning("[Mantle] 전방 방향을 계산할 수 없음");
-            return false;
-        }
-
-        // 벽 너머의 발판을 탐색할 위치
-        Vector3 rayOrigin =
-            transform.position
-            + forward * (wallDistance + mantleForwardOffset)
-            + Vector3.up * mantleRayUp;
-
-        Debug.DrawRay(
-            rayOrigin,
-            Vector3.down * mantleRayDistance,
-            Color.yellow,
-            2f
-        );
-
-        // 위쪽 발판 탐색
-        if (!Physics.Raycast(
-            rayOrigin,
-            Vector3.down,
-            out RaycastHit topHit,
-            mantleRayDistance,
-            groundLayerMask,
-            QueryTriggerInteraction.Ignore))
-        {
-            Debug.LogWarning(
-                $"[Mantle] 발판을 찾지 못함. " +
-                $"groundLayerMask={groundLayerMask.value}, " +
-                $"레이 시작 위치={rayOrigin}");
-
-            return false;
-        }
-
-        // 지나치게 가파른 면은 발판으로 취급하지 않음
-        if (Vector3.Angle(topHit.normal, Vector3.up) > 30f)
-        {
-            Debug.LogWarning(
-                $"[Mantle] 발판 경사가 너무 가파름: " +
-                $"{Vector3.Angle(topHit.normal, Vector3.up):F1}도");
-
-            return false;
-        }
-
-        // 현재 캐릭터 위치보다 너무 낮거나 높은 발판은 제외
-        float heightDifference = topHit.point.y - transform.position.y;
-
-        if (heightDifference < 0.25f || heightDifference > 2.0f)
-        {
-            Debug.LogWarning(
-                $"[Mantle] 발판 높이가 허용 범위를 벗어남: " +
-                $"{heightDifference:F2}m");
-
-            return false;
-        }
-
-        // 콜라이더의 절반 높이를 이용해 목표 위치 계산
-        float halfHeight = _collider != null
-            ? _collider.bounds.extents.y
-            : 0.9f;
-
-        targetPosition =
-            topHit.point
-            + Vector3.up * (halfHeight + mantleHeightTolerance)
-            + forward * mantleForwardOffset;
-
-        targetRotation = Quaternion.LookRotation(
-            forward,
-            Vector3.up
-        );
-
-        Debug.Log(
-            $"[Mantle] 발판 발견! 높이 차이={heightDifference:F2}m, " +
-            $"목표 위치={targetPosition}");
-
-        return true;
-    }
-
-    private void BeginMantleToFloor(Vector3 targetPosition, Quaternion targetRotation)
-    {
-        stateMachine = StateMachine.ToFloor;
-        _mantleElapsed = 0f;
-
-        _mantleStartPosition = transform.position;
-        _mantleTargetPosition = targetPosition;
-        _mantleStartBodyRotation = transform.rotation;
-        _mantleTargetBodyRotation = targetRotation;
-
-        Vector3 cameraForward = camPivot != null ? camPivot.forward : transform.forward;
-        Vector3 flatCameraForward = Vector3.ProjectOnPlane(cameraForward, Vector3.up).normalized;
-        if (flatCameraForward.sqrMagnitude < 0.001f)
-            flatCameraForward = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
-
-        if (flatCameraForward.sqrMagnitude > 0.001f)
-            _mantleTargetYaw = Quaternion.LookRotation(flatCameraForward, Vector3.up).eulerAngles.y;
-        else
-            _mantleTargetYaw = targetRotation.eulerAngles.y;
-
-        _mantleStartCameraRotation = camPivot != null ? camPivot.rotation : transform.rotation;
-        _mantleTargetCameraRotation = Quaternion.Euler(_pitch, _mantleTargetYaw, 0f);
-
-        _rb.velocity = Vector3.zero;
-        _rb.isKinematic = true;
-        _verticalVelocity = 0f;
-        _climbInitialized = false;
-        _climbStepActive = false;
-        _climbTimer = 0f;
-    }
-
-    private void UpdateMantleToFloor()
-    {
-        _mantleElapsed += Runner.DeltaTime;
-
-        float duration = Mathf.Max(mantleDuration, 0.01f);
-        float t = Mathf.Clamp01(_mantleElapsed / duration);
-        float smoothT = t * t * (3f - 2f * t);
-
-        transform.position = Vector3.Lerp(_mantleStartPosition, _mantleTargetPosition, smoothT);
-
-        if (t >= 1f)
-        {
-            transform.position = _mantleTargetPosition;
-            FinishTransitionToFloor();
-        }
-    }
-
-    private void FinishTransitionToFloor()
-    {
-        stateMachine = StateMachine.Floor;
-        _rb.isKinematic = false;
-        _rb.velocity = Vector3.zero;
-        _verticalVelocity = 0f;
-
-        _yaw = _mantleTargetYaw;
-        transform.rotation = Quaternion.Euler(0f, _yaw, 0f);
-        _smoothedWallRot = transform.rotation;
-
-        _climbInitialized = false;
-        _climbStepActive = false;
-        _climbTimer = 0f;
-    }
-
-    private IEnumerator WallCheckCoroutine()
-    {
-        while (true)
-        {
-            var rayDirTransform = headTransform != null ? headTransform : transform;
-            var ray = new Ray
-            {
-                origin = transform.position,
-                direction = rayDirTransform.forward
-            };
-            Debug.DrawRay(ray.origin, ray.direction * rayMaxDistance, Color.red);
-            if (Physics.Raycast(ray, out _, rayMaxDistance, wallLayerMask))
-            {
-                _wallCheckCoroutine = null;
-
-                if (_wallClimbCoroutine != null)
-                {
-                    StopCoroutine(_wallClimbCoroutine);
-                }
-
-                _wallClimbCoroutine = StartCoroutine(WallClimbCoroutine());
-                yield break;
-            }
-
-            yield return null;
-        }
-    }
-
-    private Vector3 SimpleRaycast(
-       Vector3 origin,
-       Vector3 direction,
-       float rayMaxDistance,
-       out Vector3 hitNormal)
-    {
-        if (Physics.Raycast(
-            origin,
-            direction,
-            out RaycastHit hit,
-            rayMaxDistance,
-            wallLayerMask,
-            QueryTriggerInteraction.Ignore))
-        {
-            hitNormal = hit.normal;
-            return hit.point;
-        }
-        //
-        // 벽을 찾지 못했다면 가짜 위치를 만들지 않는다.
-        hitNormal = Vector3.zero;
-        return Vector3.zero;
-    }
-
-    // Fusion 에서는 yieid return 을 사용할 수 없음
-    // 그렇기에 Coroutine을 제거하고 일반 함수로 변경해 벽을 타게 변경함
-    private void WallClimb(NetworkInputData data)
-    {
-        float dt = Runner.DeltaTime;
-
-        animator.SetBool("Walking", false);
-        animator.SetBool("Running", false);
-
-        // 위쪽으로 이동 중이고, 올라갈 수 있는 발판이 감지되면 맨틀링 시작
-        if (data.Move.y > 0.1f)
-        {
-            if (TryGetMantleTarget(
-                out Vector3 targetPosition,
-                out Quaternion targetRotation))
-            {
-                Debug.Log(
-                    $"[Mantle] 시작! 현재 위치: {transform.position}, " +
-                    $"목표 위치: {targetPosition}");
-
-                BeginMantleToFloor(targetPosition, targetRotation);
-                return;
-            }
-        }
-
-        // 벽 진입 직후 한 번만 손/발 초기화
-        if (!_climbInitialized)
-        {
-            _rightHandPos = SimpleRaycast(
-                rightUpperArm.position,
-                transform.forward,
-                rayMaxDistance,
-                out _rightHandNormal
-            );
-
-            _leftHandPos = SimpleRaycast(
-                leftUpperArm.position,
-                transform.forward,
-                rayMaxDistance,
-                out _leftHandNormal
-            );
-
-            _rightFootPos = SimpleRaycast(
-                rightCalf.position,
-                transform.forward,
-                rayMaxDistance,
-                out _rightFootNormal
-            );
-
-            _leftFootPos = SimpleRaycast(
-                leftCalf.position,
-                transform.forward,
-                rayMaxDistance,
-                out _leftFootNormal
-            );
-
-            _climbInitialized = true;
-            _climbStepActive = false;
-            _climbTimer = 0f;
-        }
-        //if(data.Move.sqrMagnitude <= 0 )
-        //{
-        //    return;
-        //}
-        // 2. 현재 climbing step이 끝났다면 다음 손/발 동작을 계산한다.
-
-        if (!_climbStepActive)
-        {
-            Transform arm;
-            Transform calf;
-
-            // 원본과 동일
-            if (_isRightTurn)
-            {
-                arm = rightUpperArm;
-                calf = leftCalf;
-            }
-            else
-            {
-                arm = leftUpperArm;
-                calf = rightCalf;
-            }
-
-            if (arm == null || calf == null)
-                return;
-
-            // =====================================================
-            // 2-1. 팔 Raycast
-            // =====================================================
-            var armLowerBound =
-                (transform.forward - (transform.up * data.Move.y + transform.right * data.Move.x)).normalized;
-
-            var armUpperBound =
-                transform.up * data.Move.y + transform.right * data.Move.x;
-
-            RaycastHit lastHit = default;
-            bool anyHit = false;
-
-            for (var i = 0; i < searchCount; i++)
-            {
-                var midDir =
-                    (armLowerBound + armUpperBound).normalized;
-
-                var query = new Ray
-                {
-                    origin = arm.position,
-                    direction = midDir
-                };
-
-                if (Physics.Raycast(
-                    query,
-                    out RaycastHit hit,
-                    armLength,
-                    wallLayerMask))
-                {
-                    armLowerBound = midDir;
-                    lastHit = hit;
-                    anyHit = true;
-                }
-                else
-                {
-                    armUpperBound = midDir;
-                }
-            }
-
-            // =====================================================
-            // 2-2. 손 IK 목표 위치 설정
-            // =====================================================
-
-            if (anyHit)
-            {
-                if (_isRightTurn)
-                {
-                    _rightHandPos = lastHit.point;
-                    _rightHandNormal = lastHit.normal;
-                }
-                else
-                {
-                    _leftHandPos = lastHit.point;
-                    _leftHandNormal = lastHit.normal;
-                }
-            }
-
-            // =====================================================
-            // 2-3. 반대쪽 발 Raycast
-            // =====================================================
-
-            var calfRay = new Ray
-            {
-                origin = calf.position,
-                direction = transform.forward
-            };
-
-            Debug.DrawRay(
-                calfRay.origin,
-                calfRay.direction * rayMaxDistance,
-                Color.red
-            );
-
-            if (Physics.Raycast(
-                calfRay,
-                out RaycastHit calfHit,
-                rayMaxDistance,
-                wallLayerMask))
-            {
-                if (_isRightTurn)
-                {
-                    _leftFootPos = calfHit.point;
-                    _leftFootNormal = calfHit.normal;
-                }
-                else
-                {
-                    _rightFootPos = calfHit.point;
-                    _rightFootNormal = calfHit.normal;
-                }
-            }
-
-            // =====================================================
-            // 2-4. 손/발 Raycast Normal 평균
-            // =====================================================
-
-            Vector3 avgNormal = Vector3.zero;
-            int normalCount = 0;
-
-            if (_rightHandNormal.sqrMagnitude > 0.001f)
-            {
-                avgNormal += _rightHandNormal;
-                normalCount++;
-            }
-
-            if (_leftHandNormal.sqrMagnitude > 0.001f)
-            {
-                avgNormal += _leftHandNormal;
-                normalCount++;
-            }
-
-            if (_rightFootNormal.sqrMagnitude > 0.001f)
-            {
-                avgNormal += _rightFootNormal;
-                normalCount++;
-            }
-
-            if (_leftFootNormal.sqrMagnitude > 0.001f)
-            {
-                avgNormal += _leftFootNormal;
-                normalCount++;
-            }
-
-            if (normalCount > 0)
-            {
-                _surfaceNormal =
-                    (avgNormal / normalCount).normalized;
-            }
-
-            // =====================================================
-            // 2-5. 벽 각도 확인
-            // =====================================================
-
-            if (Vector3.Angle((transform.up * data.Move.y + transform.right * data.Move.x) , _surfaceNormal) < 23f && data.Move.sqrMagnitude > 0)
-            {
-                Debug.Log("1067줄");
-                TransitionToFloor(true);
-                return;
-            }
-
-            // =====================================================
-            // 2-6. Wall Move 계산
-            // =====================================================
-
-
-
-            Vector3 wallMove =
-                Vector3.ProjectOnPlane(
-                    (transform.up * data.Move.y + transform.right * data.Move.x),
-                    _surfaceNormal
-                ).normalized;
-
-            if (wallMove.sqrMagnitude < 0.001f)
-            {
-                wallMove = transform.up;
-            }
-
-            // =====================================================
-            // 2-7. 이번 climbing step의 상승 거리 계산
-            //
-            // 원본 코드 그대로:
-            //
-            // reachUp = 손 위치와 Raycast 위치의
-            //           wallUp 방향 거리
-            //
-            // upGoingDistance =
-            //           reachUp * upGoingDistanceDivider
-            // =====================================================
-
-            if (anyHit)
-            {
-                Vector3 DistanceToHitAndArm = lastHit.point - arm.position;
-
-                //if(DistanceToHitAndArm.y < 0.2f)
-                //{
-                //    TransitionToFloor(true);
-                //    return;
-                //}
-                float reachMove =
-                    Vector3.Dot(
-                        DistanceToHitAndArm,
-                        wallMove
-                    );
-
-                _climbUpGoingDistance =
-                    Mathf.Max(
-                        0f,
-                        reachMove * upGoingDistanceDivider
-                    );
-            }
-            else
-            {
-                Debug.Log("1123줄");
-                TransitionToFloor(true);
-                return;
-                //_climbUpGoingDistance = 0f;
-            }
-
-            // =====================================================
-            // 2-8. 새로운 climbing step 시작
-            // =====================================================
-
-            _climbTimer = 0f;
-            _climbStepActive = true;
-        }
-
-        // =========================================================
-        // 3. 현재 climbing step 진행
-        // =========================================================
-
-        float duration =
-            Mathf.Max(wallClimbDuration, 0.01f);
-
-        // 이번 Tick에서 실제로 사용할 시간
-        float stepDeltaTime =
-            Mathf.Min(
-                dt,
-                duration - _climbTimer
-            );
-
-        if (stepDeltaTime > 0f)
-        {
-            // 현재 벽 기준의 위쪽 방향
-            Vector3 WallMove =
-                Vector3.ProjectOnPlane(
-                    (transform.up * data.Move.y + transform.right * data.Move.x),
-                    _surfaceNormal
-                ).normalized;
-
-            if (WallMove.sqrMagnitude < 0.001f)
-            {
-                WallMove = transform.up;
-            }
-
-            // =====================================================
-            // 원본 Coroutine의:
-            //
-            // transform.position +=
-            //     wallUp * (upGoingDistance * dt / duration);
-            //
-            // 를 그대로 Fusion Tick으로 변환
-            // =====================================================
-
-            transform.position +=
-                WallMove *
-                (
-                    _climbUpGoingDistance *
-                    (stepDeltaTime / duration)
-                );
-
-            // =====================================================
-            // 벽과의 거리 실시간 보정
-            // =====================================================
-
-            if (Physics.Raycast(
-                transform.position,
-                -_surfaceNormal,
-                out RaycastHit moveHit,
-                rayMaxDistance,
-                wallLayerMask))
-            {
-                float currentDistanceToWall =
-                    Vector3.Dot(
-                        transform.position - moveHit.point,
-                        _surfaceNormal
-                    );
-
-                float distanceError =
-                    wallDistance -
-                    currentDistanceToWall;
-
-                transform.position +=
-                    _surfaceNormal * distanceError;
-            }
-
-            _climbTimer += stepDeltaTime;
-        }
-        // =========================================================
-        // 4. 현재 climbing step 완료
-        // =========================================================
-
-        if (_climbTimer >= duration)
-        {
-            _climbTimer = duration;
-
-            // 원본의:
-            //
-            // _isRightTurn = !_isRightTurn;
-            //
-            // 과 동일
-            _isRightTurn = !_isRightTurn;
-
-            _climbTimer = 0f;
-            _climbStepActive = false;
-        }
-    }
-
-    //private void WallClimb(NetworkInputData data)
-    //{
-    //    try
-    //    {
-    //        var ray = new Ray
-    //        {
-    //            origin = transform.position,
-    //            direction = transform.forward
-    //        };
-    //        if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
-    //        {
-    //            var angle = Vector3.Angle(Vector3.up, transHit.normal);
-    //            if (angle >= 45f)
-    //            {
-    //                TransitionToWall(transHit.point, transHit.normal);
-    //            }
-    //            else
-    //            {
-    //                TransitionToFloor();
-    //                return;
-    //            }
-    //        }
-
-    //        // 손과 발의 초기 위치 및 법선 설정
-    //        _rightHandPos = SimpleRaycast(rightUpperArm.position, transform.forward, rayMaxDistance, out _rightHandNormal);
-    //        _leftHandPos = SimpleRaycast(leftUpperArm.position, transform.forward, rayMaxDistance, out _leftHandNormal);
-    //        _rightFootPos = SimpleRaycast(rightCalf.position, transform.forward, rayMaxDistance, out _rightFootNormal);
-    //        _leftFootPos = SimpleRaycast(leftCalf.position, transform.forward, rayMaxDistance, out _leftFootNormal);
-
-    //        while (stateMachine == StateMachine.Wall)
-    //        {
-    //            Transform arm;
-    //            Transform calf;
-    //            if (_isRightTurn)
-    //            {
-    //                arm = rightUpperArm;
-    //                calf = leftCalf;
-    //            }
-    //            else
-    //            {
-    //                arm = leftUpperArm;
-    //                calf = rightCalf;
-    //            }
-
-    //            if (arm == null || calf == null)
-    //            {
-    //                return;
-    //            }
-
-    //            RaycastHit hit;
-
-    //            var armLowerBound = (transform.forward - transform.up).normalized;
-    //            var armUpperBound = transform.up;
-    //            RaycastHit lastHit = default;
-    //            bool anyHit = false;
-
-    //            for (var i = 0; i < searchCount; i++)
-    //            {
-    //                var midDir = (armLowerBound + armUpperBound).normalized;
-    //                var query = new Ray
-    //                {
-    //                    origin = arm.position,
-    //                    direction = midDir,
-    //                };
-    //                if (Physics.Raycast(query, out hit, armLength, wallLayerMask))
-    //                {
-    //                    armLowerBound = midDir;
-    //                    lastHit = hit;
-    //                    anyHit = true;
-    //                }
-    //                else
-    //                {
-    //                    armUpperBound = midDir;
-    //                }
-    //            }
-
-    //            if (anyHit)
-    //            {
-    //                if (_isRightTurn)
-    //                {
-    //                    _rightHandPos = lastHit.point;
-    //                    _rightHandNormal = lastHit.normal;
-    //                }
-    //                else
-    //                {
-    //                    _leftHandPos = lastHit.point;
-    //                    _leftHandNormal = lastHit.normal;
-    //                }
-    //            }
-
-    //            var calfRay = new Ray
-    //            {
-    //                origin = calf.position,
-    //                direction = transform.forward
-    //            };
-    //            Debug.DrawRay(calfRay.origin, calfRay.direction * rayMaxDistance, Color.red);
-    //            if (Physics.Raycast(calfRay, out hit, rayMaxDistance, wallLayerMask))
-    //            {
-    //                if (_isRightTurn)
-    //                {
-    //                    _leftFootPos = hit.point;
-    //                    _leftFootNormal = hit.normal;
-    //                }
-    //                else
-    //                {
-    //                    _rightFootPos = hit.point;
-    //                    _rightFootNormal = hit.normal;
-    //                }
-    //            }
-
-    //            // 1. 손발 ray들의 hit normal 평균 계산
-    //            Vector3 avgNormal = Vector3.zero;
-    //            int normalCount = 0;
-    //            if (_rightHandNormal.sqrMagnitude > 0.001f) { avgNormal += _rightHandNormal; normalCount++; }
-    //            if (_leftHandNormal.sqrMagnitude > 0.001f) { avgNormal += _leftHandNormal; normalCount++; }
-    //            if (_rightFootNormal.sqrMagnitude > 0.001f) { avgNormal += _rightFootNormal; normalCount++; }
-    //            if (_leftFootNormal.sqrMagnitude > 0.001f) { avgNormal += _leftFootNormal; normalCount++; }
-
-    //            if (normalCount > 0)
-    //            {
-    //                _surfaceNormal = (avgNormal / normalCount).normalized;
-    //            }
-
-    //            // surface normal이 45도 미만(평지/완만한 경사)이면 Floor로 복귀
-    //            if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
-    //            {
-    //                TransitionToFloor();
-    //                return;
-    //            }
-
-    //            // 2. 손발 ray 평균 법선을 바탕으로 wallUp 결정
-    //            var wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
-    //            if (wallUp.sqrMagnitude < 0.001f)
-    //            {
-    //                wallUp = transform.up;
-    //            }
-
-    //            float upGoingDistance;
-    //            if (anyHit)
-    //            {
-    //                var reachUp = Vector3.Dot(lastHit.point - arm.position, wallUp);
-    //                upGoingDistance = Mathf.Max(0f, reachUp * upGoingDistanceDivider);
-    //            }
-    //            else
-    //            {
-    //                upGoingDistance = 0f;
-    //            }
-
-    //            // 위치 이동 보간
-    //            float duration = Mathf.Max(wallClimbDuration, 0.01f);
-    //            float counter = 0f;
-    //            while (counter < duration && stateMachine == StateMachine.Wall)
-    //            {
-    //                float dt = Time.deltaTime;
-    //                counter += dt;
-
-    //                // 캐릭터 위치 이동
-    //                transform.position += wallUp * (upGoingDistance * (dt / duration));
-
-    //                // 이동 중 벽면과의 거리 실시간 보정 (몸체 로테이팅 법선은 손발 평균 _surfaceNormal 유지)
-    //                if (Physics.Raycast(transform.position, -_surfaceNormal, out var moveHit,
-    //                        rayMaxDistance,
-    //                        wallLayerMask))
-    //                {
-    //                    var currentDistanceToWall = Vector3.Dot(transform.position - moveHit.point, _surfaceNormal);
-    //                    var distanceError = wallDistance - currentDistanceToWall;
-    //                    transform.position += _surfaceNormal * distanceError;
-    //                }
-
-    //                return;
-    //            }
-
-    //            _isRightTurn = !_isRightTurn;
-    //        }
-    //    }
-    //    finally
-    //    {
-    //        _wallClimbCoroutine = null;
-    //    }
-    //}
-    private IEnumerator WallClimbCoroutine()
-    {
-        try
-        {
-            var ray = new Ray
-            {
-                origin = transform.position,
-                direction = transform.forward
-            };
-            if (Physics.Raycast(ray, out RaycastHit transHit, rayMaxDistance, wallLayerMask))
-            {
-                var angle = Vector3.Angle(Vector3.up, transHit.normal);
-                Debug.Log(transHit);
-                if (angle >= 45f)
-                {
-                    TransitionToWall(transHit.point, transHit.normal);
-                    Debug.Log(angle);
-                }
-                else
-                {
-                    TransitionToFloor();
-                    yield break;
-                }
-            }
-
-            // 손과 발의 초기 위치 및 법선 설정
-            _rightHandPos = SimpleRaycast(rightUpperArm.position, transform.forward, rayMaxDistance, out _rightHandNormal);
-            _leftHandPos = SimpleRaycast(leftUpperArm.position, transform.forward, rayMaxDistance, out _leftHandNormal);
-            _rightFootPos = SimpleRaycast(rightCalf.position, transform.forward, rayMaxDistance, out _rightFootNormal);
-            _leftFootPos = SimpleRaycast(leftCalf.position, transform.forward, rayMaxDistance, out _leftFootNormal);
-
-            while (stateMachine == StateMachine.Wall)
-            {
-                Transform arm;
-                Transform calf;
-                if (_isRightTurn)
-                {
-                    arm = rightUpperArm;
-                    calf = leftCalf;
-                }
-                else
-                {
-                    arm = leftUpperArm;
-                    calf = rightCalf;
-                }
-
-                if (arm == null || calf == null)
-                {
-                    yield return null;
-                    continue;
-                }
-
-                RaycastHit hit;
-
-                var armLowerBound = (transform.forward - transform.up).normalized;
-                var armUpperBound = transform.up;
-                RaycastHit lastHit = default;
-                bool anyHit = false;
-
-                for (var i = 0; i < searchCount; i++)
-                {
-                    var midDir = (armLowerBound + armUpperBound).normalized;
-                    var query = new Ray
-                    {
-                        origin = arm.position,
-                        direction = midDir,
-                    };
-                    if (Physics.Raycast(query, out hit, armLength, wallLayerMask))
-                    {
-                        armLowerBound = midDir;
-                        lastHit = hit;
-                        anyHit = true;
-                    }
-                    else
-                    {
-                        armUpperBound = midDir;
-                    }
-                }
-
-                if (anyHit)
-                {
-                    if (_isRightTurn)
-                    {
-                        _rightHandPos = lastHit.point;
-                        _rightHandNormal = lastHit.normal;
-                    }
-                    else
-                    {
-                        _leftHandPos = lastHit.point;
-                        _leftHandNormal = lastHit.normal;
-                    }
-                }
-
-                var calfRay = new Ray
-                {
-                    origin = calf.position,
-                    direction = transform.forward
-                };
-                Debug.DrawRay(calfRay.origin, calfRay.direction * rayMaxDistance, Color.red);
-                if (Physics.Raycast(calfRay, out hit, rayMaxDistance, wallLayerMask))
-                {
-                    if (_isRightTurn)
-                    {
-                        _leftFootPos = hit.point;
-                        _leftFootNormal = hit.normal;
-                    }
-                    else
-                    {
-                        _rightFootPos = hit.point;
-                        _rightFootNormal = hit.normal;
-                    }
-                }
-
-                // 1. 손발 ray들의 hit normal 평균 계산
-                Vector3 avgNormal = Vector3.zero;
-                int normalCount = 0;
-                if (_rightHandNormal.sqrMagnitude > 0.001f) { avgNormal += _rightHandNormal; normalCount++; }
-                if (_leftHandNormal.sqrMagnitude > 0.001f) { avgNormal += _leftHandNormal; normalCount++; }
-                if (_rightFootNormal.sqrMagnitude > 0.001f) { avgNormal += _rightFootNormal; normalCount++; }
-                if (_leftFootNormal.sqrMagnitude > 0.001f) { avgNormal += _leftFootNormal; normalCount++; }
-
-                if (normalCount > 0)
-                {
-                    _surfaceNormal = (avgNormal / normalCount).normalized;
-                }
-
-                // surface normal이 45도 미만(평지/완만한 경사)이면 Floor로 복귀
-                if (Vector3.Angle(Vector3.up, _surfaceNormal) < 23f)
-                {
-                    TransitionToFloor();
-                    yield break;
-                }
-
-                // 2. 손발 ray 평균 법선을 바탕으로 wallUp 결정
-                var wallUp = Vector3.ProjectOnPlane(Vector3.up, _surfaceNormal).normalized;
-                if (wallUp.sqrMagnitude < 0.001f)
-                {
-                    wallUp = transform.up;
-                }
-
-                float upGoingDistance;
-                if (anyHit)
-                {
-                    var reachUp = Vector3.Dot(lastHit.point - arm.position, wallUp);
-                    upGoingDistance = Mathf.Max(0f, reachUp * upGoingDistanceDivider);
-                }
-                else
-                {
-                    upGoingDistance = 0f;
-                }
-
-                // 위치 이동 보간
-                float duration = Mathf.Max(wallClimbDuration, 0.01f);
-                float counter = 0f;
-                while (counter < duration && stateMachine == StateMachine.Wall)
-                {
-                    float dt = Time.deltaTime;
-                    counter += dt;
-
-                    // 캐릭터 위치 이동
-                    transform.position += wallUp * (upGoingDistance * (dt / duration));
-
-                    // 이동 중 벽면과의 거리 실시간 보정 (몸체 로테이팅 법선은 손발 평균 _surfaceNormal 유지)
-                    if (Physics.Raycast(transform.position, -_surfaceNormal, out var moveHit,
-                            rayMaxDistance,
-                            wallLayerMask))
-                    {
-                        var currentDistanceToWall = Vector3.Dot(transform.position - moveHit.point, _surfaceNormal);
-                        var distanceError = wallDistance - currentDistanceToWall;
-                        transform.position += _surfaceNormal * distanceError;
-                    }
-
-                    yield return null;
-                }
-
-                _isRightTurn = !_isRightTurn;
-            }
-        }
-        finally
-        {
-            _wallClimbCoroutine = null;
-        }
-    }
-
-
-    // 현재 보간된 IK 위치를 기억할 변수 추가
-    public Vector3 _currentRightHandPos ;
-    public Vector3 _currentLeftHandPos ;
-    public Vector3 _currentRightFootPos ;
-    public Vector3 _currentLeftFootPos ;
-
-    //private void OnAnimatorIK(int layerIndex)
-    //{
-    //    Debug.Log("IK 호출");
-
-    //    if (animator == null) return;
-    //    if (layerIndex != 0) return; // 베이스 레이어에서만 실행 (다중 레이어 중복 호출 방지)
-
-    //    float currentHandWeight = (stateMachine == StateMachine.Wall) ? handIKWeight : 0f;
-    //    float currentFootWeight = (stateMachine == StateMachine.Wall) ? footIKWeight : 0f;
-
-    //    // 목표 위치가 아직 잡히지 않은 경우(Vector3.zero) 애니메이션 기본 위치로 초기화
-    //    if (_currentRightHandPos == Vector3.zero) _currentRightHandPos = animator.GetIKPosition(AvatarIKGoal.RightHand);
-    //    if (_currentLeftHandPos == Vector3.zero) _currentLeftHandPos = animator.GetIKPosition(AvatarIKGoal.LeftHand);
-    //    if (_currentRightFootPos == Vector3.zero) _currentRightFootPos = animator.GetIKPosition(AvatarIKGoal.RightFoot);
-    //    if (_currentLeftFootPos == Vector3.zero) _currentLeftFootPos = animator.GetIKPosition(AvatarIKGoal.LeftFoot);
-
-    //    // --- 오른손 ---
-    //    IKSet(AvatarIKGoal.RightHand, currentHandWeight, _rightHandPos, ref _currentRightHandPos);
-
-    //    // --- 왼손 ---
-    //    IKSet(AvatarIKGoal.LeftHand, currentHandWeight, _leftHandPos, ref _currentLeftHandPos);
-
-    //    // --- 오른발 ---
-    //    IKSet(AvatarIKGoal.RightFoot, currentFootWeight, _rightFootPos, ref _currentRightFootPos);
-
-    //    // --- 왼발 ---
-    //    IKSet(AvatarIKGoal.LeftFoot, currentFootWeight, _leftFootPos, ref _currentLeftFootPos);
-    //}
-
-    //private void IKSet(AvatarIKGoal goal, float weight, Vector3 targetPos, ref Vector3 currentSmoothedPos)
-    //{
-    //    animator.SetIKPositionWeight(goal, weight);
-
-    //    if (weight > 0.001f && targetPos != Vector3.zero)
-    //    {
-    //        // 이전 프레임의 보간 위치에서 목표 위치로 서서히 이동
-    //        currentSmoothedPos = Vector3.Lerp(currentSmoothedPos, targetPos, tweenConst);
-    //        animator.SetIKPosition(goal, currentSmoothedPos);
-    //    }
-    //    else
-    //    {
-    //        // IK가 꺼져있을 때는 기본 애니메이션 위치 동기화
-    //        currentSmoothedPos = animator.GetIKPosition(goal);
-    //    }
-    //}
-
 
     public void OnLook(InputAction.CallbackContext context)
     {
         if (Cursor.visible)
         {
-            mouseDelta = Vector2.zero;
+            _mouseDelta = Vector2.zero;
             return;
         }
 
-        mouseDelta = context.ReadValue<Vector2>() * mouseSensitivity;
-        float mouseX = mouseDelta.x;
-        float mouseY = mouseDelta.y;
+        _mouseDelta = context.ReadValue<Vector2>() * mouseSensitivity;
+        _pitch = Mathf.Clamp(_pitch - _mouseDelta.y, minPitch, maxPitch);
 
-        // 1. Pitch 누적 및 클램핑 (공통)
-        _pitch = Mathf.Clamp(_pitch - mouseY, minPitch, maxPitch);
-
-        // 2. 상태별 Yaw 처리
-        if (stateMachine == StateMachine.Floor)
+        if (statemachine == StateMachine.Wall)
         {
-            // 지상: 월드 360도 자유 회전
-            _yaw += mouseX;
+            float wallYaw = GetWallFacingYaw(_surfaceNormal);
+            float rel = Mathf.Clamp(Mathf.DeltaAngle(wallYaw, _yaw) + _mouseDelta.x, -wallYawLimit, wallYawLimit);
+            _yaw = wallYaw + rel;
         }
         else
         {
-            // 벽 등반: 벽면 기준 둘러보기 범위 제한
-            _yaw = Mathf.Clamp(_yaw + mouseX, -wallYawLimit, wallYawLimit);
+            _yaw += _mouseDelta.x;
         }
     }
 
     public void OnScroll(InputAction.CallbackContext context)
     {
-        if (cam == null) return;
+        if (cam == null)
+            return;
 
         float scrollValue = context.ReadValue<float>();
-        _currentCamDistance += scrollValue * scrollSensitivity;
-        _currentCamDistance = Mathf.Clamp(_currentCamDistance, minDistance, maxDistance);
-
-        // 왜곡 없는 로컬 Z축 줌인/줌아웃
+        _currentCamDistance = Mathf.Clamp(_currentCamDistance + scrollValue * scrollSensitivity, minDistance, maxDistance);
         cam.transform.localPosition = new Vector3(0f, 0f, _currentCamDistance);
     }
 
-
-    public void OnInteract(InputAction.CallbackContext context)
-    {
-    }
-
-    public void OnCrouch(InputAction.CallbackContext context)
-    {
-    }
-
-    public void OnPrevious(InputAction.CallbackContext context)
-    {
-    }
-
-    public void OnNext(InputAction.CallbackContext context)
-    {
-    }
-
-    public void OnSprint(InputAction.CallbackContext context)
-    {
-    }
-
-    public void OnWhistle(InputAction.CallbackContext context)
-    {
-    }
+    public void OnInteract(InputAction.CallbackContext context) { }
+    public void OnCrouch(InputAction.CallbackContext context) { }
+    public void OnPrevious(InputAction.CallbackContext context) { }
+    public void OnNext(InputAction.CallbackContext context) { }
+    public void OnSprint(InputAction.CallbackContext context) { }
+    public void OnWhistle(InputAction.CallbackContext context) { }
 
     public void UseItem()
     {
@@ -1963,9 +1311,7 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
             return;
 
         if (_playerInventory.UseItem(slotIndex))
-        {
             Debug.Log($"아이템 사용 (슬롯 {slotIndex + 1})");
-        }
     }
 
     public void NotifyInventoryAdded(ItemData item)
@@ -2021,30 +1367,21 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
 
     public void UseWaterGun()
     {
+        Vector3 origin = GetCameraPivotPosition();
+        Vector3 forward = camPivot != null
+            ? camPivot.forward
+            : (_latestAimDirection.sqrMagnitude > 0.001f
+                ? _latestAimDirection
+                : Quaternion.Euler(_pitch, _yaw, 0f) * Vector3.forward);
 
-        // 내 캐릭터가 보는 위치(y축 회전 값)
-        Quaternion yawRotation =
-            Quaternion.Euler(0f, _yaw, 0f);
+        Debug.DrawRay(origin, forward * WaterGunDistance, Color.red);
 
-
-        // y 축 회전값을 통한 내가 보는 곳에 대한 앞 찾기
-        Vector3 forward =
-            yawRotation * Vector3.forward;
-
-        var ray = new Ray
+        LayerMask mask = ~(1 << 2);
+        if (TryCastClimbRaycast(origin, forward, WaterGunDistance, mask, out RaycastHit hit))
         {
-            origin = transform.position,
-            direction = forward
-        };
-        Debug.DrawRay(ray.origin, ray.direction * WaterGunDistance, Color.red);
-        if (Physics.Raycast(ray, out RaycastHit transHit, WaterGunDistance, wallLayerMask))
-        {
-            GameObject HitObj = transHit.transform.gameObject;
-
-            if(HitObj.TryGetComponent<PlayerCondition>(out PlayerCondition HitCondition))
-            {
-                HitCondition.RefreshWaterGunAttack();
-            }
+            PlayerCondition hitCondition = hit.collider.GetComponentInParent<PlayerCondition>();
+            if (hitCondition != null && hitCondition != _condition)
+                hitCondition.RefreshWaterGunAttack();
         }
     }
 }
