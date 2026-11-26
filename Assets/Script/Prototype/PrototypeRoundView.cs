@@ -89,6 +89,21 @@ public class PrototypeRoundView : MonoBehaviour
                 InGameUIManager.Instance.UpdateItemSlots(inventory.Items, inventory.SelectedSlot);
             else
                 InGameUIManager.Instance.UpdateItemSlots(null, -1);
+            Un inputOwner = localObject.GetComponent<Un>();
+            if (inputOwner != null && inputOwner.ItemInput != null)
+            {
+                bool reviveSelected = inventory != null && inventory.SelectedSlot >= 0 &&
+                    inventory.SelectedSlot < inventory.Items.Count && inventory.Items[inventory.SelectedSlot].ItemName == "ReviveItem";
+                InGameUIManager.Instance.SetItemKeyGuideBindings(
+                    (reviveSelected ? inputOwner.ItemInput.Revive : inputOwner.ItemInput.Use).GetBindingDisplayString(0),
+                    inputOwner.ItemInput.Drop.GetBindingDisplayString(0),
+                    inputOwner.ItemInput.Throw.GetBindingDisplayString(0));
+            }
+            if (state != null && (!state.IsInPlayground || state.IsDowned))
+            {
+                InGameUIManager.Instance.SetItemKeyGuideVisible(false);
+                InGameUIManager.Instance.SetCrosshairVisible(false);
+            }
         }
 
         // #4 소생 하트 (도망자 전용)

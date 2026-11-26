@@ -199,7 +199,7 @@ namespace Script.sound
             // 1. 총을 쏜 자리에서 총소리 재생 (위치 기반 3D 오디오)
             if (gunSoundClip != null)
             {
-                AudioSource.PlayClipAtPoint(gunSoundClip, transform.position, gunSoundVolume);
+                PrototypeAudioVolume.PlayEffectAtPoint(gunSoundClip, transform.position, gunSoundVolume);
             }
 
             // 2. 거리에 비례하여 카메라 흔들기 (Cinemachine Impulse)

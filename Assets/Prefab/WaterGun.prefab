@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5382043739995214226}
   - component: {fileID: 8743226443402161049}
   - component: {fileID: -5665945575749695813}
+  - component: {fileID: 8470809413792565250}
   m_Layer: 0
   m_Name: WaterGun
   m_TagString: Untagged
@@ -74,6 +75,7 @@ MonoBehaviour:
   NestedObjects: []
   NetworkedBehaviours:
   - {fileID: -5665945575749695813}
+  - {fileID: 8470809413792565250}
   ForceRemoteRenderTimeframe: 0
 --- !u!114 &-5665945575749695813
 MonoBehaviour:
@@ -85,6 +87,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f3b43be93fb6aa4c9de802414917be7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemSprite: {fileID: 21300000, guid: e488586dcdcd8401196e53e7dde878bf, type: 3}
+--- !u!114 &8470809413792565250
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3578977768914254418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7337fde76135b244bffbe96c7071837, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &3645172662298588346

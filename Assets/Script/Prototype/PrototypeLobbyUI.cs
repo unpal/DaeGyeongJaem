@@ -46,11 +46,16 @@ public class PrototypeLobbyUI : MonoBehaviour
     private float copyMessageUntil;
     private bool volumeChanged;
     private bool cursorUnlocked;
+    private CanvasGroup[] entryControls;
+    private bool wasConnected;
 
     public bool IsEscMenuOpen => escMenuPanel != null && escMenuPanel.activeSelf;
 
     private void Awake()
     {
+        PrototypeSettings.Initialize();
+        entryControls = new[] { rolePanel.GetComponent<CanvasGroup>() ?? rolePanel.AddComponent<CanvasGroup>(),
+            joinPanel.GetComponent<CanvasGroup>() ?? joinPanel.AddComponent<CanvasGroup>() };
         if (masterVolumeSlider != null)
         {
             masterVolumeSlider.SetValueWithoutNotify(AudioListener.volume);
@@ -64,7 +69,18 @@ public class PrototypeLobbyUI : MonoBehaviour
         ShowRolePanel();
     }
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private void Start()
+    {
+        if (lobby.IsConnected) { wasConnected = true; return; }
+        if (string.IsNullOrWhiteSpace(nameInput.text)) nameInput.text = "플레이어";
+        var entry = MainMenuController.RequestedEntry;
+        MainMenuController.RequestedEntry = MainMenuController.EntryMode.Choose;
+        if (entry == MainMenuController.EntryMode.Host) Host();
+        else if (entry == MainMenuController.EntryMode.Join) OpenJoinPanel();
+        if (matchingTitle != null && entry != MainMenuController.EntryMode.Choose)
+            matchingTitle.text = entry == MainMenuController.EntryMode.Join ? "게임 세션 참가" : "방 만들기";
+    }
+
     private static void RestoreMasterVolume()
     {
         AudioListener.volume = Mathf.Clamp01(PlayerPrefs.GetFloat(MasterVolumeKey, 1f));
@@ -72,6 +88,8 @@ public class PrototypeLobbyUI : MonoBehaviour
 
     private void SetMasterVolume(float value)
     {
+        PrototypeSettings.Current.master = Mathf.Clamp01(value);
+        PrototypeSettings.Apply();
         AudioListener.volume = Mathf.Clamp01(value);
         PlayerPrefs.SetFloat(MasterVolumeKey, AudioListener.volume);
         volumeChanged = true;
@@ -88,6 +106,7 @@ public class PrototypeLobbyUI : MonoBehaviour
     {
         if (!volumeChanged) return;
         PlayerPrefs.Save();
+        PrototypeSettings.Save();
         volumeChanged = false;
     }
 
@@ -102,6 +121,10 @@ public class PrototypeLobbyUI : MonoBehaviour
     {
         if (lobby == null)
             return;
+
+        foreach (var group in entryControls) group.interactable = !lobby.IsConnecting;
+        if (lobby.IsConnected) wasConnected = true;
+        else if (wasConnected) { wasConnected = false; ShowRolePanel(); }
 
         //bootstrap이 관리하는 네트워크 상태를 ui에 반영 룸 코드, 호스트 이름 이런거.
         string roomCodeLabel = string.IsNullOrEmpty(lobby.RoomCode)
@@ -134,6 +157,7 @@ public class PrototypeLobbyUI : MonoBehaviour
             ShowRoomPanel();
 
         // 호스트와 참가자 모두 같은 메뉴를 사용한다.
+        if (PrototypeSettingsPanel.ConsumesEscape) return;
         if (lobby.IsConnected && Input.GetKeyDown(KeyCode.Escape))
         {
             if (escSettingsPanel != null && escSettingsPanel.activeSelf)
@@ -174,6 +198,7 @@ public class PrototypeLobbyUI : MonoBehaviour
             SetEscMenuOpen(false);
             SetCursorLocked(false);
             ShowOnly(joinPanel);
+            if (matchingTitle != null) matchingTitle.text = "게임 세션 참가";
         }
     }
 
@@ -182,11 +207,6 @@ public class PrototypeLobbyUI : MonoBehaviour
     //접속 성공전까지 join panel 유지
     public void Join()
     {
-        if (string.IsNullOrWhiteSpace(nameInput.text) ||
-            string.IsNullOrWhiteSpace(roomCodeInput.text) ||
-            roomCodeInput.text.Trim().Length != 6)
-            return;
-
         lobby.JoinClient(nameInput.text, roomCodeInput.text);
     }
 
@@ -209,17 +229,13 @@ public class PrototypeLobbyUI : MonoBehaviour
 
     public void ToggleEscSettings()
     {
-        if (escSettingsPanel == null)
-            return;
-
-        bool open = !escSettingsPanel.activeSelf;
-        if (open && !IsEscMenuOpen)
-            SetEscMenuOpen(true);
-        escSettingsPanel.SetActive(open);
-        if (escMenuContainer != null)
-            escMenuContainer.SetActive(!open);
-        if (!open)
-            SaveVolume();
+        if (PrototypeSettingsPanel.IsOpen) return;
+        SetEscMenuOpen(true);
+        if (escSettingsPanel != null) escSettingsPanel.SetActive(false);
+        if (escMenuContainer != null) escMenuContainer.SetActive(false);
+        PrototypeSettingsPanel.Show(nameInput.textComponent.font, () => {
+            if (this != null && escMenuContainer != null) escMenuContainer.SetActive(true);
+        });
     }
 
     public void ShowRolePanel()
@@ -227,6 +243,11 @@ public class PrototypeLobbyUI : MonoBehaviour
         SetEscMenuOpen(false);
         SetCursorLocked(false);
         ShowOnly(rolePanel);
+    }
+
+    public void BackToMainMenu()
+    {
+        if (!lobby.IsConnecting) lobby.LeaveToMainMenu();
     }
 
     public void Leave()

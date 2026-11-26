@@ -93,6 +93,7 @@ namespace Script.UI
         private string currentFireKey = "우클릭";
         private string currentDropKey = "G";
         private string currentThrowKey = "V";
+        private string currentUseLabel = "발사";
 
         public bool IsMicMuted { get; private set; }
 
@@ -439,6 +440,9 @@ namespace Script.UI
                 : null;
 
             SetItemKeyGuideVisible(selectedItem != null);
+            string actionLabel = selectedItem != null && selectedItem.ItemName == "ReviveItem" ? "소생" :
+                selectedItem != null && selectedItem.ItemName == ItemData.WaterGunItemName ? "발사" : "사용";
+            if (currentUseLabel != actionLabel) { currentUseLabel = actionLabel; RefreshKeyGuideText(); }
             SetCrosshairVisible(
                 selectedItem != null &&
                 string.Equals(selectedItem.ItemName, ItemData.WaterGunItemName, System.StringComparison.Ordinal));
@@ -476,6 +480,8 @@ namespace Script.UI
         /// <param name="throwKey">던지기 키 표시 문자열</param>
         public void SetItemKeyGuideBindings(string fireKey, string dropKey, string throwKey)
         {
+            if (currentFireKey == fireKey && currentDropKey == dropKey && currentThrowKey == throwKey &&
+                itemKeyGuideText != null && !string.IsNullOrEmpty(itemKeyGuideText.text)) return;
             if (!string.IsNullOrWhiteSpace(fireKey))
                 currentFireKey = fireKey;
 
@@ -485,10 +491,13 @@ namespace Script.UI
             if (!string.IsNullOrWhiteSpace(throwKey))
                 currentThrowKey = throwKey;
 
+            RefreshKeyGuideText();
+        }
+
+        private void RefreshKeyGuideText()
+        {
             if (itemKeyGuideText != null)
-            {
-                itemKeyGuideText.text = $"발사 - {currentFireKey}\n내려놓기 - {currentDropKey}\n던지기 - {currentThrowKey}";
-            }
+                itemKeyGuideText.text = $"{currentUseLabel} - {currentFireKey}\n내려놓기 - {currentDropKey}\n던지기 - {currentThrowKey}";
         }
 
         /// <summary>

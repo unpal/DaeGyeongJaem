@@ -269,7 +269,7 @@ public class PrototypeRoundManager : NetworkBehaviour
                 lifecycle.ResetForRound(
                     state.IsSeeker
                         ? (seekerSpawn != null ? seekerSpawn.position : new Vector3(0f, 1.2f, 0f))
-                        : PrototypeSpawnPoints.Get(runnerSpawnIndex++),
+                        : PrototypeSpawnLayout.Get(runnerSpawnIndex++),
                     state.IsSeeker && seekerSpawn != null ? seekerSpawn.rotation : Quaternion.identity);
         }
 

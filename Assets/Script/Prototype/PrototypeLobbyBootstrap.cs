@@ -24,6 +24,9 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     //runner.startgame 중복호출 방지용 
     private bool isConnecting;
     private bool isStartingMatch;
+    private static string entryError;
+    private bool sessionStarted;
+    private bool isLeaving;
     //이름
     //플레이어 networkobject spawn 됨 > playergamestate가 rpc 로 host에 전달
     public static string LocalPlayerName { get; private set; } = string.Empty;
@@ -39,6 +42,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     //
     private void Awake()
     {
+        if (!string.IsNullOrEmpty(entryError)) { status = entryError; entryError = null; }
         EnsureLocalPlayerCameraOutput();
 
         //로비씬번호 저장?
@@ -96,7 +100,7 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 
         // 네트워크 씬 전환은 모든 참가자를 이동시킬 수 있는 Host만 요청.
         if (runner != null && runner.IsRunning && runner.IsServer &&
-            Input.GetKeyDown(KeyCode.Return))
+            !Cursor.visible && !PrototypeSettingsPanel.IsOpen && Input.GetKeyDown(KeyCode.Return))
             StartMatch();
     }
 
@@ -130,9 +134,9 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
             return;
 
         string normalizedCode = NormalizeRoomCode(roomCode);
-        if (normalizedCode.Length != 6)
+        if (!IsValidRoomCode(normalizedCode))
         {
-            status = "방 코드는 6자리입니다.";
+            status = "잘못된 방 코드입니다";
             return;
         }
 
@@ -143,6 +147,8 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
 
     public async void LeaveToMainMenu()
     {
+        if (isLeaving) return;
+        isLeaving = true;
 
         // Runner를 남겨둔 채 메인으로 이동하면 다음 매칭 진입 시
         // 기존 세션이나 네트워크 콜백이 중복될 수 있으므로 먼저 종료한다.
@@ -175,21 +181,58 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
             return;
         }
 
-        StartGameResult result = await runner.StartGame(new StartGameArgs
+        try
         {
-            GameMode = mode,
-            SessionName = roomCode,
-            PlayerCount = 7,
-            Scene = SceneRef.FromIndex(currentSceneIndex)
-        });
+            StartGameResult result = await runner.StartGame(new StartGameArgs
+            {
+                GameMode = mode,
+                SessionName = roomCode,
+                PlayerCount = 7,
+                EnableClientSessionCreation = false,
+                Scene = SceneRef.FromIndex(currentSceneIndex)
+            });
 
-        isConnecting = false;
+            if (!result.Ok)
+            {
+                entryError = JoinError(result.ShutdownReason);
+                MainMenuController.RequestedEntry = mode == GameMode.Client
+                    ? MainMenuController.EntryMode.Join : MainMenuController.EntryMode.Choose;
+                if (runner != null) await runner.Shutdown();
+                SceneManager.LoadScene(currentSceneIndex);
+                return;
+            }
 
-        status = result.Ok
-            ? (mode == GameMode.Host
+            sessionStarted = true;
+            status = mode == GameMode.Host
                 ? "방 준비 완료 - Enter로 게임 시작"
-                : "접속 완료 - Host가 게임을 시작하기를 기다리는 중")
-            : $"접속 실패: {result.ShutdownReason}";
+                : "접속 완료 - Host가 게임을 시작하기를 기다리는 중";
+        }
+        catch (Exception exception)
+        {
+            Debug.LogException(exception);
+            entryError = "서버에 연결하지 못했습니다. 다시 시도해 주세요.";
+            MainMenuController.RequestedEntry = MainMenuController.EntryMode.Join;
+            if (runner != null) await runner.Shutdown();
+            SceneManager.LoadScene(currentSceneIndex);
+        }
+        finally { isConnecting = false; }
+    }
+
+    public static bool IsValidRoomCode(string code)
+    {
+        if (string.IsNullOrWhiteSpace(code)) return false;
+        code = code.Trim().ToUpperInvariant();
+        if (code.Length != 6) return false;
+        foreach (char c in code) if (!char.IsLetterOrDigit(c) || c > 127) return false;
+        return true;
+    }
+
+    public static string JoinError(ShutdownReason reason)
+    {
+        if (reason == ShutdownReason.GameNotFound) return "잘못된 방 코드입니다";
+        if (reason == ShutdownReason.GameIsFull) return "방 인원이 가득 찼습니다.";
+        if (reason == ShutdownReason.GameClosed) return "이미 게임이 시작된 방입니다.";
+        return "서버에 연결하지 못했습니다. 다시 시도해 주세요.";
     }
 
     //문자열 처리
@@ -256,7 +299,18 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
         if (networkRunner.TryGetPlayerObject(player, out NetworkObject existing) && existing != null)
             return;
 
-        Vector3 position = PrototypeSpawnPoints.Get(player.PlayerId);
+        // Allocate a free slot rather than taking PlayerId modulo the spawn count.
+        int spawnIndex = 0;
+        for (; spawnIndex < 7; spawnIndex++)
+        {
+            bool occupied = false;
+            foreach (PlayerRef other in networkRunner.ActivePlayers)
+                if (networkRunner.TryGetPlayerObject(other, out NetworkObject obj) && obj != null &&
+                    Vector3.SqrMagnitude(obj.transform.position - PrototypeSpawnLayout.Get(spawnIndex)) < 1f)
+                    occupied = true;
+            if (!occupied) break;
+        }
+        Vector3 position = PrototypeSpawnLayout.Get(spawnIndex);
         NetworkObject spawned = networkRunner.Spawn(playerPrefab, position, Quaternion.identity, player);
 
         // PlayerRef와 NetworkObject를 연결
@@ -330,6 +384,11 @@ public class PrototypeLobbyBootstrap : MonoBehaviour, INetworkRunnerCallbacks
     {
         isConnecting = false;
         status = $"연결 종료: {reason}";
+        if (sessionStarted && !isLeaving)
+        {
+            isLeaving = true;
+            SceneManager.LoadScene("MainMenuScene");
+        }
     }
     public void OnUserSimulationMessage(NetworkRunner r, SimulationMessagePtr message) { }
 }
@@ -339,7 +398,8 @@ public static class PrototypeSpawnPoints
     private static readonly Vector3[] Points =
     {
         new(-9f, 1.2f, -9f), new(9f, 1.2f, -9f),
-        new(-9f, 1.2f, 9f), new(9f, 1.2f, 9f)
+        new(-9f, 1.2f, 9f), new(9f, 1.2f, 9f),
+        new(0f, 1.2f, -9f), new(-9f, 1.2f, 0f), new(9f, 1.2f, 0f)
     };
 
     public static Vector3 Get(int playerId) => Points[Mathf.Abs(playerId) % Points.Length];

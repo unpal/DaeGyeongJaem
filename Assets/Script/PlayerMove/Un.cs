@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(PlayerCondition))]
@@ -27,14 +28,17 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private RawInput _rawInput;
     private RawInput.PlayerActions _playerActions;
     private InputAction _sprintAction;
-    private InputAction _openEyesAction;
-    private InputAction _reviveAction;
-    private InputAction _useItemAction;
-    public bool OpenEyesHeld => _openEyesAction != null && _openEyesAction.IsPressed();
+    private PrototypeItemInput itemInput;
+    public PrototypeItemInput ItemInput => itemInput;
+    public bool OpenEyesHeld => itemInput != null && itemInput.OpenEyes.IsPressed();
     private PlayerCondition _condition;
     private PlayerGameState _gameState;
     [Networked] private NetworkBool JumpWasPressed { get; set; }
     [Networked] private NetworkBool UseItemWasPressed { get; set; }
+    [Networked] private NetworkBool DropWasPressed { get; set; }
+    [Networked] private NetworkBool ThrowWasPressed { get; set; }
+    private Vector3 itemAimDirection;
+    [Networked] private TickTimer ItemUseCooldown { get; set; }
 
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 5f;
@@ -59,7 +63,6 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     private Vector2 _moveInput;
     private bool JumpPressed;
     private bool AttackPressed;
-    private bool ItemUsePressed;
     Vector2 mouseDelta;
     [SerializeField]
     private Vector3 _surfaceNormal = Vector3.up;
@@ -200,12 +203,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
             _sprintAction = new InputAction("Sprint", InputActionType.Button, "<Keyboard>/leftShift");
             _sprintAction.AddBinding("<Gamepad>/leftStickPress");
             _sprintAction.Enable();
-            _openEyesAction = new InputAction("OpenEyes", InputActionType.Button, "<Keyboard>/q");
-            _reviveAction = new InputAction("Revive", InputActionType.Button, "<Keyboard>/e");
-            _useItemAction = new InputAction("UseItem", InputActionType.Button, "<Keyboard>/f");
-            _openEyesAction.Enable();
-            _reviveAction.Enable();
-            _useItemAction.Enable();
+            itemInput = new PrototypeItemInput();
             if (GetComponent<SeekerVisionMask>() == null)
                 gameObject.AddComponent<SeekerVisionMask>();
             //Cursor.lockState = CursorLockMode.Locked;
@@ -287,9 +285,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
     {
         _rawInput?.Dispose();
         _sprintAction?.Dispose();
-        _openEyesAction?.Dispose();
-        _reviveAction?.Dispose();
-        _useItemAction?.Dispose();
+        itemInput?.Dispose();
         if (camPivot != null && Object != null && Object.HasInputAuthority)
             Destroy(camPivot.gameObject);
     }
@@ -299,19 +295,18 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         if (_rawInput != null)
             _playerActions.Enable();
         _sprintAction?.Enable();
-        _openEyesAction?.Enable();
-        _reviveAction?.Enable();
-        _useItemAction?.Enable();
     }
     public NetworkInputData GetNetworkInput()
     {
         NetworkInputData data = new NetworkInputData();
 
+        if (Cursor.visible || PrototypeSettingsPanel.IsOpen) return data;
+
         bool isSeeker = _gameState != null && _gameState.IsSeeker;
+        itemInput?.SetRole(isSeeker, false);
         int selectedSlot = (_playerInventory != null && !isSeeker)
             ? _playerInventory.SelectedSlot
             : -1;
-        bool rightClickHeld = (Mouse.current != null && Mouse.current.rightButton.isPressed) || ItemUsePressed;
 
         data.Move = _moveInput;
         data.Look = mouseDelta;
@@ -319,8 +314,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         data.AimDirection = camPivot != null ? camPivot.forward : transform.forward;
         data.SelectedSlot = selectedSlot;
         data.Buttons.Set((int)PlayerButtons.OpenEyes, OpenEyesHeld);
-        data.Buttons.Set((int)PlayerButtons.Revive, _reviveAction != null && _reviveAction.IsPressed());
-        data.Buttons.Set((int)PlayerButtons.Catch, isSeeker && rightClickHeld);
+        data.Buttons.Set((int)PlayerButtons.Revive, itemInput != null && itemInput.Revive.IsPressed());
+        data.Buttons.Set((int)PlayerButtons.Catch, itemInput != null && itemInput.Catch.IsPressed());
+        data.Buttons.Set((int)PlayerButtons.DropItem, itemInput != null && itemInput.Drop.IsPressed());
+        data.Buttons.Set((int)PlayerButtons.ThrowItem, itemInput != null && itemInput.Throw.IsPressed());
 
         data.Buttons.Set(
             (int)PlayerButtons.Jump,
@@ -332,7 +329,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
         data.Buttons.Set(
             (int)PlayerButtons.UseItem,
-            !isSeeker && selectedSlot >= 0 && rightClickHeld);
+            !isSeeker && selectedSlot >= 0 && itemInput != null && itemInput.Use.IsPressed());
 
         data.Buttons.Set(
             (int)PlayerButtons.Sprint,
@@ -356,7 +353,10 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         _pitch = 0f;
         _playerInventory?.SyncClear();
         if (Object != null && (Object.HasStateAuthority || Object.HasInputAuthority))
-            UseItemWasPressed = false;
+        {
+            UseItemWasPressed = DropWasPressed = ThrowWasPressed = false;
+            ItemUseCooldown = TickTimer.None;
+        }
         transform.SetPositionAndRotation(position, rotation);
         if (_rb != null)
         {
@@ -372,9 +372,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         if (_rawInput != null)
             _playerActions.Disable();
         _sprintAction?.Disable();
-        _openEyesAction?.Disable();
-        _reviveAction?.Disable();
-        _useItemAction?.Disable();
+        itemInput?.SetRole(false, true);
         _moveInput = Vector2.zero;
         JumpPressed = false;
         AttackPressed = false;
@@ -460,22 +458,40 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
         }
 
         bool useItemPressed = data.Buttons.IsSet(PlayerButtons.UseItem);
+        bool dropPressed = data.Buttons.IsSet(PlayerButtons.DropItem);
+        bool throwPressed = data.Buttons.IsSet(PlayerButtons.ThrowItem);
+        itemAimDirection = data.AimDirection;
+        bool released = false;
+        if (Object.HasStateAuthority && _playerInventory != null)
+        {
+            if (throwPressed && !ThrowWasPressed)
+                released = _playerInventory.ReleaseItem(data.SelectedSlot, data.AimDirection, true);
+            else if (dropPressed && !DropWasPressed)
+                released = _playerInventory.ReleaseItem(data.SelectedSlot, data.AimDirection, false);
+        }
         if (Object.HasStateAuthority &&
+            !released &&
             (_gameState == null || !_gameState.IsSeeker) &&
-            useItemPressed && !UseItemWasPressed &&
+            useItemPressed && !UseItemWasPressed && ItemUseCooldown.ExpiredOrNotRunning(Runner) &&
             data.SelectedSlot >= 0)
         {
             UseItem(data.SelectedSlot);
+            ItemUseCooldown = TickTimer.CreateFromSeconds(Runner, 0.25f);
         }
 
         JumpWasPressed = data.Buttons.IsSet(PlayerButtons.Jump);
         UseItemWasPressed = useItemPressed;
+        DropWasPressed = dropPressed;
+        ThrowWasPressed = throwPressed;
     }
 
     private void Update()
     {
         if (Object == null || !Object.HasInputAuthority || _playerInventory == null)
             return;
+
+        itemInput?.SetRole(_gameState != null && _gameState.IsSeeker, Cursor.visible || PrototypeSettingsPanel.IsOpen);
+        if (Cursor.visible || PrototypeSettingsPanel.IsOpen || (_gameState != null && !_gameState.CanMove)) return;
 
         if (_gameState != null && _gameState.IsSeeker)
         {
@@ -715,14 +731,7 @@ public class Un : NetworkBehaviour, RawInput.IPlayerActions
 
     public void OnUse(InputAction.CallbackContext context)
     {
-        if (context.started || context.performed)
-        {
-            ItemUsePressed = true;
-        }
-        else
-        {
-            ItemUsePressed = false;
-        }
+        // Item actions are owned by PrototypeItemInput, independently of the shared movement map.
     }
 
     public void OnAttack(InputAction.CallbackContext context)
@@ -1895,7 +1904,8 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
             return;
         }
 
-        mouseDelta = context.ReadValue<Vector2>() * mouseSensitivity;
+        mouseDelta = context.ReadValue<Vector2>() * (PrototypeSettings.Current != null
+            ? PrototypeSettings.Current.sensitivity : mouseSensitivity);
         float mouseX = mouseDelta.x;
         float mouseY = mouseDelta.y;
 
@@ -2021,30 +2031,9 @@ private void TransitionToWall(Vector3 hitPoint, Vector3 hitNormal)
 
     public void UseWaterGun()
     {
-
-        // 내 캐릭터가 보는 위치(y축 회전 값)
-        Quaternion yawRotation =
-            Quaternion.Euler(0f, _yaw, 0f);
-
-
-        // y 축 회전값을 통한 내가 보는 곳에 대한 앞 찾기
-        Vector3 forward =
-            yawRotation * Vector3.forward;
-
-        var ray = new Ray
-        {
-            origin = transform.position,
-            direction = forward
-        };
-        Debug.DrawRay(ray.origin, ray.direction * WaterGunDistance, Color.red);
-        if (Physics.Raycast(ray, out RaycastHit transHit, WaterGunDistance, wallLayerMask))
-        {
-            GameObject HitObj = transHit.transform.gameObject;
-
-            if(HitObj.TryGetComponent<PlayerCondition>(out PlayerCondition HitCondition))
-            {
-                HitCondition.RefreshWaterGunAttack();
-            }
-        }
+        if (Object == null || !Object.HasStateAuthority) return;
+        if (PrototypeItemAim.Raycast(gameObject.scene.GetPhysicsScene(), GetCameraPivotPosition(),
+            itemAimDirection, WaterGunDistance, transform, out RaycastHit hit))
+            hit.collider.GetComponentInParent<PlayerCondition>()?.RefreshWaterGunAttack();
     }
 }

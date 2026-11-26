@@ -347,15 +347,18 @@ public void ApplyTemporaryDamage(float amount)
             !playerGameState.IsInPlayground || playerGameState.IsDowned)
             return false;
 
+        var inventory = GetComponent<PlayerInventory>();
+        if (inventory == null || !inventory.AddItem(new Script.item.ItemData("ReviveItem", 0f))) return false;
         ReviveItemCount++;
         return true;
     }
 
-    public bool RemoveReviveItem()
+    public bool RemoveReviveItem(bool removeFromInventory = true)
     {
         if (!Object.HasStateAuthority || ReviveItemCount <= 0)
             return false;
 
+        if (removeFromInventory && !GetComponent<PlayerInventory>().RemoveFirst("ReviveItem")) return false;
         ReviveItemCount--;
         CancelRevive();
         return true;
@@ -400,6 +403,7 @@ public void ApplyTemporaryDamage(float amount)
         bool otherAction = input.Move.sqrMagnitude > 0f ||
             input.Buttons.IsSet(PlayerButtons.Jump) || input.Buttons.IsSet(PlayerButtons.Attack) ||
             input.Buttons.IsSet(PlayerButtons.Catch) || input.Buttons.IsSet(PlayerButtons.UseItem) ||
+            input.Buttons.IsSet(PlayerButtons.DropItem) || input.Buttons.IsSet(PlayerButtons.ThrowItem) ||
             (movement != null && movement.statemachine != Un.StateMachine.Floor);
 
         if (ReviveNeedsRelease || otherAction || !playerGameState.CanMove ||
@@ -436,7 +440,7 @@ public void ApplyTemporaryDamage(float amount)
             return;
 
         if (target.RecoverFromDowned())
-            ReviveItemCount--;
+            RemoveReviveItem();
         CancelRevive();
     }
 

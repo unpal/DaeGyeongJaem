@@ -10,7 +10,9 @@ public enum PlayerButtons
     Catch,
     OpenEyes,
     Revive,
-    UseItem
+    UseItem,
+    DropItem,
+    ThrowItem
 }
 
 public struct NetworkInputData : INetworkInput

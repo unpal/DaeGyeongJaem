@@ -18,6 +18,8 @@ public class PublicSpeaker : MonoBehaviour
 
     private void Awake()
     {
+        PrototypeAudioVolume.Bind(BGMSpeaker, PrototypeAudioBus.Music);
+        PrototypeAudioVolume.Bind(OtherSpeaker, PrototypeAudioBus.Effects);
         if (Instance == null)
         {
             Instance = this;

@@ -22,6 +22,8 @@ namespace Script.item.items
             HandlePickup(other.gameObject);
         }
 
+        private void OnTriggerStay(Collider other) { HandlePickup(other.gameObject); }
+
         private void OnCollisionEnter(Collision collision)
         {
             HandlePickup(collision.gameObject);
@@ -42,6 +44,7 @@ namespace Script.item.items
 
         public bool OnPickup(GameObject player)
         {
+            if (!PrototypeWorldItem.AllowsPickup(this)) return false;
             if (player == null)
                 return false;
 
