@@ -244,9 +244,6 @@ public class PrototypeRoundView : MonoBehaviour
             FallDamage fallDamage = playerObject.GetComponent<FallDamage>();
             if (fallDamage == null)
                 fallDamage = playerObject.gameObject.AddComponent<FallDamage>();
-
-            fallDamage.safeHeight = 3f;
-            fallDamage.damagePerMeter = 12f;
         }
     }
 

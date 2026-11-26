@@ -308,9 +308,10 @@ public class PlayerGameState : NetworkBehaviour
             else canvas.enabled = isVisible;
         }
         
-        // 투명 상태일 때 충돌 방지를 위해 CharacterController도 비활성화
+        // 투명 상태일 때 충돌 방지를 위해 CharacterController도 비활성화 (래그돌 중에는 꺼진 상태 유지)
+        if (movement == null) movement = GetComponent<Un>();
         var cc = GetComponent<CharacterController>();
-        if (cc != null) cc.enabled = isVisible;
+        if (cc != null) cc.enabled = isVisible && (movement == null || !movement.IsRagdoll);
     }
 
     public void MarkDowned()
