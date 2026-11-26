@@ -669,6 +669,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 149592877}
+  - component: {fileID: 149592878}
   m_Layer: 0
   m_Name: RolePanel
   m_TagString: Untagged
@@ -699,6 +700,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -50}
   m_SizeDelta: {x: 680, y: 650}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &149592878
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 149592876}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &224907649
 GameObject:
   m_ObjectHideFlags: 0
@@ -7119,6 +7132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1926422833}
+  - component: {fileID: 1926422834}
   m_Layer: 0
   m_Name: JoinPanel
   m_TagString: Untagged
@@ -7149,6 +7163,18 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -50}
   m_SizeDelta: {x: 680, y: 650}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &1926422834
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1926422832}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1936350740
 GameObject:
   m_ObjectHideFlags: 0
