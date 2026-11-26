@@ -66,6 +66,7 @@ public class PrototypeUIFeatureTests
         Assert.That(ragdoll, Is.Not.Null);
         Assert.That(ragdoll.HasValidRig, Is.True);
         Assert.That(ragdoll.HeadBone, Is.Not.Null);
+        Assert.That(ragdoll.TargetAnimator, Is.Not.Null);
         foreach (var node in prefab.GetComponentsInChildren<Transform>(true))
             Assert.That(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(node.gameObject), Is.Zero, node.name);
     }
