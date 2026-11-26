@@ -15,6 +15,62 @@ using UnityEngine.TestTools;
 public class PrototypeUIFeatureTests
 {
     [Test]
+    public void MenuBlocksMovementAndActionsButPreservesNetworkOrientation()
+    {
+        bool wasVisible = Cursor.visible;
+        var player = new GameObject("Merged movement input test");
+        try
+        {
+            var movement = player.AddComponent<Un>();
+            var rotation = Quaternion.Euler(0f, 123f, 0f);
+            movement.ResetForNextRound(Vector3.zero, rotation);
+            const System.Reflection.BindingFlags fields = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            typeof(Un).GetField("_moveInput", fields).SetValue(movement, Vector2.one);
+            typeof(Un).GetField("_jumpPressed", fields).SetValue(movement, true);
+            typeof(Un).GetField("_attackPressed", fields).SetValue(movement, true);
+
+            Cursor.visible = false;
+            var active = movement.GetNetworkInput();
+            Assert.That(active.Move, Is.EqualTo(Vector2.one));
+            Assert.That(active.Buttons.IsSet(PlayerButtons.Jump), Is.True);
+            Assert.That(active.Buttons.IsSet(PlayerButtons.Attack), Is.True);
+
+            Cursor.visible = true;
+            var blocked = movement.GetNetworkInput();
+            Assert.That(blocked.BodyYaw, Is.EqualTo(123f).Within(0.001f));
+            Assert.That(Vector3.Distance(blocked.AimDirection, rotation * Vector3.forward), Is.LessThan(0.001f));
+            Assert.That(blocked.Move, Is.EqualTo(Vector2.zero));
+            Assert.That(blocked.Look, Is.EqualTo(Vector2.zero));
+            Assert.That(blocked.SelectedSlot, Is.EqualTo(-1));
+            foreach (PlayerButtons button in System.Enum.GetValues(typeof(PlayerButtons)))
+                Assert.That(blocked.Buttons.IsSet(button), Is.False, button.ToString());
+        }
+        finally
+        {
+            Object.DestroyImmediate(player);
+            Cursor.visible = wasVisible;
+        }
+    }
+
+    [Test]
+    public void PlayerPrefabHasClimbingConfigAndCompleteRagdollReferences()
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefab/Player.prefab");
+        Assert.That(prefab.GetComponent<CharacterController>(), Is.Not.Null);
+        var movement = prefab.GetComponent<Un>();
+        Assert.That(movement, Is.Not.Null);
+        var config = new SerializedObject(movement).FindProperty("config").objectReferenceValue;
+        Assert.That(config, Is.EqualTo(Resources.Load<ClimbingConfig>("ClimbingConfig")));
+        Assert.That(config, Is.Not.Null);
+        var ragdoll = prefab.GetComponent<PlayerRagdoll>();
+        Assert.That(ragdoll, Is.Not.Null);
+        Assert.That(ragdoll.HasValidRig, Is.True);
+        Assert.That(ragdoll.HeadBone, Is.Not.Null);
+        foreach (var node in prefab.GetComponentsInChildren<Transform>(true))
+            Assert.That(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(node.gameObject), Is.Zero, node.name);
+    }
+
+    [Test]
     public void MainMenuSettingsButtonBuildsAllRequiredControlsAndAppliesValues()
     {
         const string key = "JITAL.Settings.v1";
